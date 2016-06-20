@@ -54,9 +54,28 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
-public class XnatProviderManager extends ProviderManager {
-    public XnatProviderManager(final List<AuthenticationProvider> providers) {
+public class XnatProviderManager extends ProviderManager{
+    public XnatProviderManager(List<AuthenticationProvider> providers) {
         super(providers);
+        this.storedProviders=providers;
+    }
+
+    public void addProvider(AuthenticationProvider provider){
+        storedProviders.add(provider);
+    }
+
+    public void updateProvider(AuthenticationProvider provider){
+        removeProvider(provider);
+        addProvider(provider);
+    }
+
+    public void removeProvider(AuthenticationProvider provider){
+        for(AuthenticationProvider p : storedProviders){
+            if(StringUtils.equals(((XnatAuthenticationProvider)provider).getName(), ((XnatAuthenticationProvider)p).getName())){
+                storedProviders.remove(p);
+                break;
+            }
+        }
     }
 
     @Override
@@ -71,7 +90,7 @@ public class XnatProviderManager extends ProviderManager {
             providers.add(getAnonymousAuthenticationProvider());
             authentication = new AnonymousAuthenticationToken(getAnonymousAuthenticationProvider().getKey(), authentication.getPrincipal(), Collections.<GrantedAuthority> singletonList(new SimpleGrantedAuthority("ROLE_ANONYMOUS")));
         } else {
-            for (AuthenticationProvider candidate : getProviders()) {
+            for (AuthenticationProvider candidate : storedProviders) {
                 if (!candidate.supports(toTest)) {
                     continue;
                 }
@@ -247,7 +266,7 @@ public class XnatProviderManager extends ProviderManager {
         }
     }
 
-    private XnatAuthenticationProvider findAuthenticationProviderByAuthMethod(final String authMethod) {
+    public XnatAuthenticationProvider findAuthenticationProviderByAuthMethod(final String authMethod) {
         return findAuthenticationProvider(new XnatAuthenticationProviderMatcher() {
             @Override
             public boolean matches(XnatAuthenticationProvider provider) {
@@ -256,7 +275,7 @@ public class XnatProviderManager extends ProviderManager {
         });
     }
 
-    private XnatAuthenticationProvider findAuthenticationProviderByProviderName(final String providerName) {
+    public XnatAuthenticationProvider findAuthenticationProviderByProviderName(final String providerName) {
         return findAuthenticationProvider(new XnatAuthenticationProviderMatcher() {
             @Override
             public boolean matches(XnatAuthenticationProvider provider) {
@@ -266,7 +285,7 @@ public class XnatProviderManager extends ProviderManager {
     }
 
     private XnatAuthenticationProvider findAuthenticationProvider(XnatAuthenticationProviderMatcher matcher) {
-        List<AuthenticationProvider> prov = getProviders();
+        List<AuthenticationProvider> prov = storedProviders;
         for (AuthenticationProvider ap : prov) {
             XnatAuthenticationProvider xap = (XnatAuthenticationProvider) ap;
             if (matcher.matches(xap)) {
@@ -384,7 +403,14 @@ public class XnatProviderManager extends ProviderManager {
         boolean matches(XnatAuthenticationProvider provider);
     }
 
+    @Override
+    public List<AuthenticationProvider> getProviders(){
+        return storedProviders;
+    }
+
     private static final Log _log = LogFactory.getLog(XnatProviderManager.class);
+
+    private List<AuthenticationProvider> storedProviders;
 
     private static Map<String, String> cached_methods = Maps.newConcurrentMap();//this will prevent 20,000 curl scripts from hitting the db everytime
 

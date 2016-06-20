@@ -739,107 +739,66 @@ themeManagement:
             className: themeUploader
 
 authenticationMethods:
-    kind: panel.form
+    kind: panel
     name: authenticationMethods
     label: User Authentication Methods
-    method: POST
-    action: /xapi/siteConfig/batch
-    contentType: json
-    load: XNAT.data.siteConfig
-    refresh: /xapi/siteConfig
+    footer: false
     contents:
-        xnatInternal:
-            kind: panel.input.checkbox
-            id: xnatInternal
-            name: provider.providers.xnatInternal
-            label: XNAT (Internal)
-        ldapProvider:
-            kind: panel.input.checkbox
-            id: ldapProvider
-            name: provider.providers.ldap
-            label: LDAP
-#        oauthProvider:
-#            kind: panel.input.checkbox
-#            id: oauthProvider
-#            name: provider.providers.oauth
-#            label: OAuth
-genericAuthenticationProvider:
-    kind: panel.form
-    name: genericAuthenticationProvider
-    label: Generic Authentication Provider
-    method: POST
-    action: /xapi/siteConfig/batch
-    contentType: json
-    load: XNAT.data.siteConfig
-    refresh: /xapi/siteConfig
-    contents:
-        providerDbName:
-            kind: panel.input.text
-            id: providerDbName
-            name: providerDbName
-            label: "Provider DB Name"
-        providerDbId:
-            kind: panel.input.text
-            id: providerDbId
-            name: providerDbId
-            label: "Provider DB ID"
-        providerDbType:
-            kind: panel.input.text
-            id: providerDbType
-            name: providerDbType
-            label: "Provider DB Type"
-
-ldapAuthentication:
-    kind: panel.form
-    name: ldapAuthenticationProvider
-    label: LDAP Authentication Provider
-    method: POST
-    action: /xapi/siteConfig/batch
-    contentType: json
-    load: XNAT.data.siteConfig
-    refresh: /xapi/siteConfig
-    contents:
-        ldapName:
-            kind: panel.input.text
-            id: ldapName
-            name: ldapName
-            label: "LDAP Name"
-        ldapId:
-            kind: panel.input.text
-            id: ldapId
-            name: ldapId
-            label: "LDAP ID"
-        ldapType:
-            kind: panel.input.text
-            id: ldapType
-            name: ldapType
-            label: "LDAP Type"
-        ldapAddress:
-            kind: panel.input.text
-            id: ldapAddress
-            name: ldapAddress
-            label: "LDAP Address"
-        ldapUserDomain:
-            kind: panel.input.text
-            id: ldapUserDomain
-            name: ldapUserDomain
-            label: "LDAP User Domain"
-        ldapPassword:
-            kind: panel.input.text
-            id: ldapPassword
-            name: ldapPassword
-            label: "LDAP Password"
-        ldapSearchBase:
-            kind: panel.input.text
-            id: ldapSearchBase
-            name: ldapSearchBase
-            label: "LDAP Search Base"
-        ldapSearchFilter:
-            kind: panel.input.text
-            id: ldapSearchFilter
-            name: ldapSearchFilter
-            label: "LDAP Search Filter"
-
+        message:
+            tag: div.message.bold
+            content: >
+                By default, XNAT's database is used to manage user accounts. You can also add LDAP or other means of
+                user authentication.
+        authEditorTemplate:
+            tag: "div#auth-editor-template.html-template"
+            contents:
+                authEditor:
+                    kind: panel.form
+                    name: authEditor
+                    id: auth-editor
+                    header: false
+                    footer: false
+                    action: /xapi/auth
+                    contentType: json
+                    contents:
+                        authName:
+                            kind: panel.input.text
+                            id: auth-name
+                            name: authName
+                            label: Auth Name
+                            validation: required
+                        authAddress:
+                            kind: panel.input.text
+                            id: auth-address
+                            name: authAddress
+                            label: Address
+                            validation: required
+                        authType:
+                            kind: panel.input.text
+                            id: auth-type
+                            name: authType
+                            label: Type
+                            validation: required
+                        authOrder:
+                            kind: panel.input.number
+                            id: auth-order
+                            name: authOrder
+                            label: Order
+                            validation: naturalNoZero
+#                        fileNamer:
+#                            kind: panel.input.text
+#                            name: fileNamer
+#                            label: File Namer
+#                        identifier:
+#                            kind: panel.input.text
+#                            name: identifier
+#                            label: Identifier
+        authManager:
+            tag: "div#auth-manager"
+        authManagerScript:
+            tag: script
+            element:
+                src: /scripts/xnat/admin/authManager.js
 users:
     kind: panel
     name: users
@@ -1280,15 +1239,15 @@ adminPage:
             group: xnatSetup
             contents:
                 ${themeManagement}
-#        authenticationMethods:
-#            kind: tab
-#            name: authenticationMethods
-#            label: Authentication Methods
-#            group: manageAccess
-#            contents:
-#                ${authenticationMethods}
-#                ${genericAuthenticationProvider}
-#                ${ldapAuthentication}
+        authenticationMethods:
+            kind: tab
+            name: authenticationMethods
+            label: Authentication Methods
+            group: manageAccess
+            contents:
+                ${authenticationMethods}
+                ${genericAuthenticationProvider}
+                ${ldapAuthentication}
 #        users:            # enable when users table can be re-implemented in spawner, until then use old users config?
 #            kind: tab
 #            name: users
