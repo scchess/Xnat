@@ -296,7 +296,7 @@ dependencies {
     compile "org.nrg:config:${vXnat}"
     compile "org.nrg:automation:${vXnat}"
     compile "org.nrg:dicomtools:${vXnat}"
-    compile "org.nrg:anonymize:${vXnat}"
+    compile "org.nrg:anonymize-dem-drm:${vXnat}"
     compile "org.nrg:mail:${vXnat}"
     compile "org.nrg:notify:${vXnat}"
 
@@ -306,7 +306,7 @@ dependencies {
     compile "org.nrg:ecat4xnat:1.7.0-SNAPSHOT"
     compile "org.nrg:DicomDB:4.1.0"
     compile "org.nrg:ExtAttr:4.1.0"
-    compile "org.nrg:DicomEdit:4.2.3"
+    compile "org.nrg:DicomEdit:6.0-SNAPSHOT"
     compile "org.nrg:DicomImageUtils:${vXnat}"
     compile "org.nrg:DicomUtils:1.3.1"
     compile "org.nrg:PrearcImporter:${vXnat}"

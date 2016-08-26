@@ -4,4 +4,4 @@ include 'shared'
 include 'api'
 include 'services:webservice'
 */
-rootProject.name = 'web'
+rootProject.name = 'web-dem-drm'
