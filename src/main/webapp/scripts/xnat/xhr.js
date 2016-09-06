@@ -439,14 +439,19 @@ var XNAT = getObject(XNAT||{}),
     }
     
     // set form element values from an object map
-    function setValues(form, dataObj){
+    // 'form' can be a form element, selector, or array of inputs
+    function setValues(inputs, dataObj){
         // cache and check if form exists
-        var $form = $$(form);
+        var $inputs = $$(inputs);
 
-        if (!$form.length) return;
+        if (!$inputs.length) return;
 
-        // find all input and select elements with a name attribute
-        $form.find(':input').each(function(){
+        if ($inputs.length === 1 && /form/i.test($inputs[0].tagName)) {
+            $inputs = $inputs.find(':input');
+        }
+
+        // apply values to each input
+        $inputs.not('button').each(function(){
 
             var $this = $(this);
             var val = lookupObjectValue(dataObj, this.name||this.title);
@@ -459,32 +464,41 @@ var XNAT = getObject(XNAT||{}),
                 val = stringable(val) ? val : JSON.stringify(val);
             }
 
-            changeValue(this, val);
+            //if (val === "") return;
 
-            // special handling for checkboxes
-            if (this.type === 'checkbox') {
-                this.checked = realValue(val)
+            if (/checkbox/i.test(this.type)) {
+                val = realValue(val);
+                // allow values other than 'true' or 'false'
+                this.checked = (this.value && val && isEqual(this.value, val)) ? true : val;
+                if (this.value === '') {
+                    this.value = val;
+                }
             }
-            // special handling for radio buttons
-            if (this.type === 'radio') {
+            else if (/radio/i.test(this.type)) {
                 this.checked = isEqual(this.value, val);
                 if (this.checked) {
                     $this.trigger('change');
                 }
             }
+            else {
+                changeValue($this, val);
+            }
+
+            if (!/textarea/i.test(this.tagName)) {
+                $this.dataAttr('value', val);
+            }
+
+            $this.removeClass('dirty').on('change', function(){
+                $(this).addClass('dirty');
+            });
+
         });
-        // // set textarea innerText from a 'value' property
-        // $form.find('textarea[name]').each(function(){
-        //     var $textarea = $(this);
-        //     var textValue =  (function(){
-        //         var val = dataObj[this.name];
-        //         return stringable(val) ? val+'' : safeStringify(val);
-        //     })();
-        //     changeValue($textarea, textValue);
-        //     // $textarea.val(textValue).change();
-        // });
-        return $form;
+
+        return $inputs;
     }
+
+    // make globally accessible through $
+    $.setValues = setValues;
 
     // this could be a handy jQuery method
     $.fn.setValues = function(dataObj){
@@ -527,7 +541,7 @@ var XNAT = getObject(XNAT||{}),
         if (/POST|PUT/i.test(opts.method)) {
             if ($form.hasClass('json') || /json/i.test(opts.contentType||'')){
                 // opts.data = formToJSON($form, true);
-                opts.data = JSON.stringify(form2js(inputs, ':', false));
+                opts.data = JSON.stringify(form2js(inputs, opts.delimiter||opts.delim||':', false));
                 opts.processData = false;
                 opts.contentType = 'application/json';
             }
