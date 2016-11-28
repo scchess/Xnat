@@ -394,6 +394,7 @@ dependencies {
     compile "org.hibernate:hibernate-validator:4.3.2.Final"
     compile "org.hibernate:hibernate-envers:4.3.11.Final"
     compile "net.sf.ehcache:ehcache-core:${vEhcache}"
+    compile "com.marvinformatics.hibernate:hibernate-native-json:0.3"
 
     compile "com.noelios.restlet:com.noelios.restlet:1.1.10"
     compile "com.noelios.restlet:com.noelios.restlet.ext.servlet:1.1.10"
