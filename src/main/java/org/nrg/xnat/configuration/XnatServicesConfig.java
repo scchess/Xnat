@@ -20,6 +20,11 @@ import org.springframework.context.annotation.Configuration;
                 "org.nrg.xnat.services.cache",
                 "org.nrg.xnat.services.investigators",
                 "org.nrg.xnat.services.system.impl.hibernate",
-                "org.nrg.xnat.services.validation"})
+                "org.nrg.xnat.services.validation",
+                "org.nrg.xnat.eventservice.services",
+                "org.nrg.xnat.eventservice.listeners",
+                "org.nrg.xnat.eventservice.events",
+                "org.nrg.xnat.eventservice.actions",
+                "org.nrg.xnat.eventservice.initialization.tasks"})
 public class XnatServicesConfig {
 }
