@@ -208,6 +208,7 @@
     <script src="${SITE_ROOT}/scripts/xnat/validate.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/url.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/xhr.js"></script>
+    <script src="${SITE_ROOT}/scripts/xnat/cookie.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/event.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/element.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/ui/templates.js"></script>
@@ -227,6 +228,9 @@
     <script src="${SITE_ROOT}/scripts/xnat/app/pluginSettings.js"></script>
 
     ${headBottom}
+
+    <!-- JS functions to initialize XNAT -->
+    <script src="${SITE_ROOT}/scripts/xnat/init.js"></script>
 
 </head>
 <body id="xnat-app" class="xnat app">
@@ -873,7 +877,7 @@ ${bodyTop}
         // shift-click the header or footer XNAT logo to TOGGLE debug mode on/off
         clicker.shiftKey(function(e){
             e.preventDefault();
-            if (Cookies.get('debug') === 'on') {
+            if (XNAT.cookie.get('debug') === 'on') {
                 Cookies.set('debug', 'off');
                 window.location.hash = 'debug=off';
             }
