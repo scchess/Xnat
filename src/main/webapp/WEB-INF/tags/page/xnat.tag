@@ -5,15 +5,6 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="pg" tagdir="/WEB-INF/tags/page" %>
 
-<%--
-  ~ web: xnat.tag
-  ~ XNAT http://www.xnat.org
-  ~ Copyright (c) 2005-2017, Washington University School of Medicine and Howard Hughes Medical Institute
-  ~ All Rights Reserved
-  ~
-  ~ Released under the Simplified BSD.
-  --%>
-
 <%@ attribute name="page" %>
 <%@ attribute name="title" %>
 <%@ attribute name="headTop" %>
@@ -23,13 +14,8 @@
 
 <head>
 
-    <c:if test="${empty requestScope.hasInit}">
-        <pg:init>
-            <c:if test="${empty requestScope.hasVars}">
-                <pg:jsvars/>
-            </c:if>
-        </pg:init>
-    </c:if>
+    <pg:init/>
+    <pg:jsvars/>
 
     ${headTop}
 
