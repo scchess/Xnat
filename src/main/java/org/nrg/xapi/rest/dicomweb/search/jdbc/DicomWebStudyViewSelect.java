@@ -1,4 +1,4 @@
-package org.nrg.xapi.rest.dicomweb;
+package org.nrg.xapi.rest.dicomweb.search.jdbc;
 
 import java.util.Arrays;
 
@@ -49,7 +49,7 @@ public class DicomWebStudyViewSelect extends SqlSelectStatement {
         System.out.println( statement.getStatement());
     }
 
-    String getPatientIDLabel() { return "patientName"; }
+    public String getPatientIDLabel() { return "patientName"; }
 
     public String getStudyInstanceUIDLabel() {
         return STUDYINSTANCEUID_COL_LABEL;

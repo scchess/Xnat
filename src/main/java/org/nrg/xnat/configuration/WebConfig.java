@@ -9,6 +9,9 @@
 
 package org.nrg.xnat.configuration;
 
+import org.nrg.xapi.model.dicomweb.QIDOResponse;
+import org.nrg.xapi.rest.dicomweb.Dicom2XmlMessageConverter;
+import org.nrg.xapi.rest.dicomweb.MultipartDicomMessageConverter;
 import org.nrg.xdat.preferences.SiteConfigPreferences;
 import org.nrg.xnat.web.converters.XftBeanHttpMessageConverter;
 import org.nrg.xnat.web.converters.XftObjectHttpMessageConverter;
@@ -60,10 +63,13 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     public void configureMessageConverters(final List<HttpMessageConverter<?>> converters) {
         converters.add(stringHttpMessageConverter());
         converters.add(mappingJackson2HttpMessageConverter());
+        converters.add(dicom2XmlMessageConverter());
         converters.add(marshallingHttpMessageConverter());
         converters.add(resourceHttpMessageConverter());
         converters.add(xftBeanHttpMessageConverter());
         converters.add(xftObjectHttpMessageConverter());
+        converters.add(dicomMessageConverter());
+        converters.add(multipartDicomMessageConverter( converters));
     }
 
     @Override
@@ -88,6 +94,11 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     }
 
     @Bean
+    public Dicom2XmlMessageConverter dicomMessageConverter() {
+        return new Dicom2XmlMessageConverter();
+    }
+
+    @Bean
     public HttpMessageConverter<?> resourceHttpMessageConverter() {
         return new ResourceHttpMessageConverter();
     }
@@ -105,6 +116,16 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     @Bean
     public HttpMessageConverter<?> mappingJackson2HttpMessageConverter() {
         return new MappingJackson2HttpMessageConverter(_objectMapperBuilder.build());
+    }
+
+    @Bean
+    public MultipartDicomMessageConverter multipartDicomMessageConverter(List<HttpMessageConverter<?>> converters) {
+        return new MultipartDicomMessageConverter( converters);
+    }
+
+    @Bean
+    public HttpMessageConverter<?> dicom2XmlMessageConverter() {
+        return new Dicom2XmlMessageConverter();
     }
 
     @Bean

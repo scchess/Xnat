@@ -1,165 +1,154 @@
 package org.nrg.xapi.model.dicomweb;
 
+import javax.json.Json;
+import javax.json.stream.JsonGenerator;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.adapters.XmlAdapter;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.sax.SAXTransformerFactory;
+import javax.xml.transform.sax.TransformerHandler;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+
+import org.dcm4che3.data.Attributes;
+import org.dcm4che3.data.ElementDictionary;
+import org.dcm4che3.io.SAXWriter;
+import org.dcm4che3.json.JSONWriter;
+import org.nrg.framework.annotations.XnatMixIn;
+import org.nrg.xapi.rest.dicomweb.QIDOResponseMixin;
+import org.springframework.oxm.jaxb.Jaxb2Marshaller;
+import org.xml.sax.SAXException;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by davidmaffitt on 8/3/17.
  */
-public class QIDOResponse {
-    private String specificCharacterSet;           // (0008,0005)
-    private String studyDate;                      // (0008,0020)
-    private String studyTime;                      // (0008,0030)
-    private String accessionNumber;                // (0008,0050)
-    private String instanceAvailability;           // (0008,0056)
-    private String modalitiesInStudy;              // (0008,0061)
-    private String referringPhysiciansName;        // (0008,0090)
-    private String timezoneOffsetFromUTC;          // (0008,0201)
-    private String retrieveURL;                    // (0008,1190)
-    private String patientsName;                   // (0010,0010)
-    private String patientID;                      // (0010,0020)
-    private String patientsBirthDate;              // (0010,0030)
-    private String patientsSex;                    // (0010,0040)
-    private String studyInstanceUID;               // (0020,000D)
-    private String studyID;                        // (0020,0010)
-    private String numberOfStudyRelatedSeries;     // (0020,1206)
-    private String numberOfStudyRelatedInstances;  // (0020,1208)
+@XmlRootElement
+@XnatMixIn(QIDOResponseMixin.class)
+public class QIDOResponse extends Attributes {
 
     // TODO: All other Study Level DICOM Attributes passed as {attributeID} query keys that are supported by the service provider as matching or return attributes.
     // TODO: All other Study Level DICOM Attributes passed as "includefield" query values that are supported by the service provider as return attributes
     // TODO: All available Study Level DICOM Attributes if the "includefield" query key is included with a value of "all"
 
 
-    public String getSpecificCharacterSet() {
-        return specificCharacterSet;
+    private SimpleDateFormat df = new SimpleDateFormat( "yyyyMMdd");
+
+    public String getSpecificCharacterSetString() { return getString( 0x00080005); }
+    public void setSpecificCharacterSetString(String value) { setString( 0x00080005, ElementDictionary.vrOf(0x00080005,null), value ); }
+
+    public String getStudyDate() { return getString( 0x00080020); }
+    public void setStudyDate(String value) { setString( 0x00080020, ElementDictionary.vrOf(0x00080020, null), value ); }
+    public void setStudyDate(Object obj) { setString( 0x00080020, ElementDictionary.vrOf(0x00080020, null), df.format( obj) ); }
+
+    public String getStudyTime() { return getString(0x00080030); }
+    public void setStudyTime(String value) { setString( 0x00080030, ElementDictionary.vrOf(0x00080030, null), value ); }
+
+    public String getAccessionNumber() { return getString(0x00080050); }
+    public void setAccessionNumber(String value) { setString( 0x00080050, ElementDictionary.vrOf(0x00080050, null), value ); }
+
+    public String getInstanceAvailability() { return getString(0x00080056); }
+    public void setInstanceAvailability(String value) { setString( 0x00080056, ElementDictionary.vrOf(0x00080056, null), value ); }
+
+    public String getModalitiesInStudy() { return getString(0x00080061); }
+    public void setModalitiesInStudy(String value) { setString( 0x00080061, ElementDictionary.vrOf(0x00080061, null), value ); }
+
+    public String getReferringPhysiciansName() { return getString(0x00080090); }
+    public void setReferringPhysiciansName(String value) { setString( 0x00080090, ElementDictionary.vrOf(0x00080090, null), value ); }
+
+    public String getTimezoneOffsetFromUTC() { return getString(0x00080201); }
+    public void setTimezoneOffsetFromUTC(String value) { setString( 0x00080201, ElementDictionary.vrOf(0x00080201, null), value ); }
+
+    public String getRetrieveURL() { return getString(0x00081190); }
+    public void setRetrieveURL(String value) { setString( 0x00081190, ElementDictionary.vrOf(0x00081190, null), value ); }
+
+    public String getPatientsName() { return getString(0x00100010); }
+    public void setPatientsName(String value) { setString( 0x00100010, ElementDictionary.vrOf(0x00100010, null), value ); }
+
+    public String getPatientID() { return getString(0x00100020); }
+    public void setPatientID(String value) { setString( 0x00100020, ElementDictionary.vrOf(0x00100020, null), value ); }
+
+    public String getPatientsBirthDate() { return getString(0x00100030); }
+    public void setPatientsBirthDate(String value) { setString( 0x00100030, ElementDictionary.vrOf(0x00100030, null), value ); }
+
+    public String getPatientsSex() { return getString(0x00100040); }
+    public void setPatientsSex(String value) { setString( 0x00100040, ElementDictionary.vrOf(0x00100040, null), value ); }
+
+    public String getStudyInstanceUID() { return getString(0x0020000D); }
+    public void setStudyInstanceUID(String value) { setString( 0x0020000D, ElementDictionary.vrOf(0x0020000D, null), value ); }
+
+    public String getStudyID() { return getString(0x00200010); }
+    public void setStudyID(String value) { setString( 0x00200010, ElementDictionary.vrOf(0x00200010, null), value ); }
+
+    public String getNumberOfStudyRelatedSeries() { return getString(0x00201206); }
+    public void setNumberOfStudyRelatedSeries(String value) { setString( 0x00201206, ElementDictionary.vrOf(0x00201206, null), value ); }
+
+    public String getNumberOfStudyRelatedInstances() { return getString(0x00201208); }
+    public void setNumberOfStudyRelatedInstances(String value) { setString( 0x00201208, ElementDictionary.vrOf(0x00201208, null), value ); }
+
+    public static JsonGenerator createGenerator(OutputStream out) {
+        boolean indent = true;
+        Map<String, ?> conf = new HashMap<String, Object>(2);
+        if (indent)
+            conf.put(JsonGenerator.PRETTY_PRINTING, null);
+        return Json.createGeneratorFactory(conf).createGenerator(out);
     }
 
-    public void setSpecificCharacterSet(String specificCharacterSet) {
-        this.specificCharacterSet = specificCharacterSet;
+//    public static void main(String[] args) {
+//        QIDOResponse response = new QIDOResponse();
+//        response.setStudyDate("20170519");
+//
+//        JsonGenerator jsonGen = createGenerator(System.out);
+//        JSONWriter jsonWriter = new JSONWriter(jsonGen);
+//        jsonWriter.write(response);
+//        jsonGen.flush();
+//    }
+
+    private static TransformerHandler getTransformerHandler()
+            throws TransformerConfigurationException, IOException {
+        SAXTransformerFactory tf = (SAXTransformerFactory)
+                TransformerFactory.newInstance();
+        String xsltURL = null;
+        if (xsltURL == null)
+            return tf.newTransformerHandler();
+
+        TransformerHandler th = tf.newTransformerHandler(
+                new StreamSource(xsltURL));
+        return th;
     }
 
-    public String getStudyDate() {
-        return studyDate;
-    }
+    public static void main(String[] args) {
+        QIDOResponse response = new QIDOResponse();
+        response.setStudyDate("20170519");
 
-    public void setStudyDate(String studyDate) {
-        this.studyDate = studyDate;
-    }
+        TransformerHandler th = null;
+        try {
+            th = QIDOResponse.getTransformerHandler();
 
-    public String getStudyTime() {
-        return studyTime;
-    }
+            SAXWriter writer = new SAXWriter( th);
+            Transformer t = th.getTransformer();
+//            t.setOutputProperty(OutputKeys.INDENT, indent ? "yes" : "no");
+//            t.setOutputProperty(OutputKeys.VERSION, xmlVersion);
+            th.setResult(new StreamResult(System.out));
+            writer.write( response);
 
-    public void setStudyTime(String studyTime) {
-        this.studyTime = studyTime;
-    }
-
-    public String getAccessionNumber() {
-        return accessionNumber;
-    }
-
-    public void setAccessionNumber(String accessionNumber) {
-        this.accessionNumber = accessionNumber;
-    }
-
-    public String getInstanceAvailability() {
-        return instanceAvailability;
-    }
-
-    public void setInstanceAvailability(String instanceAvailability) {
-        this.instanceAvailability = instanceAvailability;
-    }
-
-    public String getModalitiesInStudy() {
-        return modalitiesInStudy;
-    }
-
-    public void setModalitiesInStudy(String modalitiesInStudy) {
-        this.modalitiesInStudy = modalitiesInStudy;
-    }
-
-    public String getReferringPhysiciansName() {
-        return referringPhysiciansName;
-    }
-
-    public void setReferringPhysiciansName(String referringPhysiciansName) {
-        this.referringPhysiciansName = referringPhysiciansName;
-    }
-
-    public String getTimezoneOffsetFromUTC() {
-        return timezoneOffsetFromUTC;
-    }
-
-    public void setTimezoneOffsetFromUTC(String timezoneOffsetFromUTC) {
-        this.timezoneOffsetFromUTC = timezoneOffsetFromUTC;
-    }
-
-    public String getRetrieveURL() {
-        return retrieveURL;
-    }
-
-    public void setRetrieveURL(String retrieveURL) {
-        this.retrieveURL = retrieveURL;
-    }
-
-    public String getPatientsName() {
-        return patientsName;
-    }
-
-    public void setPatientsName(String patientsName) {
-        this.patientsName = patientsName;
-    }
-
-    public String getPatientID() {
-        return patientID;
-    }
-
-    public void setPatientID(String patientID) {
-        this.patientID = patientID;
-    }
-
-    public String getPatientsBirthDate() {
-        return patientsBirthDate;
-    }
-
-    public void setPatientsBirthDate(String patientsBirthDate) {
-        this.patientsBirthDate = patientsBirthDate;
-    }
-
-    public String getPatientsSex() {
-        return patientsSex;
-    }
-
-    public void setPatientsSex(String patientsSex) {
-        this.patientsSex = patientsSex;
-    }
-
-    public String getStudyInstanceUID() {
-        return studyInstanceUID;
-    }
-
-    public void setStudyInstanceUID(String studyInstanceUID) {
-        this.studyInstanceUID = studyInstanceUID;
-    }
-
-    public String getStudyID() {
-        return studyID;
-    }
-
-    public void setStudyID(String studyID) {
-        this.studyID = studyID;
-    }
-
-    public String getNumberOfStudyRelatedSeries() {
-        return numberOfStudyRelatedSeries;
-    }
-
-    public void setNumberOfStudyRelatedSeries(String numberOfStudyRelatedSeries) {
-        this.numberOfStudyRelatedSeries = numberOfStudyRelatedSeries;
-    }
-
-    public String getNumberOfStudyRelatedInstances() {
-        return numberOfStudyRelatedInstances;
-    }
-
-    public void setNumberOfStudyRelatedInstances(String numberOfStudyRelatedInstances) {
-        this.numberOfStudyRelatedInstances = numberOfStudyRelatedInstances;
+        } catch (TransformerConfigurationException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (SAXException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -48,6 +48,17 @@ select * from dicomweb_study_view where accessionNumber like 'Alph%';
 -- 20170810-20170831 is everything between the 10th and 31st
 -- 20170810- is everything on the 10th and after
 -- -20170810 is everything before the 10th
+
+-- everthing on 20170506
 select * from dicomweb_study_view where studyDate = '2017-05-06';
 select * from dicomweb_study_view where studyDate = '20170506';
+
+-- 20170505-20170507 everything between. (implemented as not inclusive of either boundary.)
+select * from dicomweb_study_view where studyDate > '20170505' and studyDate < '20170507'  ;
+
+-- 20170506- is everything on and after
+select * from dicomweb_study_view where studyDate >= '20170506';
+
+-- -20170506 is everything before
+select * from dicomweb_study_view where studyDate < '20170506';
 

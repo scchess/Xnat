@@ -1,4 +1,4 @@
-package org.nrg.xapi.rest.dicomweb;
+package org.nrg.xapi.rest.dicomweb.search.jdbc;
 
 import java.util.ArrayList;
 import java.util.List;

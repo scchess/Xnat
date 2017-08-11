@@ -7,11 +7,6 @@
  * Released under the Simplified BSD.
  */
 
-import com.github.kongchen.swagger.docgen.mavenplugin.ApiSource
-import com.github.zhurlik.SwaggerTask
-import io.swagger.models.Contact
-import io.swagger.models.Info
-import io.swagger.models.License
 import org.gradle.internal.jvm.Jvm
 
 buildscript {
@@ -241,12 +236,17 @@ dependencies {
     implementation "org.nrg.xnat.pipeline:xnat_pipeline"
     implementation "org.nrg.xnat.pipeline:xnat_tools"
 
-    implementation "dcm4che:dcm4che-core"
-    implementation "dcm4che:dcm4che-image"
-    implementation "dcm4che:dcm4che-imageio"
-    implementation "dcm4che:dcm4che-imageio-rle"
-    implementation "dcm4che:dcm4che-iod"
-    implementation "dcm4che:dcm4che-net"
+    implementation "dcm4che:dcm4che-core:2.0.29"
+    implementation "dcm4che:dcm4che-image:2.0.29"
+    implementation "dcm4che:dcm4che-imageio:2.0.29"
+    implementation "dcm4che:dcm4che-imageio-rle:2.0.29"
+    implementation "dcm4che:dcm4che-iod:2.0.29"
+    implementation "dcm4che:dcm4che-net:2.0.29"
+
+    compile "org.dcm4che:dcm4che-core:3.3.8"
+    compile "org.dcm4che:dcm4che-json:3.3.8"
+    compile "com.github.pgelinas:jackson-javax-json:0.9.0"
+//    compile "javax.xml.bind:jaxb-api:2.2.11"
 
     implementation "org.springframework:spring-aop"
     implementation "org.springframework:spring-beans"
@@ -340,6 +340,8 @@ dependencies {
     implementation "javax.servlet:jstl"
     implementation "com.google.code.gson:gson"
     implementation "com.google.guava:guava"
+
+//    implementation 'org.nrg.xnat.plugin:dicom-web:1.0-SNAPSHOT'
 
     runtimeOnly "org.nrg.xnatx.plugins:ximgview-plugin"
     runtimeOnly "org.apache.activemq:activemq-core"
