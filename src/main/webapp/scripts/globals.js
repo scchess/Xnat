@@ -372,13 +372,13 @@ function setObject(obj, str, val) {
     parts = str.split('.');
     while (parts.length > 1) {
         part = parts.shift();
-        obj = getObject(obj);
+        // obj = getObject(obj);
         if (!obj[part]) {
             obj[part] = {};
         }
         obj = obj[part];
     }
-    obj[parts[0]] = val || {};
+    obj[parts[0]] = val || obj[parts[0]] || {};
     return obj;
 }
 
@@ -456,6 +456,33 @@ function lookupObjectValue(root, objStr, prop){
 
     return val;
 
+}
+
+// replace values wrapped in {{...}} or {(...)} to:
+function strReplace(str){
+
+    // {{ foo.bar.baz }} // object lookup
+    var LOOKUP_REGEX = /{{[{]?(.*?)[}]?}}/g;
+
+    // {( 1+2+3 )} // js eval
+    var EVAL_REGEX = /{\(({\()?(.*?)(\)})?\)}/g;
+
+    // (( 1+2+3 )) // js eval - possible alternate syntax
+    var EVAL_REGEX_ALT = /\(\((\(\()?(.*?)(\)\))?\)\)/g;
+
+    return str.replace(LOOKUP_REGEX, function(part){
+        var pt = (part+'').trim().replace(/^{{\s*|\s*}}$/g, '');
+        return firstDefined(lookupObjectValue(pt), part);
+    }).replace(EVAL_REGEX, function(part){
+        var pt = (part+'').trim().replace(/^{\(\s*|\s*\)}$/g, '');
+        try {
+            return firstDefined(eval(pt), part);
+        }
+        catch(e){
+            if (jsdebug) console.log(e);
+            return part;
+        }
+    });
 }
 
 // return the last item in an array-like object
@@ -615,7 +642,7 @@ function toNumber( val, strip, force, dec ){
 
         // strip non-numeric characters (besides decimal)
         if (strip){
-            val = val.replace(/[^0-9\.]/g,'');
+            val = val.replace(/[^0-9.]/g,'');
         }
 
         // chop off after 2nd decimal, if present

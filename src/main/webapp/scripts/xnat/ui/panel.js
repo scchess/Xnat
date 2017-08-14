@@ -68,7 +68,7 @@ var XNAT = getObject(XNAT || {});
     }
 
     // replace url params with values from [data-param] attribute (if it exists)
-    // <form data-method="put" action="/xapi/theme/{{themeName}}">
+    // <form data-method="put" action="/xapi/theme/[[themeName]]">
     //     <input type="text" name="themeName">
     // </form>
     function urlParams(form, url, params){
@@ -76,10 +76,15 @@ var XNAT = getObject(XNAT || {});
         var $form = $$(form);
         var URL = url || $form.attr('action') || $form.data('url');
 
+        // replace items in url string
+        if (/{{|{\(/.test(URL)) {
+            URL = strReplace(URL);
+        }
+
         // which params are we replacing?
-        // /url/path/{{param1}}/{{param2}}
-        var urlParams = URL.split('{{').slice(1).map(function(name){
-            return name.split('}}')[0].trim();
+        // /url/path/[[param1]]/[[param2]]
+        var urlParams = URL.split('[[').slice(1).map(function(name){
+            return name.split(']]')[0].trim();
         });
 
         // return url if no params to replace
@@ -91,14 +96,19 @@ var XNAT = getObject(XNAT || {});
         params = getObject(params);
 
         forEach(urlParams, function(name){
-            var _str = '{{' + name + '}}';
-            var _val = params[name] || $form.find('[name="' + name + '"]').val() || '';
+            var $input = $form.find('[name="' + name + '"]');
+            var _str = '[[' + name + ']]';
+            var _val = isDefined(params[name]) ? params[name]+'' : '';
+            if (!_val && $input.length) {
+                _val = $input.filter(':checked').val() || $input[0].value
+            }
             URL = URL.replace(_str, _val);
         });
 
         return URL;
 
     }
+
 
     function loadingDialog(id){
         id = id ? '#'+id : '#loading';
@@ -251,8 +261,26 @@ var XNAT = getObject(XNAT || {});
         var $form = $$(form);
         var _form = $form[0];
         var values = {};
+        var name;
+        var tmp = '';
 
         obj.load = (obj.load+'').trim();
+
+        // save query string
+        if (/[?]/.test(obj.load)){
+            tmp = obj.load.split('?');
+            obj.queryString = tmp[tmp.length-1];
+            tmp = '';
+        }
+
+        // extract name of form element to receive loaded value
+        // (if raw data is returned instead of JSON with key: value)
+        // append element name to 'load' value, like:
+        // /data/projects/foo/quarantine_code:[[quarantine]]
+        if (/\[\[/.test(obj.load)){
+            name = obj.load.split('[[')[1].split(']]')[0].trim();
+            obj.load = obj.load.split(/[:/\s]*\[\[/)[0] + '?' + obj.queryString;
+        }
 
         // replace url params
         obj.load = urlParams($form, obj.load);
@@ -286,7 +314,12 @@ var XNAT = getObject(XNAT || {});
                 obj.prop = obj.prop || obj.load.split('|')[1] || '';
 
                 // get the values
-                values = lookupObjectValue(window, obj.load, obj.prop);
+                if (name) {
+                    values[name] = lookupObjectValue(window, obj.load, obj.prop);
+                }
+                else {
+                    values = lookupObjectValue(window, obj.load, obj.prop);
+                }
 
                 // set values of form elements
                 $form.setValues(values);
@@ -306,7 +339,12 @@ var XNAT = getObject(XNAT || {});
 
             // lastly try to eval the 'load' value
             try {
-                values = eval(obj.load);
+                if (name) {
+                    values[name] = eval(obj.load);
+                }
+                else {
+                    values = eval(obj.load);
+                }
                 // set values of form elements
                 $form.setValues(values);
             }
@@ -362,8 +400,15 @@ var XNAT = getObject(XNAT || {});
             }
             $form.dataAttr('status', 'clean');
 
+            if (name) {
+                values[name] = data;
+            }
+            else {
+                values = data;
+            }
+
             // set values of form elements
-            $form.setValues(data);
+            $form.setValues(values);
 
             obj.onload.apply(_form, arguments);
 
