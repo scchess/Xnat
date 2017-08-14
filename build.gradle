@@ -11,7 +11,7 @@ import org.gradle.internal.jvm.Jvm
 
 buildscript {
     ext {
-        vXnat = '1.7.5-SNAPSHOT'
+        vXnat = '1.7.5-ui-SNAPSHOT'
     }
     repositories {
         mavenLocal()
@@ -345,7 +345,7 @@ dependencies {
             "org.apache.tomcat.embed:tomcat-embed-jasper"
 
     cargo "org.codehaus.cargo:cargo-core-uberjar",
-            "org.codehaus.cargo:cargo-ant"
+          "org.codehaus.cargo:cargo-ant"
 
     testCompile "org.nrg:test"
     testCompile "junit:junit"
@@ -437,47 +437,47 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 }
 
 publishing.publications {
-    mavenJava(MavenPublication) {
-        from components.java
+        mavenJava(MavenPublication) {
+            from components.java
 
         artifacts {
             artifact sourceJar
             artifact javadocJar
+            }
+
+            pom.withXml {
+                def root = asNode()
+                root.appendNode('name', 'XNAT Server')
+                root.appendNode('description', 'XNAT is an open-source imaging informatics software platform dedicated to helping you perform imaging-based research. XNAT’s core functions manage importing, archiving, processing and securely distributing imaging and related study data. But its extended uses continue to evolve.')
+                root.appendNode('url', 'https://bitbucket.org/xnatdev/xnat-web')
+                root.appendNode('inceptionYear', '2016')
+
+                def scm = root.appendNode('scm')
+                scm.appendNode('url', 'https://bitbucket.org/xnatdev/xnat-web')
+                scm.appendNode('connection', 'scm:https://bitbucket.org/xnatdev/xnat-web.git')
+                scm.appendNode('developerConnection', 'scm:git://bitbucket.org/xnatdev/xnat-web.git')
+
+                def license = root.appendNode('licenses').appendNode('license')
+                license.appendNode('name', 'Simplified BSD 2-Clause License')
+                license.appendNode('url', 'http://xnat.org/about/license.php')
+                license.appendNode('distribution', 'repo')
+
+                def developers = root.appendNode('developers')
+                def rherrick = developers.appendNode('developer')
+                rherrick.appendNode('id', 'rherrick')
+                rherrick.appendNode('name', 'Rick Herrick')
+                rherrick.appendNode('email', 'jrherrick@wustl.edu')
+            }
         }
-
-        pom.withXml {
-            def root = asNode()
-            root.appendNode('name', 'XNAT Server')
-            root.appendNode('description', 'XNAT is an open-source imaging informatics software platform dedicated to helping you perform imaging-based research. XNAT’s core functions manage importing, archiving, processing and securely distributing imaging and related study data. But its extended uses continue to evolve.')
-            root.appendNode('url', 'https://bitbucket.org/xnatdev/xnat-web')
-            root.appendNode('inceptionYear', '2016')
-
-            def scm = root.appendNode('scm')
-            scm.appendNode('url', 'https://bitbucket.org/xnatdev/xnat-web')
-            scm.appendNode('connection', 'scm:https://bitbucket.org/xnatdev/xnat-web.git')
-            scm.appendNode('developerConnection', 'scm:git://bitbucket.org/xnatdev/xnat-web.git')
-
-            def license = root.appendNode('licenses').appendNode('license')
-            license.appendNode('name', 'Simplified BSD 2-Clause License')
-            license.appendNode('url', 'http://xnat.org/about/license.php')
-            license.appendNode('distribution', 'repo')
-
-            def developers = root.appendNode('developers')
-            def rherrick = developers.appendNode('developer')
-            rherrick.appendNode('id', 'rherrick')
-            rherrick.appendNode('name', 'Rick Herrick')
-            rherrick.appendNode('email', 'jrherrick@wustl.edu')
-        }
-    }
 }
 publishing.repositories {
-    maven {
-        credentials {
-            // These properties must be set in the ~/.gradle/gradle.properties file or passed on the Gradle command
-            // line in the form -PrepoUsername=foo -PrepoPassword=bar.
-            username propertyWithDefault('repoUsername', 'username')
-            password propertyWithDefault('repoPassword', 'password')
-        }
+        maven {
+            credentials {
+                // These properties must be set in the ~/.gradle/gradle.properties file or passed on the Gradle command
+                // line in the form -PrepoUsername=foo -PrepoPassword=bar.
+                username propertyWithDefault('repoUsername', 'username')
+                password propertyWithDefault('repoPassword', 'password')
+            }
         url project.version.endsWith('-SNAPSHOT') ? "https://nrgxnat.jfrog.io/nrgxnat/libs-snapshot-local" : "https://nrgxnat.jfrog.io/nrgxnat/libs-release-local"
     }
 }

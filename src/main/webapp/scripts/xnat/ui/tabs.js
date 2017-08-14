@@ -27,7 +27,7 @@ var XNAT = getObject(XNAT || {});
 
     var ui, tab, tabs, page,
         urlHashValue = getUrlHashValue('#tab=');
-    
+
     XNAT.ui = ui =
         getObject(XNAT.ui || {});
 
@@ -202,7 +202,7 @@ var XNAT = getObject(XNAT || {});
     };
     // ==================================================
 
-    
+
     // ==================================================
     // MAIN FUNCTION
     tabs.init = function tabsInit(obj){
@@ -274,19 +274,6 @@ var XNAT = getObject(XNAT || {});
 
         $thisContainer = $container;
 
-        // bind tab click events
-        $(document).on('click', 'li.tab', function(e){
-            e.preventDefault();
-            // console.log('tab click');
-            var $thisTab = $(this);
-            var clicked = $thisTab.data('tab');
-            console.log('tab: ' + clicked);
-            // find the parent container
-            $thisContainer = $thisTab.closest('div.xnat-nav-tabs').parent();
-            // activate the clicked tab and pane
-            tab.activate(clicked, $thisContainer);
-        });
-
         function load(){
             // console.log('tabs load');
             // console.log($element);
@@ -322,13 +309,26 @@ var XNAT = getObject(XNAT || {});
     };
     // ==================================================
 
+    // bind tab click events... ONCE
+    $(document).on('click', 'li.tab', function(e){
+        e.preventDefault();
+        // console.log('tab click');
+        var $thisTab = $(this);
+        var clicked = $thisTab.data('tab');
+        console.log('tab: ' + clicked);
+        // find the parent container
+        var $thisContainer = $thisTab.closest('div.xnat-nav-tabs').parent();
+        // activate the clicked tab and pane
+        tab.activate(clicked, $thisContainer);
+    });
+
     // activate tab indicated in url hash
     // $(function(){
     //     if (window.location.hash) {
     //         tab.activate(getUrlHashValue())
     //     }
     // });
-    
+
     tabs.tab = tab;
 
     return tabs;
