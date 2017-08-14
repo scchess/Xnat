@@ -51,6 +51,12 @@ var XNAT = getObject(XNAT);
         return XNAT.url.rootUrl(url)
     }
 
+    // process URL for spawner elements
+    function spawnerUrl(url){
+        var _url = strReplace(url);
+        return setRoot(_url);
+    }
+
     // ==================================================
     // MAIN FUNCTION
     spawner.spawn = spawner.init = function spawnerInit(obj){
@@ -107,16 +113,26 @@ var XNAT = getObject(XNAT);
             // with a fallback to a generic div
             kind = prop.kind || prop.type || null;
 
+            if (prop.url) {
+                prop.url = spawnerUrl(prop.url)
+            }
+            if (prop.action) {
+                prop.action = spawnerUrl(prop.action)
+            }
+            if (prop.load) {
+                prop.load = spawnerUrl(prop.load)
+            }
+
             // make 'href' 'src' and 'action' properties
             // start at the site root if starting with '/'
             if (prop.element.href) {
-                prop.element.href = setRoot(prop.element.href)
+                prop.element.href = spawnerUrl(prop.element.href)
             }
             if (prop.element.src) {
-                prop.element.src = setRoot(prop.element.src)
+                prop.element.src = spawnerUrl(prop.element.src)
             }
             if (prop.element.action) {
-                prop.element.action = setRoot(prop.element.action)
+                prop.element.action = spawnerUrl(prop.element.action)
             }
 
             // do a raw spawn() if 'kind' is 'element'
@@ -139,13 +155,13 @@ var XNAT = getObject(XNAT);
 
                     // convert relative URIs for href, src, and action attributes
                     if (spawnedElement.href) {
-                        spawnedElement.href = setRoot(spawnedElement.getAttribute('href'))
+                        spawnedElement.href = spawnerUrl(spawnedElement.getAttribute('href'))
                     }
                     if (spawnedElement.src) {
-                        spawnedElement.src = setRoot(spawnedElement.getAttribute('src'))
+                        spawnedElement.src = spawnerUrl(spawnedElement.getAttribute('src'))
                     }
                     if (spawnedElement.action) {
-                        spawnedElement.action = setRoot(spawnedElement.getAttribute('action'))
+                        spawnedElement.action = spawnerUrl(spawnedElement.getAttribute('action'))
                     }
 
                     // jQuery's .append() method is
@@ -391,7 +407,7 @@ var XNAT = getObject(XNAT);
     // and methods from the AJAX request will be in .get.done(), .get.fail(), etc.
     spawner.resolve = function(nsPath, opts) {
 
-            // you can pass a config object as the only argument
+        // you can pass a config object as the only argument
         opts = cloneObject(firstDefined(opts, getObject(nsPath)));
 
         var url = opts.url || XNAT.url.restUrl('/xapi/spawner/resolve/' + nsPath);
