@@ -40,8 +40,8 @@
                                 siteConfig: ${siteConfig},
                                 notifications: ${notifications}
                             });
-                            XNAT.data['/xapi/siteConfig'] = XNAT.data.siteConfig;
-                            XNAT.data['/xapi/notifications'] = XNAT.data.notifications;
+                            XNAT.data['${SITE_ROOT}/xapi/siteConfig'] = XNAT.data.siteConfig;
+                            XNAT.data['${SITE_ROOT}/xapi/notifications'] = XNAT.data.notifications;
                             // get rid of the 'targetSource' property
                             delete XNAT.data.siteConfig.targetSource;
                         </script>
