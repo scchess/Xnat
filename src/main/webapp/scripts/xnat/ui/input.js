@@ -230,21 +230,23 @@ var XNAT = getObject(XNAT);
         _label = spawn('label');
         // _label.style.marginBottom = '10px';
 
-        if (config.label) {
-            labelText = spawn('span.label-text', config.label);
-            delete config.label;
+        if (!/switchbox/i.test(config.kind||'')) {
+            if (config.label) {
+                labelText = spawn('span.label-text', config.label);
+                delete config.label;
+            }
+
+            if (config.layout) {
+                _layout = config.layout;
+                _label.style.display = /block/i.test(_layout) ? 'block' : 'inline';
+                delete config.layout;
+            }
         }
 
         if (config.description) {
             descText = spawn('span.description.desc-text', config.description);
             descText.style.paddingLeft = '6px';
             delete config.description;
-        }
-
-        if (config.layout) {
-            _layout = config.layout;
-            _label.style.display = /block/i.test(_layout) ? 'block' : 'inline';
-            delete config.layout;
         }
 
         // value should at least be an empty string
@@ -384,7 +386,7 @@ var XNAT = getObject(XNAT);
     // with custom XHR functionality
     var fileUploadConfigModel = {
         // REQUIRED - url for data submission
-        url: '/data/projects/{{project_id}}/resources/upload/{{file_input}}?format={{data_format}}',
+        url: '/data/projects/{{project_id}}/resources/upload/[[file_input]]?format=[[data_format]]',
         // submission method - defaults to 'POST'
         method: 'POST', // (POST or PUT)
         // data contentType (this probably shouldn't be changed)

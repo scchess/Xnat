@@ -462,19 +462,20 @@ function lookupObjectValue(root, objStr, prop){
 function strReplace(str){
 
     // {{ foo.bar.baz }} // object lookup
-    var LOOKUP_REGEX = /{{[{]?(.*?)[}]?}}/g;
+    var LOOKUP_REGEX = /{{(.*?)}}/g;
 
-    // {( 1+2+3 )} // js eval
-    var EVAL_REGEX = /{\(({\()?(.*?)(\)})?\)}/g;
+    // {( 1+2+3 )} // js eval, or...
+    // (( 1+2+3 )) // js eval
+    var EVAL_REGEX = /{\((.*?)\)}|\(\((.*?)\)\)/g;
 
-    // (( 1+2+3 )) // js eval - possible alternate syntax
-    var EVAL_REGEX_ALT = /\(\((\(\()?(.*?)(\)\))?\)\)/g;
-
-    return str.replace(LOOKUP_REGEX, function(part){
-        var pt = (part+'').trim().replace(/^{{\s*|\s*}}$/g, '');
+    return (str+'').replace(LOOKUP_REGEX, function(part){
+        var pt = (part+'').trim()
+                          .replace(/^{{\s*|\s*}}$/g, '');
         return firstDefined(lookupObjectValue(pt), part);
     }).replace(EVAL_REGEX, function(part){
-        var pt = (part+'').trim().replace(/^{\(\s*|\s*\)}$/g, '');
+        var pt = (part+'').trim()
+                          .replace(/^{\(\s*|\s*\)}$/g, '')
+                          .replace(/^\(\(\s*|\s*\)\)$/g, '');
         if (jsdebug) console.log(part);
         if (jsdebug) console.log(pt);
         try {
