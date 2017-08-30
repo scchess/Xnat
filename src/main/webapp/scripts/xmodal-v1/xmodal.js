@@ -163,10 +163,11 @@ if (typeof jQuery == 'undefined') {
                 pos_x = $drag.offset().left + drg_w - e.pageX;
             $drag.parents().on('mousemove', function (e) {
                 //xmodal.topZ = z_idx+1;
-                $('.draggable').css({ 'right': 'auto', 'bottom': 'auto' }).offset({
+                $drag.css({ 'right': 'auto', 'bottom': 'auto' }).offset({
                     top: e.pageY + pos_y - drg_h,
                     left: e.pageX + pos_x - drg_w
-                }).on('mouseup', function () {
+                });
+                $drag.on('mouseup', function () {
                     $(this).removeClass('draggable')/*.css('z-index', z_idx)*/;
                 });
             });

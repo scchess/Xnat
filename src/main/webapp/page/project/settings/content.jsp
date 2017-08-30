@@ -1,15 +1,15 @@
-<%@ page session="true" contentType="text/html" pageEncoding="UTF-8" language="java" %>
+<%@ page contentType="text/html" pageEncoding="UTF-8" trimDirectiveWhitespaces="true" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="pg" tagdir="/WEB-INF/tags/page" %>
 
 <pg:init/>
 <pg:jsvars/>
-<c:set var="SITE_ROOT" value="${sessionScope.siteRoot}"/>
 
-<c:if test="${not empty param.id}">
-    <c:set var="id" value="${param.id}"/>
-</c:if>
+<c:url var="SITE_ROOT" value=""/>
 
+<style type="text/css">
+    #project-settings-header { margin-bottom: 20px; }
+</style>
 
 <div id="page-wrapper">
     <div class="pad">
@@ -42,7 +42,11 @@
         <script>
             (function(){
 
-                var PROJECT_ID = '${id}' || getQueryStringValue('id') || getUrlHashValue('#id=');
+                var PROJECT_ID =
+                    window.projectId =
+                        '${param.id}' || getQueryStringValue('id') || getUrlHashValue('#id=');
+
+                var jsdebug = window.jsdebug || '${param.jsdebug}' || '${param.debug}' || false;
 
                 if (!PROJECT_ID) {
                     $('#project-not-specified').hidden(false);
@@ -59,25 +63,46 @@
 
                 // these properties _should_ be set before spawning 'tabs' widgets
                 XNAT.tabs.container = projectSettingsTabs;
-                XNAT.tabs.layout = 'left';
+                XNAT.tabs.layout    = 'left';
+
+                function getProjectSettings(){
+                    return XNAT.spawner.resolve('xnat:projectSettings/root');
+                }
 
                 // get project data first so we have data to work with
                 XNAT.xhr.getJSON({
                     url: XNAT.url.restUrl('/data/projects/' + PROJECT_ID),
                     success: function(data){
+
                         // make project id available
                         XNAT.data.projectId = XNAT.data.projectID = PROJECT_ID;
+
                         // make returned project data available for Spawner elements
                         XNAT.data.projectData = data;
+
+                        if (jsdebug) { console.log(data) }
+
                         // show the header since we should have the data
-                        projectSettingsHeader$.removeClass('hidden');
-                        // render the project settings tabs
-                        XNAT.app.pluginSettings.showTabs = true;
-                        XNAT.app.pluginSettings.projectSettingsTabs = projectSettingsTabs;
-                        XNAT.app.pluginSettings.projectSettings(projectSettingsTabs, function(data){
-                            console.log(data);
-                            console.log(arguments);
-                            XNAT.tab.activate(XNAT.tab.active, projectSettingsTabs);
+                        projectSettingsHeader$.hidden(false);
+
+                        // render standard XNAT project settings tabs
+                        getProjectSettings().ok(function(obj){
+                            this.render(XNAT.tabs.container);
+                            this.done(function(){
+                                // render default XNAT project settings tabs
+                                XNAT.tab.activate(XNAT.tab.active, projectSettingsTabs);
+                                // then render plugins' project settings tabs... FOR PLUGINS
+                                XNAT.app.pluginSettings.showTabs = true;
+                                XNAT.app.pluginSettings.hasProjectSettingsTabs = false; // reset every time
+                                XNAT.app.pluginSettings.projectSettingsTabs = projectSettingsTabs;
+                                XNAT.app.pluginSettings.projectSettings(projectSettingsTabs, function(data){
+                                    if (jsdebug) {
+                                        console.log(data);
+                                        console.log(arguments);
+                                    }
+                                    //XNAT.tab.activate(XNAT.tab.active, projectSettingsTabs);
+                                });
+                            });
                         });
                     },
                     failure: function(){
@@ -90,7 +115,6 @@
             }())
 
         </script>
-
 
     </div>
 </div>

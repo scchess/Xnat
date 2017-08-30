@@ -449,6 +449,10 @@ window.xmodal = getObject(window.xmodal);
         // add styles to the dialog
         this.dialog$.css(this.style);
 
+        if (this.maxxed) {
+            this.dialog$.addClass('maxxed');
+        }
+
         // add data-attributes
         addDataAttrs(this.dialog$[0], {
             uid: this.uid,
@@ -636,6 +640,10 @@ window.xmodal = getObject(window.xmodal);
         dialog.updateUIDs();
         dialog.getPosition();
 
+        if (this.enter) {
+
+        }
+
         if (this.isModal) {
             dialog.updateWindow(this.isModal);
             window.html$.addClass('xnat-dialog-open');
@@ -643,6 +651,8 @@ window.xmodal = getObject(window.xmodal);
                 .addClass('xnat-dialog-open')
                 .css('top', -dialog.bodyPosition);
         }
+
+        this.setHeight();
 
         // if (!dialog.openDialogs.length) {
         //     window.scrollTo(0, 0);

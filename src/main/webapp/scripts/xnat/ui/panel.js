@@ -282,9 +282,6 @@ var XNAT = getObject(XNAT || {});
             obj.load = obj.load.split(/[:/\s]*\[\[/)[0] + '?' + obj.queryString;
         }
 
-        // replace url params
-        obj.load = urlParams($form, obj.load);
-
         // if 'load' starts with '$?', '~/', or just '/'
         // then values need to load via REST
         var ajaxPrefix = /^(\$\?|~\/|\/)/;
@@ -300,10 +297,16 @@ var XNAT = getObject(XNAT || {});
         // if there's an existing property name:
         // XNAT.data['/rest/url']
         // that matches the URL, then use that
-        if (doAjax && XNAT.data && XNAT.data[obj.load]) {
-            doAjax = false;
-            obj.prop = obj.load;
-            obj.load = '??:XNAT:data'
+        if (doAjax) {
+            // add serverRoot to load url
+            obj.load = XNAT.url.rootUrl(obj.load);
+            // replace url params
+            obj.load = urlParams($form, obj.load);
+            if (XNAT.data && XNAT.data[obj.load]) {
+                doAjax = false;
+                obj.prop = obj.load;
+                obj.load = '??:XNAT:data'
+            }
         }
 
         if (!doAjax) {
@@ -444,16 +447,21 @@ var XNAT = getObject(XNAT || {});
             load: opts.load || opts.action
         });
 
+        // text for 'submit' button
+        opts.submit = opts.submit || 'Save';
+        // text for 'reset' button
+        opts.reset = opts.reset || 'Discard Changes';
+
         var _target = spawn('div.panel-body', {}, [].concat(opts.body||[])),
 
             hideHeader = (isDefined(opts.header) && (opts.header === false || /^-/.test(opts.title))),
 
             hideFooter = (isDefined(opts.footer) && (opts.footer === false || /^-/.test(opts.footer))),
 
-            $saveBtn = footerButton('Save', 'button', true, 'submit save pull-right'),
+            $saveBtn = footerButton(opts.submit, 'button', true, 'submit save pull-right'),
             _saveBtn = $saveBtn[0],
 
-            $resetBtn = footerButton('Discard Changes', 'button', true, 'revert pull-right'),
+            $resetBtn = footerButton(opts.reset, 'button', true, 'revert pull-right'),
             _resetBtn = $resetBtn[0],
 
             _footer = [
@@ -640,7 +648,7 @@ var XNAT = getObject(XNAT || {});
                     if (!item.name) return;
                     var name = item.name.replace(/^:/,'');
                     var val = firstDefined(item.value+'', '');
-                    if (typeof json[name] == 'undefined') {
+                    if (typeof json[name] === 'undefined') {
                         json[name] = val;
                     }
                     else {
@@ -850,7 +858,8 @@ var XNAT = getObject(XNAT || {});
 
                     if (multiform.errors) {
                         xmodal.closeAll();
-                        xmodal.message('Error', 'Please correct the highlighted errors and re-submit the form.');
+                        XNAT.dialog.closeAll();
+                        XNAT.dialog.message('Error', 'Please correct the highlighted errors and re-submit the form.');
                         return false;
                     }
 
@@ -862,8 +871,9 @@ var XNAT = getObject(XNAT || {});
                     // fire the callback function after all forms are submitted error-free
 
 
-                    xmodal.message({
+                    XNAT.dialog.message({
                         title: 'Setup Complete',
+                        closeBtn: false,
                         content: 'Your XNAT site is ready to use. Click "OK" to continue to the home page.',
                         action: function(){
                             window.location.href = XNAT.url.rootUrl('/setup?init=true');

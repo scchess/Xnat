@@ -219,7 +219,10 @@ var XNAT = getObject(XNAT);
 
     var shade = XNAT.ui.dialog.shade({
         protected: true,
-        id: 'page-obfuscator'
+        id: 'page-obfuscator',
+        afterShow: function(){
+            shade.isOpen = true;
+        }
     }).hide();
 
     // custom shade
@@ -258,7 +261,6 @@ var XNAT = getObject(XNAT);
                 decoded: _usr + '@' + _pg
             }
         }
-
 
         var resumeCounter = 0;
 

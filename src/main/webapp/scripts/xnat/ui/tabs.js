@@ -86,16 +86,23 @@ var XNAT = getObject(XNAT || {});
         tab.active = tabs.active =
             name || tab.active || tabs.active;
         var $container = $$(container || tabs.container || 'body');
+        var tabSelector =
+                tab.active ?
+                    '[data-tab="' + tab.active + '"]' :
+                    '[data-tab]';
+        if (!$(tabSelector).first().length) return;
         $container
             .find('li.tab')
             .removeClass('active')
-            .filter('[data-tab="' + tab.active + '"]')
-            .addClass('active');
+            .filter(tabSelector)
+            .addClass('active')
+            .hidden(false);
         $container
             .find('div.tab-pane')
             .removeClass('active')
-            .filter('[data-tab="' + tab.active + '"]')
-            .addClass('active');
+            .filter(tabSelector)
+            .addClass('active')
+            .hidden(false);
         // if a tab is being activated, make sure
         // the container is NOT hidden
         $container.hidden(false, 200);
@@ -116,9 +123,7 @@ var XNAT = getObject(XNAT || {});
 
         tabId = toDashed(obj.id || obj.name || randomID('t', false));
 
-        _flipper = spawn('li.tab', {
-            data: { tab: tabId }
-        }, [
+        _flipper = spawn('li.tab', {data: {tab: tabId }}, [
             ['a', {
                 title: obj.label,
                 // href: '#'+obj.config.id,
@@ -152,18 +157,19 @@ var XNAT = getObject(XNAT || {});
             tab.active || tabs.active || tabId;
 
         // if 'active' is explicitly set, use the tabId value
-        obj.active = (obj.active) ? tabId : '';
+        // obj.active = (obj.active) ? tabId : '';
 
         // set active tab on page load if tabId matches url hash
         if (urlHashValue && urlHashValue === tabId) {
             tabIdHash = tabId;
+            tabs.active = tab.active = tabIdHash;
         }
 
-        if ((tabIdHash||obj.active) === tabId) {
-            //$(_flipper).addClass('active');
-            //$(_pane).addClass('active');
-            tabs.active = tab.active = tabId;
-        }
+        // if ((tabIdHash||obj.active) === tabId) {
+        //     $(_flipper).addClass('active');
+        //     $(_pane).addClass('active');
+        //     tabs.active = tab.active = tabId;
+        // }
 
         if (tabs.hasGroups) {
             groupId = toDashed(obj.group||'other');
@@ -323,11 +329,16 @@ var XNAT = getObject(XNAT || {});
     });
 
     // activate tab indicated in url hash
-    // $(function(){
-    //     if (window.location.hash) {
-    //         tab.activate(getUrlHashValue())
-    //     }
-    // });
+    $(function(){
+        if (/#tab=/i.test(window.location.hash)) {
+            tab.activate(getUrlHashValue('#tab='));
+            return;
+        }
+        var tabs$ = $('li.tab');
+        if (tabs$.length && tabs$.filter(':visible').length && !tabs$.filter('.active').length) {
+            tab.activate(tabs$.first().data('tab'));
+        }
+    });
 
     tabs.tab = tab;
 

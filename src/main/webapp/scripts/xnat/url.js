@@ -413,7 +413,7 @@ var XNAT = getObject(XNAT||{});
 
 
     // trigger a custom 'reload-hash' event on hash change
-    $(window).on('reload-hash', function(e, callback, args){
+    $(document).on('reload-hash', function(e, callback, args){
         callback.apply(e, [].concat(args));
     });
 

@@ -194,9 +194,11 @@ var XNAT = getObject(XNAT);
     // MAIN FUNCTION
     input = function inputElement(type, config){
 
+        var _input, _label, labelText, descText, _layout;
+
         // only one argument?
         // could be a config object
-        if (!config && typeof type != 'string') {
+        if (!config && typeof type !== 'string') {
             config = type;
             type = null; // it MUST contain a 'type' property
         }
@@ -225,12 +227,52 @@ var XNAT = getObject(XNAT);
             delete config.message;
         }
 
+        _label = spawn('label');
+        // _label.style.marginBottom = '10px';
+
+        if (config.label) {
+            labelText = spawn('span.label-text', config.label);
+            delete config.label;
+        }
+
+        if (config.description) {
+            descText = spawn('span.description.desc-text', config.description);
+            descText.style.paddingLeft = '6px';
+            delete config.description;
+        }
+
+        if (config.layout) {
+            _layout = config.layout;
+            _label.style.display = /block/i.test(_layout) ? 'block' : 'inline';
+            delete config.layout;
+        }
+
         // value should at least be an empty string
         config.value = config.value || '';
 
-        var _input = spawn('input', config);
+        _input = spawn('input', config);
 
         setValue(_input, config.value);
+
+        if (labelText) {
+            if (/left/i.test(_layout)) {
+                labelText.style.paddingRight = '6px';
+                _label.appendChild(labelText);
+                _label.appendChild(_input);
+            }
+            else {
+                labelText.style.paddingLeft = '6px';
+                _label.appendChild(_input);
+                _label.appendChild(labelText);
+            }
+        }
+        else {
+            _label.appendChild(_input);
+        }
+
+        if (descText) {
+            _label.appendChild(descText);
+        }
 
         // // copy value to [data-*] attribute for non-password inputs
         // config.data.value = (!/password/i.test(config.type)) ? config.value : '!';
@@ -273,12 +315,12 @@ var XNAT = getObject(XNAT);
 
         return {
             element: _input,
-            spawned: _input,
+            spawned: _label,
             get: function(){
-                return _input;
+                return _label;
             },
             render: function(container){
-                $$(container).append(_input);
+                $$(container).append(_label);
             }
         }
     };
@@ -541,10 +583,18 @@ var XNAT = getObject(XNAT);
 
     // radio buttons are special too
     input.radio = function(config){
-        config = extend(true, {}, config, config.element);
-        return input('radio', config);
+        var _config = extend(true, {}, config, config.element);
+        return input('radio', _config);
     };
     otherTypes.push('radio');
+
+    input.radioGroup = function(config){
+        config = extend(true, {}, config, config.element);
+        addClassName(config, 'radio-group');
+        var layoutTable = XNAT.table();
+        layoutTable.tr();
+        layoutTable.td()
+    };
 
     // save a list of all available input types
     input.types = [].concat(textTypes, numberTypes, otherTypes);
