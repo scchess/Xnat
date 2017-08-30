@@ -81,241 +81,248 @@ var XNAT = getObject(XNAT);
 
             var kind, element, method, spawnedElement, $spawnedElement, _spwnd;
 
-            if (stringable(prop)) {
-                $frag.append(prop);
-                return;
-            }
+            try {
 
-            if (Array.isArray(prop)) {
-                prop.forEach(function(p){
-                    if (stringable(p)) {
-                        $frag.append(p);
-                        return;
+                if (stringable(prop)) {
+                    $frag.append(prop);
+                    return;
+                }
+
+                if (Array.isArray(prop)) {
+                    prop.forEach(function(p){
+                        if (stringable(p)) {
+                            $frag.append(p);
+                            return;
+                        }
+                        if (Array.isArray(p)) {
+                            $frag.append(spawn.apply(null, p));
+                        }
+                    });
+                    return;
+                }
+
+                // 'prop' can be a new or existing DOM element
+                if (prop instanceof Element) {
+                    element = prop;
+                    prop = {
+                        kind: 'element',
+                        element: element
+                    };
+                }
+                else {
+                    // save the config properties in a new object
+                    prop = cloneObject(prop);
+                }
+
+                // add this for proper handling in 'universal' widgets
+                prop.spawnerElement = true;
+
+                prop.element = prop.element || prop.config || {};
+
+                // use 'name' property in element or config
+                // then look for 'name' at object root
+                // lastly use the object's own name
+                prop.name = prop.name || item;
+
+                // auto-generate IDs if not specified
+                // I really don't like doing this here.
+                prop.id = prop.id || prop.element.id || toDashed(prop.name);
+
+                // accept 'kind' or 'type' property name
+                // but 'kind' will take priority
+                // with a fallback to a generic div
+                kind = prop.kind || prop.type || null;
+
+                if (prop.url) {
+                    prop.url = spawnerUrl(prop.url)
+                }
+                if (prop.action) {
+                    prop.action = spawnerUrl(prop.action)
+                }
+                if (prop.load) {
+                    prop.load = spawnerUrl(prop.load)
+                }
+
+                // make 'href' 'src' and 'action' properties
+                // start at the site root if starting with '/'
+                if (prop.element.href) {
+                    prop.element.href = spawnerUrl(prop.element.href)
+                }
+                if (prop.element.src) {
+                    prop.element.src = spawnerUrl(prop.element.src)
+                }
+                if (prop.element.action) {
+                    prop.element.action = spawnerUrl(prop.element.action)
+                }
+
+                // do a raw spawn() if 'kind' is 'element'
+                // or if there's a tag property
+                if (kind === 'element' || prop.tag || prop.element.tag) {
+
+                    // pass 'content' (not contentS) property to add
+                    // stuff directly to spawned element
+                    prop.content = prop.content || prop.children || '';
+
+                    try {
+                        // if setting up Spawner elements in JS, allow a
+                        // DOM element to be passed in the 'element' property
+                        if (prop.element instanceof Element) {
+                            spawnedElement = prop.element;
+                        }
+                        else {
+                            spawnedElement = spawn(prop.tag || prop.element.tag || 'span', prop.element, prop.content);
+                        }
+
+                        // convert relative URIs for href, src, and action attributes
+                        if (spawnedElement.href) {
+                            spawnedElement.href = spawnerUrl(spawnedElement.getAttribute('href'))
+                        }
+                        if (spawnedElement.src) {
+                            spawnedElement.src = spawnerUrl(spawnedElement.getAttribute('src'))
+                        }
+                        if (spawnedElement.action) {
+                            spawnedElement.action = spawnerUrl(spawnedElement.getAttribute('action'))
+                        }
+
+                        // jQuery's .append() method is
+                        // MUCH more robust and forgiving
+                        // than element.appendChild()
+                        $frag.append(spawnedElement);
+                        spawner.spawnedElements.push(spawnedElement);
                     }
-                    if (Array.isArray(p)) {
-                        $frag.append(spawn.apply(null, p));
+                    catch(e) {
+                        if (hasConsole) console.log(e);
+                        spawner.notSpawned.push(prop);
                     }
-                });
-                return;
-            }
+                }
+                else if (/^(text|html)$/i.test(kind)) {
+                    $frag.append(prop.content || prop.html || prop.text)
+                }
+                else {
 
-            // 'prop' can be a new or existing DOM element
-            if (prop instanceof Element) {
-                element = prop;
-                prop = {
-                    kind: 'element',
-                    element: element
-                };
-            }
-            else {
-                // save the config properties in a new object
-                prop = cloneObject(prop);
-            }
+                    // check for a matching XNAT.ui method to call:
+                    method =
 
-            // add this for proper handling in 'universal' widgets
-            prop.spawnerElement = true;
+                        // XNAT.kind.init()
+                        lookupObjectValue(XNAT, kind + '.init') ||
 
-            prop.element = prop.element || prop.config || {};
+                        // XNAT.kind()
+                        lookupObjectValue(XNAT, kind) ||
 
-            // use 'name' property in element or config
-            // then look for 'name' at object root
-            // lastly use the object's own name
-            prop.name = prop.name || item;
+                        // XNAT.ui.kind.init()
+                        lookupObjectValue(NAMESPACE + '.' + kind + '.init') ||
 
-            // auto-generate IDs if not specified
-            // I really don't like doing this here.
-            prop.id = prop.id || prop.element.id || toDashed(prop.name);
+                        // XNAT.ui.kind()
+                        lookupObjectValue(NAMESPACE + '.' + kind) ||
 
-            // accept 'kind' or 'type' property name
-            // but 'kind' will take priority
-            // with a fallback to a generic div
-            kind = prop.kind || prop.type || null;
+                        // XNAT.element.kind()
+                        lookupObjectValue(XNAT, 'element.' + kind) ||
 
-            if (prop.url) {
-                prop.url = spawnerUrl(prop.url)
-            }
-            if (prop.action) {
-                prop.action = spawnerUrl(prop.action)
-            }
-            if (prop.load) {
-                prop.load = spawnerUrl(prop.load)
-            }
+                        // kind.init()
+                        lookupObjectValue(kind + '.init') ||
 
-            // make 'href' 'src' and 'action' properties
-            // start at the site root if starting with '/'
-            if (prop.element.href) {
-                prop.element.href = spawnerUrl(prop.element.href)
-            }
-            if (prop.element.src) {
-                prop.element.src = spawnerUrl(prop.element.src)
-            }
-            if (prop.element.action) {
-                prop.element.action = spawnerUrl(prop.element.action)
-            }
+                        // kind()
+                        lookupObjectValue(kind) ||
 
-            // do a raw spawn() if 'kind' is 'element'
-            // or if there's a tag property
-            if (kind === 'element' || prop.tag || prop.element.tag) {
+                        null;
 
-                // pass 'content' (not contentS) property to add
-                // stuff directly to spawned element
-                prop.content = prop.content || prop.children || '';
+                    // only spawn elements with defined methods
+                    if (isFunction(method)) {
 
-                try {
-                    // if setting up Spawner elements in JS, allow a
-                    // DOM element to be passed in the 'element' property
-                    if (prop.element instanceof Element) {
-                        spawnedElement = prop.element;
+                        // 'spawnedElement' item will be an
+                        // object with an 'element' property
+                        // or a .get() method that will retrieve
+                        // the spawned item
+                        spawnedElement = method(prop);
+
+                        // prefer .get() method over .element property
+                        _spwnd = isFunction(spawnedElement.get) ? spawnedElement.get() : spawnedElement.element;
+
+                        // add spawnedElement to the master frag
+                        $frag.append(_spwnd);
+
+                        // save a reference to spawnedElement
+                        spawner.spawnedElements.push(_spwnd);
+
                     }
                     else {
-                        spawnedElement = spawn(prop.tag || prop.element.tag || 'span', prop.element, prop.content);
+                        if (hasConsole) {
+                            console.log('not spawned: ');
+                            console.log(prop);
+                        }
+                        spawner.notSpawned.push(prop);
+                    }
+                }
+
+                // give up if no spawnedElement
+                if (!spawnedElement) return;
+
+                // spawn child elements from...
+                // 'contents' or 'children' or
+                // a property matching the value of either 'contains' or 'kind'
+                if (prop.contains || prop.contents || prop[prop.kind]) {
+                    prop.contents = prop[prop.contains] || prop.contents || prop[prop.kind];
+                    // if there's a 'target' property, put contents in there
+                    if (spawnedElement.target || spawnedElement.inner) {
+                        $spawnedElement = $(spawnedElement.target || spawnedElement.inner);
+                    }
+                    else {
+                        $spawnedElement = $(spawnedElement.element || spawnedElement.get());
                     }
 
-                    // convert relative URIs for href, src, and action attributes
-                    if (spawnedElement.href) {
-                        spawnedElement.href = spawnerUrl(spawnedElement.getAttribute('href'))
+                    // if a string, number, or boolean is passed as 'contents'
+                    // just append that as-is (as a string)
+                    if (stringable(prop.contents)) {
+                        $spawnedElement.append(prop.contents + '');
                     }
-                    if (spawnedElement.src) {
-                        spawnedElement.src = spawnerUrl(spawnedElement.getAttribute('src'))
+                    else {
+                        $spawnedElement.append(spawnerInit(prop.contents).get());
                     }
-                    if (spawnedElement.action) {
-                        spawnedElement.action = spawnerUrl(spawnedElement.getAttribute('action'))
+                }
+
+                // Treat 'before' and 'after' just like 'contents'
+                // but insert the items 'before' or 'after' the main
+                // spawned (outer) element. This may have unintended
+                // consequences depending on the HTML structure of the
+                // spawned widget that has things 'before' or 'after' it.
+
+                if (prop.after) {
+                    if (stringable(prop.after) || Array.isArray(prop.after)) {
+                        $frag.append(prop.after)
                     }
-
-                    // jQuery's .append() method is
-                    // MUCH more robust and forgiving
-                    // than element.appendChild()
-                    $frag.append(spawnedElement);
-                    spawner.spawnedElements.push(spawnedElement);
-                }
-                catch (e) {
-                    if (hasConsole) console.log(e);
-                    spawner.notSpawned.push(prop);
-                }
-            }
-            else if (/^(text|html)$/i.test(kind)) {
-                $frag.append(prop.content||prop.html||prop.text)
-            }
-            else {
-
-                // check for a matching XNAT.ui method to call:
-                method =
-
-                    // XNAT.kind.init()
-                    lookupObjectValue(XNAT, kind + '.init') ||
-
-                    // XNAT.kind()
-                    lookupObjectValue(XNAT, kind) ||
-
-                    // XNAT.ui.kind.init()
-                    lookupObjectValue(NAMESPACE + '.' + kind + '.init') ||
-
-                    // XNAT.ui.kind()
-                    lookupObjectValue(NAMESPACE + '.' + kind) ||
-
-                    // XNAT.element.kind()
-                    lookupObjectValue(XNAT, 'element.' + kind) ||
-
-                    // kind.init()
-                    lookupObjectValue(kind + '.init') ||
-
-                    // kind()
-                    lookupObjectValue(kind) ||
-
-                    null;
-
-                // only spawn elements with defined methods
-                if (isFunction(method)) {
-
-                    // 'spawnedElement' item will be an
-                    // object with an 'element' property
-                    // or a .get() method that will retrieve
-                    // the spawned item
-                    spawnedElement = method(prop);
-
-                    // prefer .get() method over .element property
-                    _spwnd = isFunction(spawnedElement.get) ? spawnedElement.get() : spawnedElement.element;
-
-                    // add spawnedElement to the master frag
-                    $frag.append(_spwnd);
-
-                    // save a reference to spawnedElement
-                    spawner.spawnedElements.push(_spwnd);
-
-                }
-                else {
-                    if (hasConsole) {
-                        console.log('not spawned: ');
-                        console.log(prop);
+                    else if (isPlainObject(prop.after)) {
+                        $frag.append(spawnerInit(prop.after).get())
                     }
-                    spawner.notSpawned.push(prop);
                 }
+
+                if (prop.before) {
+                    if (stringable(prop.before) || Array.isArray(prop.before)) {
+                        $frag.prepend(prop.before)
+                    }
+                    else if (isPlainObject(prop.before)) {
+                        $frag.prepend(spawnerInit(prop.before).get())
+                    }
+                }
+
+                // if there's a .load() method, fire that
+                if (isFunction(spawnedElement.load || null)) {
+                    // console.log('spawnedElement.load');
+                    spawnedElement.load.call(spawnedElement);
+                }
+
+                // console.log('load / onRender');
+
+                // if there's an .onRender() method, queue it
+                if (isFunction(spawnedElement.onRender || null)) {
+                    console.log('spawnedElement.onRender');
+                    callbacks.push(function(){
+                        return spawnedElement.onRender.call(spawnedElement);
+                    });
+                }
+
             }
-
-            // give up if no spawnedElement
-            if (!spawnedElement) return;
-
-            // spawn child elements from...
-            // 'contents' or 'children' or
-            // a property matching the value of either 'contains' or 'kind'
-            if (prop.contains || prop.contents || prop[prop.kind]) {
-                prop.contents = prop[prop.contains] || prop.contents || prop[prop.kind];
-                // if there's a 'target' property, put contents in there
-                if (spawnedElement.target || spawnedElement.inner) {
-                    $spawnedElement = $(spawnedElement.target || spawnedElement.inner);
-                }
-                else {
-                    $spawnedElement = $(spawnedElement.element||spawnedElement.get());
-                }
-
-                // if a string, number, or boolean is passed as 'contents'
-                // just append that as-is (as a string)
-                if (stringable(prop.contents)) {
-                    $spawnedElement.append(prop.contents+'');
-                }
-                else {
-                    $spawnedElement.append(spawnerInit(prop.contents).get());
-                }
-            }
-
-            // Treat 'before' and 'after' just like 'contents'
-            // but insert the items 'before' or 'after' the main
-            // spawned (outer) element. This may have unintended
-            // consequences depending on the HTML structure of the
-            // spawned widget that has things 'before' or 'after' it.
-
-            if (prop.after) {
-                if (stringable(prop.after) || Array.isArray(prop.after)) {
-                    $frag.append(prop.after)
-                }
-                else if (isPlainObject(prop.after)) {
-                    $frag.append(spawnerInit(prop.after).get())
-                }
-            }
-
-            if (prop.before) {
-                if (stringable(prop.before) || Array.isArray(prop.before)) {
-                    $frag.prepend(prop.before)
-                }
-                else if (isPlainObject(prop.before)) {
-                    $frag.prepend(spawnerInit(prop.before).get())
-                }
-            }
-
-            // if there's a .load() method, fire that
-            if (isFunction(spawnedElement.load||null)) {
-                // console.log('spawnedElement.load');
-                spawnedElement.load.call(spawnedElement);
-            }
-
-            // console.log('load / onRender');
-
-            // if there's an .onRender() method, queue it
-            if (isFunction(spawnedElement.onRender||null)) {
-                console.log('spawnedElement.onRender');
-                callbacks.push(function(){
-                    return spawnedElement.onRender.call(spawnedElement);
-                });
+            catch(e) {
+                console.error(e);
             }
 
         });
@@ -441,17 +448,17 @@ var XNAT = getObject(XNAT);
             // console.log('spawnRender');
             var renderArgs = arguments;
             return request.done(function(obj){
-                    spawner.spawn(obj).render.apply(request, renderArgs);
+                spawner.spawn(obj).render.apply(request, renderArgs);
                 return request;
             });
         }
 
-        return {
+        var resolve = {
             // returned 'ok' method only fires with 200 response
             // and returns with 'this' as Spawner instance
             ok: function(success, failure){
                 console.log('spawner.resolve().ok()');
-                return request.done(function(obj, txtStatus, xhr){
+                request.done(function(obj, txtStatus, xhr){
                     var spawnerInstance = spawner.spawn(obj);
                     if (xhr.status === 200) {
                         if (isFunction(success)){
@@ -464,14 +471,28 @@ var XNAT = getObject(XNAT);
                             failure.call(spawnerInstance, obj, txtStatus, xhr)
                         }
                     }
-                })
+                });
+                return resolve;
             },
             done: request.done,
-            fail: request.fail,
+            fail: function(callback){
+                console.log('spawner.resolve().fail()');
+                request.done(function(obj, txtStatus, xhr){
+                    var spawnerInstance = spawner.spawn(obj);
+                    if (xhr.status !== 200) {
+                        if (isFunction(callback)){
+                            callback.apply(spawnerInstance, arguments)
+                        }
+                    }
+                });
+                return resolve;
+            },
             always: request.always,
             spawn: spawnRender,
             render: spawnRender
         };
+
+        return resolve;
 
     };
 

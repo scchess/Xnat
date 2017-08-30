@@ -825,7 +825,7 @@ var XNAT = getObject(XNAT||{}),
                     opts.contentType = 'application/json';
                 }
             }
-            else {
+            else if (firstDefined(opts.processData, true)) {
                 opts.data = $form.find(':input').not('.ignore').serialize();
             }
             opts.success = function(data){

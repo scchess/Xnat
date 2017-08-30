@@ -266,20 +266,27 @@ var XNAT = getObject(XNAT || {});
 
         obj.load = (obj.load+'').trim();
 
+        obj.queryString = '';
+
         // save query string
-        if (/[?]/.test(obj.load)){
-            tmp = obj.load.split('?');
-            obj.queryString = tmp[tmp.length-1];
-            tmp = '';
-        }
+        // if (/.{3}[?]/.test(obj.load)){
+        //     tmp = obj.load.split('?');
+        //     obj.queryString = '?' + tmp[tmp.length-1];
+        //     tmp = '';
+        // }
+
+        // regex for loading returned value to one specific input
+        var loadInput = /\s*[>:]\s*\[\[\s*(.+)\s*]]\s*/;
+        var loadParts = [];
 
         // extract name of form element to receive loaded value
         // (if raw data is returned instead of JSON with key: value)
         // append element name to 'load' value, like:
-        // /data/projects/foo/quarantine_code:[[quarantine]]
-        if (/\[\[/.test(obj.load)){
-            name = obj.load.split('[[')[1].split(']]')[0].trim();
-            obj.load = obj.load.split(/[:/\s]*\[\[/)[0] + '?' + obj.queryString;
+        // /data/projects/foo/quarantine_code > [[quarantine]]
+        if (loadInput.test(obj.load)){
+            loadParts = obj.load.split(loadInput);
+            name = loadParts[1];
+            obj.load = loadParts[0] + obj.queryString;
         }
 
         // if 'load' starts with '$?', '~/', or just '/'
@@ -298,11 +305,15 @@ var XNAT = getObject(XNAT || {});
         // XNAT.data['/rest/url']
         // that matches the URL, then use that
         if (doAjax) {
+            // remove ajax prefix
+            obj.load = obj.load.replace(ajaxPrefix, '');
             // add serverRoot to load url
-            obj.load = XNAT.url.rootUrl(obj.load);
+            obj.load = XNAT.url.rootUrl(obj.load.replace(ajaxPrefix, '').trim());
             // replace url params
             obj.load = urlParams($form, obj.load);
+            // if data is already cached...
             if (XNAT.data && XNAT.data[obj.load]) {
+                // don't do another request
                 doAjax = false;
                 obj.prop = obj.load;
                 obj.load = '??:XNAT:data'
@@ -440,17 +451,47 @@ var XNAT = getObject(XNAT || {});
         opts.name = opts.name || opts.element.name || opts.id || opts.element.id || randomID('form-', false);
         opts.action = opts.action || opts.url;
 
+        var payloadRegex = /<\s*\[\[(.*)]]$/;
+        var parts;
+
+        // to submit raw data from a single input, specify the 'name' at the beginning
+        // of the 'action' or 'url' property, like:
+        // action: /data/projects/ALI_US_X8W/config/separatePETMR/config?inbody=true&XNAT_CSRF={{csrfToken}} < [[separatePETMR|text/plain]]
+        if (payloadRegex.test(opts.action)) {
+            parts = opts.action.split(payloadRegex);
+            opts.payload = parts[1].trim();
+            opts.action = parts[0].trim();
+            opts.processData = opts.processData || false;
+        }
+
         // data-* attributes to add to panel
         addDataObjects(opts, {
             panel: toDashed(opts.name),
             method: (opts.method || 'POST').toLowerCase(),
-            load: opts.load || opts.action
+            load: opts.load || opts.action,
+            payload: opts.payload || ''
         });
 
         // text for 'submit' button
         opts.submit = opts.submit || 'Save';
         // text for 'reset' button
         opts.reset = opts.reset || 'Discard Changes';
+
+        opts.action = opts.action ? XNAT.url.rootUrl(opts.action) : '#!';
+
+        if ('params' in opts){
+            if (isPlainObject(opts.params)) {
+                forOwn(opts.params, function(key, val){
+                    opts.params[key] = strReplace(val);
+                });
+            }
+            else if (Array.isArray(opts.params)) {
+                opts.params = opts.params.map(function(param){
+                    return strReplace(param);
+                })
+            }
+            opts.action = XNAT.url.updateQueryString(opts.action, opts.params);
+        }
 
         var _target = spawn('div.panel-body', {}, [].concat(opts.body||[])),
 
@@ -474,9 +515,9 @@ var XNAT = getObject(XNAT || {});
 
             // TODO: use opts.element for the panel itself
             $formPanel = $.spawn('form.xnat-form-panel.panel.panel-default', extend(true, {
-                id: toDashed(opts.id || opts.element.id || opts.name) + '-panel',
+                id: opts.id || opts.element.id || toDashed(opts.name),
                 name: opts.name,
-                action: opts.action ? XNAT.url.rootUrl(opts.action) : '#!',
+                action: opts.action,
                 addClass: opts.classes || '',
                 data: opts.data
             }, opts.element), [
@@ -661,10 +702,9 @@ var XNAT = getObject(XNAT || {});
             var ajaxConfig = {
                 //method: opts.method,
                 method: $form.data('method') || opts.method || 'POST',
+                processData: firstDefined(opts.processData||undefined, true),
                 url: urlParams($form),
                 validate: function(){
-
-                    // TODO: enable this after testing validation methods more thoroughly
 
                     var errors = [],
                         errorCount = 0,
@@ -737,6 +777,22 @@ var XNAT = getObject(XNAT || {});
                 }
             };
 
+            // 'payload' property specifies name of element containing submission data
+            if (opts.payload || $form.data('payload')) {
+                opts.payload = opts.payload || $form.data('payload');
+                ajaxConfig.contentType = opts.payload.split('|')[1] || 'text/plain';
+                ajaxConfig.processData = opts.processData || false;
+                opts.payload = opts.payload.split('|')[0];
+                ajaxConfig.data = $form.find('[name="' + opts.payload +'"]').map(function(i, el){
+                    if (/radio|checkbox/i.test(this.type) && this.checked) {
+                        return this.value || this.checked;
+                    }
+                    else {
+                        return this.value
+                    }
+                }).get().join(',');
+            }
+
             var inputs = $form.find(':input').not('button, [type="submit"]').toArray();
 
             if (/json/i.test(opts.contentType||'')){
@@ -769,7 +825,9 @@ var XNAT = getObject(XNAT || {});
         // this object is returned to the XNAT.spawner() method
         return {
             load: function(){
-                loadData(_formPanel, opts)
+                if (!opts.load) {
+                    loadData(_formPanel, opts)
+                }
             },
             // setValues: setValues,
             target: _target,
