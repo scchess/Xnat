@@ -3911,6 +3911,14 @@ textarea.xml-formatted {
 }
 
 /* utility classes */
+
+.pad0 { padding: 0; }
+.margin0 { margin: 0; }
+.left0 { left: 0; }
+.right0 { right: 0; }
+.top0 { top: 0; }
+.bottom0, .btm0 { bottom: 0; }
+
 .pad1 { padding: 1px; }
 .pad5 { padding: 5px; }
 .pad10 { padding: 10px; }
@@ -3928,7 +3936,9 @@ textarea.xml-formatted {
 .pad10top, .pad-top-10 { padding-top: 10px; }
 .pad20top, .pad-top-20 { padding-top: 20px; }
 
-.inline { display: inline }
+.inline, .display-inline {
+    display: inline !important;
+}
 .inline-thirds {
     display: inline-block;
     margin-right: 10%;
@@ -3937,6 +3947,18 @@ textarea.xml-formatted {
 }
 .inline-thirds:last-of-type {
     margin-right: 0;
+}
+
+.display-block {
+    display: block;
+}
+
+.valign-top {
+    vertical-align: top !important;
+}
+
+.valign-bottom, .valign-btm {
+    vertical-align: bottom !important;
 }
 
 .truncate {

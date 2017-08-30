@@ -373,7 +373,7 @@ function setObject(obj, str, val) {
     while (parts.length > 1) {
         part = parts.shift();
         // obj = getObject(obj);
-        if (!obj[part]) {
+        if (!(part in obj)) {
             obj[part] = {};
         }
         obj = obj[part];
@@ -475,6 +475,8 @@ function strReplace(str){
         return firstDefined(lookupObjectValue(pt), part);
     }).replace(EVAL_REGEX, function(part){
         var pt = (part+'').trim().replace(/^{\(\s*|\s*\)}$/g, '');
+        if (jsdebug) console.log(part);
+        if (jsdebug) console.log(pt);
         try {
             return firstDefined(eval(pt), part);
         }

@@ -1,18 +1,92 @@
 <!-- BEGIN xnat-templates/screens/xnat_projectData/xnat_projectData_summary_tabs.vm -->
-<div ID="project_summary_module" style="display:none">
+#set($isProjectAdmin=false)
+#if($data.getSession().getAttribute("userHelper").isOwner($project.getId()) || $turbineUtils.isSiteAdmin($user))
+    #set($isProjectAdmin=true)
+#end
+<div id="project_summary_module" style="display:none">
     <div id="projectSummary" class="yui-navset">
+        #if ($isProjectAdmin)
+            <span id="project-settings-btn-container" class="hidden pull-right"></span>
+            #set ($projectSettingsUri = "/page/project/settings/content.jsp?id=$project.getId()")
+            <script>
+                (function(){
+
+                    function setUrlHash(str){
+                        var base = window.location.href.split('#')[0];
+                        window.location.replace(base + (str || ''));
+                    }
+
+                    function openProjectSettingsDialog(){
+                        var _url = '$content.getURI($projectSettingsUri)';
+                        XNAT.xhr.get({
+                            url: _url,
+                            success: function(html){
+                                setUrlHash('#settings');
+                                XNAT.dialog.open({
+                                    width: '90%',
+                                    height: '90%',
+                                    maxBtn: true,
+                                    title: 'Project Settings for $project.getId()',
+                                    content: html,
+                                    buttons: [
+                                        {
+                                            label: 'Done',
+                                            close: true,
+                                            isDefault: true
+                                        }
+                                    ],
+                                    onClose: function(){
+                                        setUrlHash('#!');
+                                    }
+                                })
+                            }
+                        });
+                    }
+
+                    function spawnProjectSettingsBtn(){
+                        var projectSettingsBtn$ = $.spawn('button#project-settings-btn.btn.btn-hover', {
+                            title: "@!$content.getURI($projectSettingsUri)",
+                            style: { marginTop: '2px' },
+                            on: {
+                                click: function(e){
+                                    e.preventDefault();
+                                    openProjectSettingsDialog();
+                                }
+                            }
+                        }, '<i class="fa fa-gear"></i> Project Settings');
+                        $('#project-settings-btn-container').hidden(false).append(projectSettingsBtn$);
+                        return projectSettingsBtn$;
+                    }
+
+                    XNAT.spawner
+                        .resolve('xnat:projectSettings/root')
+                        .ok(
+                            // Spawner element found, show 'Project Settings' in 'Actions' menu
+                            function(){
+                                spawnProjectSettingsBtn();
+                                if (/[#!]settings/i.test(window.location.href)){
+                                    openProjectSettingsDialog();
+                                }
+                            },
+                            // Spawner element not found, so check for project settings in plugins
+                            function(){
+                                XNAT.app.pluginSettings.projectSettingsActionItem(spawnProjectSettingsBtn());
+                            }
+                        );
+
+                })();
+            </script>
+        #end
         <ul class="yui-nav">
             <li class="selected"><a href="#tab1"><em>Details</em></a></li>
-            #set($canReadSubjects=$data.getSession().getAttribute("userHelper").canRead(
-                "xnat:subjectData/project","$project.getId()"))
-            #if($data.getSession().getAttribute("userHelper").isOwner($project.getId()) || $turbineUtils.isSiteAdmin($user))
-                    <li><a href="#tab3"><em>Access</em></a></li>
-                    <li><a href="#othermgmt"><em>Manage</em></a></li>
-                    <li><a href="#tab4"><em>Pipelines</em></a></li>
+            #set($canReadSubjects=$data.getSession().getAttribute("userHelper").canRead("xnat:subjectData/project","$project.getId()"))
+            #if($isProjectAdmin)
+                <li><a href="#tab3"><em>Access</em></a></li>
+                <li><a href="#othermgmt"><em>Manage</em></a></li>
+                <li><a href="#tab4"><em>Pipelines</em></a></li>
             #end
             #foreach($tab in $tabs)
-                <li><a href="#$tab.getProperty("divName")"><em>$tab.getProperty("title")
-                    </em></a></li>
+                <li><a href="#$tab.getProperty("divName")"><em>$tab.getProperty("title")</em></a></li>
             #end
 
         </ul>
@@ -23,16 +97,13 @@
 
             #if($data.getSession().getAttribute("userHelper").isOwner($project.getId()) || $turbineUtils.isSiteAdmin($user))
                     <div id="tab3" class="pad10">
-                        <p>#parse($turbineUtils.getTemplateName(
-                            "_summary_management","xnat:projectData",$project.getId()))</p>
+                        <p>#parse($turbineUtils.getTemplateName("_summary_management","xnat:projectData",$project.getId()))</p>
                     </div>
                     <div id="othermgmt" class="pad10">
-                        <p>#parse($turbineUtils.getTemplateName(
-                            "_summary_manage","xnat:projectData",$project.getId()))</p>
+                        <p>#parse($turbineUtils.getTemplateName("_summary_manage","xnat:projectData",$project.getId()))</p>
                     </div>
                     <div id="tab4">
-                        <p>#parse($turbineUtils.getTemplateName(
-                            "_summary_pipeline","xnat:projectData",$project.getId()))</p>
+                        <p>#parse($turbineUtils.getTemplateName("_summary_pipeline","xnat:projectData",$project.getId()))</p>
                     </div>
             #end
             #foreach($tab in $tabs)
@@ -79,8 +150,8 @@
                 while (window.summaryTabView.getTab(i) != null && !found) {
                     var tabLabel = window.summaryTabView.getTab(i).get('label');
                     var parseTabLabel = tabLabel.split('<');
-                    //alert("tab #" + i + ": " + parseTabLabel[0] + ", $!topTab
-                    ");
+                    ##//alert("tab #" + i + ": " + parseTabLabel[0] + ", $!topTab
+                    ##//");
                     if (parseTabLabel[0] == "$!topTab") {
                         // We have a match!
                         window.summaryTabView.set('activeIndex', i);

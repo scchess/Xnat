@@ -79,7 +79,25 @@ var XNAT = getObject(XNAT);
 
         forOwn(obj, function(item, prop){
 
-            var kind, element, method, spawnedElement, $spawnedElement;
+            var kind, element, method, spawnedElement, $spawnedElement, _spwnd;
+
+            if (stringable(prop)) {
+                $frag.append(prop);
+                return;
+            }
+
+            if (Array.isArray(prop)) {
+                prop.forEach(function(p){
+                    if (stringable(p)) {
+                        $frag.append(p);
+                        return;
+                    }
+                    if (Array.isArray(p)) {
+                        $frag.append(spawn.apply(null, p));
+                    }
+                });
+                return;
+            }
 
             // 'prop' can be a new or existing DOM element
             if (prop instanceof Element) {
@@ -215,11 +233,14 @@ var XNAT = getObject(XNAT);
                     // the spawned item
                     spawnedElement = method(prop);
 
+                    // prefer .get() method over .element property
+                    _spwnd = isFunction(spawnedElement.get) ? spawnedElement.get() : spawnedElement.element;
+
                     // add spawnedElement to the master frag
-                    $frag.append(spawnedElement.element||spawnedElement.get());
+                    $frag.append(_spwnd);
 
                     // save a reference to spawnedElement
-                    spawner.spawnedElements.push(spawnedElement.element||spawnedElement.get());
+                    spawner.spawnedElements.push(_spwnd);
 
                 }
                 else {
@@ -400,9 +421,9 @@ var XNAT = getObject(XNAT);
 
     // spawn elements with only the namespace/element path,
     // container/selector, and an optional AJAX config object
-    // XNAT.spawner.resolve('siteAdmin/adminPage').render('#page-container');
+    // XNAT.spawner.resolve('siteAdmin/root').render('#page-container');
     // or assign it to a variable and render later.
-    // var adminPage = XNAT.spawner.resolve('siteAdmin/adminPage');
+    // var adminPage = XNAT.spawner.resolve('siteAdmin/root');
     // adminPage.render('#page-container');
     // and methods from the AJAX request will be in .get.done(), .get.fail(), etc.
     spawner.resolve = function(nsPath, opts) {
