@@ -20,7 +20,7 @@ dynamicJSLoad("xnat_fieldDefinitionGroup_field_possibleValue","generated/xnat_fi
 dynamicJSLoad("GroupManager","fieldGroupManager.js");
 
 var DEBUG= false;//pre-display xml
-var DEBUG2= false;//writes to console
+var DEBUG2= true;//writes to console
 var ALLOW_EDIT= true;
 
 window.groupManagers=new Array();
@@ -564,50 +564,36 @@ function AllPossibleGroups(){
     }
 
     this.init=function(){
-        if (window.XMLHttpRequest) {
-            this.req = new XMLHttpRequest();
-        } else if (window.ActiveXObject) {
-            this.req = new ActiveXObject("Microsoft.XMLHTTP");
-        }
+        var initUrl = XNAT.url.csrfUrl("/servlet/AjaxServlet?remote-class=org.nrg.xnat.ajax.RequestProtocolDefinitionGroups&remote-method=execute");
 
-        var url = serverRoot + "/servlet/AjaxServlet?remote-class=org.nrg.xnat.ajax.RequestProtocolDefinitionGroups";
-        url = url + "&remote-method=execute&XNAT_CSRF="+csrfToken;
+        XNAT.xhr.get(initUrl)
+            .success(function(data){
+                var xmlDoc = data;
+                if (xmlDoc) {
 
-        this.req.open("GET", url, false);
-        this.req.send(null);
-
-        if (this.req!==false) {
-            if (this.req.status==200) {
-                var xmlDoc = this.req.responseXML;
-                if (xmlDoc)
-                {
+                    // get the list of custom var group definitions store each one by its datatype
                     var fieldDefinitionGroups = xmlDoc.getElementsByTagName("fieldDefinitionGroups")[0];
-                    if (fieldDefinitionGroups)
-                    {
-                        for(var initCount1=0;initCount1<fieldDefinitionGroups.childNodes.length;initCount1++)
-                        {
-                            var fieldDefinitionGroupsChild = fieldDefinitionGroups.childNodes[initCount1];
+                    if (fieldDefinitionGroups) {
+                        fieldDefinitionGroups.childNodes.forEach(function(fieldDefinitionGroupsChild){
                             var fieldDefinitionGroupsAttributes = fieldDefinitionGroupsChild.attributes;
                             if (fieldDefinitionGroupsAttributes)
                             {
                                 var dataType = fieldDefinitionGroupsAttributes.getNamedItem("data-type").value;
                                 var name = fieldDefinitionGroupsAttributes.getNamedItem("name").value;
                                 var description = fieldDefinitionGroupsAttributes.getNamedItem("description").value;
-                                var group = new xnat_fieldDefinitionGroup();
-                                group.setId(name);
-                                group.setDataType(dataType);
-                                group.setDescription(description);
+                                var defGroup = new xnat_fieldDefinitionGroup();
+                                defGroup.setId(name);
+                                defGroup.setDataType(dataType);
+                                defGroup.setDescription(description);
 
-                                this.add(dataType,group);
+                                this.add(dataType,defGroup);
                             }
-                        }
-                    }
+                        })
+                    } else { console.log( "No field definition groups found")}
 
-                    for(var initCount2=0;initCount2<this.definitionDataTypeGroups.length;initCount2++){
-                        var array = this.definitionDataTypeGroups[initCount2];
-                        for(var arrayCounter=0;arrayCounter<array.length;arrayCounter++){
-                            var group = array[arrayCounter];
-
+                    // Get the full definition for each known group
+                    this.definitionDataTypeGroups.forEach(function(dataTypeArray){
+                        dataTypeArray.forEach(function(group){
                             var xss = new xdat_stored_search();
                             xss.setRootElementName("xnat:fieldDefinitionGroup");
                             var critset = new xdat_criteria_set();
@@ -629,25 +615,13 @@ function AllPossibleGroups(){
 
                             var search = xss.toXML("");
 
-                            if (window.XMLHttpRequest) {
-                                this.req = new XMLHttpRequest();
-                            } else if (window.ActiveXObject) {
-                                this.req = new ActiveXObject("Microsoft.XMLHTTP");
-                            }
-
-                            var url = serverRoot + "/servlet/AjaxServlet?remote-class=org.nrg.xdat.ajax.XMLSearch";
+                            var url = "/servlet/AjaxServlet?remote-class=org.nrg.xdat.ajax.XMLSearch";
                             url = url + "&remote-method=execute";
                             url = url + "&search="+search;
                             url = url + "&allowMultiples=true";
-                            url = url + "&XNAT_CSRF="+csrfToken;
 
-                            this.req.open("GET", url, false);
-                            this.req.setRequestHeader("Content-Type","application/x-www-form-urlencoded; charset=UTF-8");
-
-                            this.req.send(null);
-
-                            if (this.req!==false) {
-                                if (this.req.status==200) {
+                            XNAT.xhr.get(XNAT.url.csrfUrl(url))
+                                .success(function(data){
                                     var arr,src='',parser = new SAXDriver();
                                     var handler = new SAXEventHandler();
 
@@ -655,19 +629,23 @@ function AllPossibleGroups(){
                                     parser.setErrorHandler(handler);
                                     parser.setLexicalHandler(handler);
 
-                                    parser.parse(this.req.responseText);// start parsing
+                                    parser.parse(data.responseText);// start parsing
 
 
                                     array[arrayCounter]=handler.root;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
 
-        }
-    }
+                                })
+                                .fail(function(e){ console.log(e) });
+                        })
+                    });
+
+                } else { console.log( "No xmlDoc found")}
+            })
+            .fail(function(e){
+                console.log(e);
+            });
+
+    };
 
     this.init();
 }
