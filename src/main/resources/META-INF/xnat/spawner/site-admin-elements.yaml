@@ -1485,7 +1485,7 @@ developmentUtilities:
 #################################################
 ####  Root Site Admin Spawner Config Object  ####
 #################################################
-adminPage:
+root:
     kind: tabs
     name: adminPage
     label: Administer XNAT
