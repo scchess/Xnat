@@ -30,10 +30,17 @@
         createdProtocols = [];
 
     #foreach($protocol in $om.getStudyprotocol())
-        // create a protocol manager for every known set of custom vars
-        // protocols.push( new ProtocolManager("$protocol.getId()",null,null,{project:"$om.getId()",dataType:"$protocol.getDataType()"}));
-        createdProtocols.push("$protocol.getDataType()");
+        // define the list of datatypes that have custom variables attached
+        createdProtocols.push({ protocolID: "${om.getId()}_" + "$protocol.getDataType()", xsiType: "$protocol.getDataType()", dataTypeLabel: "$protocol.getDatatypeSchemaElement().getSingularDescription()"});
     #end
+
+    createdProtocols.forEach(function(dataType){
+        var protocolUrl = XNAT.url.csrfUrl('/data/projects/${om.getId()}/protocols/'+dataType.protocolID+'?dataType='+dataType.xsiType)
+        XNAT.xhr.get(protocolUrl)
+                .success(function(data){
+                    var customVarXml = data;
+                });
+    });
 
     window.available_elements.forEach(function(dataType){
         // check other available data types and create placeholder tables for each of those
