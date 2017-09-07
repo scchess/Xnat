@@ -540,7 +540,7 @@ function AllPossibleGroups(){
         return match;
     }
 
-    this.add=function(dataType,group){
+    this.add = addDataType = function(dataType,group){
         var index = this.indexOf(dataType);
         if (index==-1){
             index = this.definitionDataTypes.length;
@@ -570,7 +570,16 @@ function AllPossibleGroups(){
             .success(function(data){
                 var xmlDoc = data;
                 if (xmlDoc) {
+                    var converter = new X2JS();
+                    var jsonDoc = converter.xml2json(xmlDoc);
 
+                    if (jsonDoc.fieldDefinitionGroups.length > 0) {
+                        jsonDoc.fieldDefinitionGroups.forEach(dataType){
+                            
+                        }
+                    }
+
+                    /*
                     // get the list of custom var group definitions store each one by its datatype
                     var fieldDefinitionGroups = xmlDoc.getElementsByTagName("fieldDefinitionGroups")[0];
                     if (fieldDefinitionGroups) {
@@ -586,7 +595,7 @@ function AllPossibleGroups(){
                                 defGroup.setDataType(dataType);
                                 defGroup.setDescription(description);
 
-                                this.add(dataType,defGroup);
+                                addDataType(dataType,defGroup);
                             }
                         })
                     } else { console.log( "No field definition groups found")}
@@ -638,6 +647,9 @@ function AllPossibleGroups(){
                                 .fail(function(e){ console.log(e) });
                         })
                     });
+
+
+                     */
 
                 } else { console.log( "No xmlDoc found")}
             })

@@ -1,6 +1,9 @@
 <script type="text/javascript" src="$content.getURI("scripts/DynamicJSLoad.js")"></script>
 <script type="text/javascript" src="$content.getURI("scripts/debugWindow.js")"></script>
+<script type="text/javascript" src="$content.getURI("scripts/lib/x2js/xml2json.js")"></script>
+<!--
 <script type="text/javascript" src="$content.getURI("scripts/ajaxProtocolManager.js")"></script>
+-->
 
 <div id="breadcrumb">
     <span class="crumb">
@@ -19,37 +22,90 @@
     (The default setting of 'project-specific' prevents the variables from being shared with other $displayManager.getPluralDisplayNameForProject().toLowerCase().)
 </div>
 
+<script>
+    var XNAT = getObject(XNAT || {});
+
+    (function(factory){
+        if (typeof define === 'function' && define.amd) {
+            define(factory);
+        }
+        else if (typeof exports === 'object') {
+            module.exports = factory();
+        }
+        else {
+            return factory();
+        }
+    }(function(){
+        XNAT.customVars = getObject(XNAT.customVars || {});
+        XNAT.customVars.definitions = [];
+    });
+
+</script>
+<style>
+    .custom-var-listing {
+        margin: 2em 0;
+    }
+</style>
+
 #foreach($protocol in $om.getStudyprotocol())
-    <p><strong>$protocol.getDataType(): </strong> $protocol.getDatatypeSchemaElement().getSingularDescription()</p>
-    <p>$protocol</p>
+    <h3 style="margin-top: 2em;">$protocol.getDatatypeSchemaElement().getPluralDescription() ($protocol.getDataType())</h3>
+    <div id="cvars-$protocol.getId()" class="custom-var-listing"></div>
+    <script type="text/javascript">
+        (function(factory){
+            if (typeof define === 'function' && define.amd) {
+                define(factory);
+            }
+            else if (typeof exports === 'object') {
+                module.exports = factory();
+            }
+            else {
+                return factory();
+            }
+        }(function(){
+
+            var cvTable = XNAT.table({ className: 'xnat-table', style: { 'width': '100%' } });
+            var container = $('#cvars-$protocol.getId()');
+            cvTable.tr()
+                    .th({ className: 'left' },'Custom Variable')
+                    .th('Fields')
+                    .th('Enabled')
+                    .th('Action');
+
+            // get the custom variable definitions for this datatype
+            // for each definition, add a new row to the table
+            var cvUrl = XNAT.url.csrfUrl('/data/projects/${om.getId()}/protocols/${om.getId()}_${protocol.getDataType()}?dataType=${protocol.getDataType()}');
+            XNAT.xhr.get(cvUrl)
+                    .success(function(xmlData){
+                        var converter = new X2JS();
+                        var jsonData = converter.xml2json(xmlData);
+
+                        jsonData.datatypeProtocol.definitions.definition.forEach(function(definition){
+                            var fields = (definition.fields) ? definition.fields.field : [];
+                            var fieldNames = [];
+                            if (fields.length) {
+                                fields.forEach(function(f){
+                                    fieldNames.push(f['_name']);
+                                })
+                            } else {
+                                fieldNames.push('n/a');
+                            }
+                            cvTable.tr({ className: 'cvar-'+definition['_ID'] })
+                                    .td({ className: 'left' }, definition['_ID'] )
+                                    .td({ className: 'truncate trunc200'}, fieldNames.toString() )
+                                    .td()
+                                    .td()
+                        })
+                    })
+
+            container.append(cvTable.table);
+
+        });
+
+    </script>
 #end
 
 
 <script type="text/javascript">
-    var protocols = [],
-        createdProtocols = [];
-
-    #foreach($protocol in $om.getStudyprotocol())
-        // define the list of datatypes that have custom variables attached
-        createdProtocols.push({ protocolID: "${om.getId()}_" + "$protocol.getDataType()", xsiType: "$protocol.getDataType()", dataTypeLabel: "$protocol.getDatatypeSchemaElement().getSingularDescription()"});
-    #end
-
-    createdProtocols.forEach(function(dataType){
-        var protocolUrl = XNAT.url.csrfUrl('/data/projects/${om.getId()}/protocols/'+dataType.protocolID+'?dataType='+dataType.xsiType)
-        XNAT.xhr.get(protocolUrl)
-                .success(function(data){
-                    var customVarXml = data;
-                });
-    });
-
-    window.available_elements.forEach(function(dataType){
-        // check other available data types and create placeholder tables for each of those
-        if (!createdProtocols.contains(dataType.element_name)) {
-        //    protocols.push( new ProtocolManager("${om.getId()}_" + dataType.element_name,null,null,{dataType:dataType.element_name,project:"${om.getId()}"}));
-            createdProtocols.push(dataType.elementName)
-        }
-
-    });
 
 
 //protocols[0].show();
