@@ -38,7 +38,7 @@
     }(function(){
         XNAT.customVars = getObject(XNAT.customVars || {});
         XNAT.customVars.definitions = [];
-    });
+    }));
 
 </script>
 <style>
@@ -99,7 +99,7 @@
 
             container.append(cvTable.table);
 
-        });
+        }));
 
     </script>
 #end

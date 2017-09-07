@@ -23,4 +23,4 @@ var XNAT = getObject(XNAT || {});
     XNAT.customVars = getObject(XNAT.customVars || {});
     
 
-});
+}));
