@@ -252,7 +252,7 @@ XNAT.app.abu.getAutomationHandlers = function(){
 			var props = $('.uploadLink').not('[data-type*="ScanData"]').attr("data-props");
 			XNAT.app.abu.contextResourceConfigs = XNAT.app.abu.abuConfigs.getAllConfigsByType(type,props);		
 			// Determine whether or not to display links
-			if (events.length>0) {
+            if (typeof(events) !== 'undefined' && events.length>0) {
 				XNAT.app.abu.initUploaderConfig();
 				if (XNAT.app.abu.hasContextEvents("Upload",type) || XNAT.app.abu.contextResourceConfigs.length>0) {
 					XNAT.app.abu.abuConfigs.showUploadLink();
@@ -276,21 +276,50 @@ XNAT.app.abu.getAutomationHandlers = function(){
 			XNAT.app.abu.showScanLinks();
 		});
 		sitewideHandlerAjax.fail( function( data, textStatus, jqXHR ) {
-			XNAT.app.abu.abuConfigs.hideLinks();	
-			console.log("GetAutomationHandlers result - ", jqXHR); 
+			XNAT.app.abu.abuConfigs.hideLinks();
+			console.log("GetAutomationHandlers result - ", jqXHR);
 		});
 
 	});
 	initializeBuildAjax.fail( function( data, textStatus, jqXHR ) {
-		XNAT.app.abu.abuConfigs.hideLinks();	
-		console.log("GetAutomationHandlers result - ", jqXHR); 
+
+        XNAT.app.abu.automationEvents = [];
+		var events = XNAT.app.abu.automationEvents;
+		var resources = XNAT.app.abu.allResourceConfigs;
+		var type = $('.uploadLink').not('[data-type*="ScanData"]').attr("data-type");
+		var props = $('.uploadLink').not('[data-type*="ScanData"]').attr("data-props");
+		XNAT.app.abu.contextResourceConfigs = XNAT.app.abu.abuConfigs.getAllConfigsByType(type,props);
+		// Determine whether or not to display links
+        if (typeof(events) !== 'undefined' && events.length>0) {
+			XNAT.app.abu.initUploaderConfig();
+			if (XNAT.app.abu.hasContextEvents("Upload",type) || XNAT.app.abu.contextResourceConfigs.length>0) {
+				XNAT.app.abu.abuConfigs.showUploadLink();
+			} else {
+				XNAT.app.abu.abuConfigs.hideUploadLink();
+			}
+			if (XNAT.app.abu.hasContextEvents("Launch",type)) {
+				XNAT.app.abu.abuConfigs.showLaunchLink();
+			} else {
+				XNAT.app.abu.abuConfigs.hideLaunchLink();
+			}
+		} else {
+			XNAT.app.abu.uploaderConfig = [];
+			XNAT.app.abu.abuConfigs.hideLaunchLink();
+			if (XNAT.app.abu.contextResourceConfigs.length>0) {
+				XNAT.app.abu.abuConfigs.showUploadLink();
+			} else {
+				XNAT.app.abu.abuConfigs.hideUploadLink();
+			}
+		}
+		XNAT.app.abu.showScanLinks();
 	});
+
 }
 
 XNAT.app.abu.hasContextEvents = function(usage,dataType){
 	var events = XNAT.app.abu.automationEvents;
 	var uploaderConfig = XNAT.app.abu.uploaderConfig;
-	if (events.length>0) {
+    if (typeof(events) !== 'undefined' && events.length>0) {
 		for (var i=0; i<events.length; i++) {
 			var currEvent = events[i];
 			for (var j=0; j<uploaderConfig.length; j++) {
@@ -420,7 +449,7 @@ XNAT.app.abu.populateEventHandlerSelect = function(){
 	var usageSelect = $('#usageSelect').val();
 	var resourceSelect = $('#resourceSelect').val();
 	$('#eventHandlerSelect').find('option').remove();
-	if (events.length>0) {
+	if (typeof(events) !== 'undefined' && events.length>0) {
 		$('#eventHandlerSelect').append('<option id="handlerDefaultOption" value="">' + 
 			((usageSelect=='Launch' || resourceSelect==XNAT.app.abu.cacheConstant) ?  'SELECT' : 'DEFAULT') + '</option>'); 
 		outerLoop:
@@ -480,7 +509,7 @@ XNAT.app.abu.populateWhatToDoSelect = function(){
 	if (XNAT.app.abu.contextResourceConfigs!=undefined && XNAT.app.abu.contextResourceConfigs.length>0) {
 		for (var h=0; h<resourceConfigs.length; h++) {
 			var resourceMatch = false;
-			if (events.length>0) {
+            if (typeof(events) !== 'undefined' && events.length>0) {
 				outerLoop:
 				for (var i=0; i<events.length; i++) {
 					var currEvent = events[i];
@@ -527,8 +556,8 @@ XNAT.app.abu.populateWhatToDoSelect = function(){
 				$("#whatToDoSelect").append('<option value="resource-' + resourceConfigs[h].name + '">' + resourceConfigs[h].name + '</option>');
 			}
 		}
-	} 
-	if (events.length>0) {
+	}
+    if (typeof(events) !== 'undefined' && events.length>0) {
 		outerLoop:
 		for (var i=0; i<events.length; i++) {
 			var currEvent = events[i];
@@ -561,55 +590,57 @@ XNAT.app.abu.populateWhatToDoSelect = function(){
 	XNAT.app.abu.whatToDoChange();
 }
 
-XNAT.app.abu.initializeAbuUploader = function(usageType){
+XNAT.app.abu.initializeAbuUploader = function(usageType) {
 
-	if (usageType === "upload") {
-		XNAT.app.abu.abuConfigs.modalOpts.title = "Upload Additional Files";
-	} else if (usageType === "launch") {
-		XNAT.app.abu.abuConfigs.modalOpts.title = "Script Launcher";
+    if (usageType === "upload") {
+        XNAT.app.abu.abuConfigs.modalOpts.title = "Upload Additional Files";
+    } else if (usageType === "launch") {
+        XNAT.app.abu.abuConfigs.modalOpts.title = "Script Launcher";
+    }
+    $("div.title").find("span.inner").html(XNAT.app.abu.abuConfigs.modalOpts.title);
+    var events = XNAT.app.abu.automationEvents;
+    var type = $(XNAT.app.abu.currentLink).attr("data-type");
+    var props = $(XNAT.app.abu.currentLink).attr("data-props");
+    XNAT.app.abu.contextResourceConfigs = XNAT.app.abu.abuConfigs.getAllConfigsByType(type, props);
+    var resourceConfigs = XNAT.app.abu.contextResourceConfigs;
+    var scriptDiv = '';
+    var usageSelect = '<div class="abu-xnat-interactivity-area-sub usage-area"><span class="interactivityAreaSpan">Usage:</span> <select id="usageSelect" onchange="XNAT.app.abu.usageSelectAction()">';
+    if (typeof usageType == 'undefined' || usageType == 'upload') {
+        XNAT.app.abu.usageSelect = 'Upload';
+        usageSelect += '<option value="Upload">Upload Files</option>';
+    }
+    if (typeof usageType == 'undefined' || usageType == 'launch') {
+        if (usageType == 'launch') {
+            XNAT.app.abu.usageSelect = 'Launch';
+        }
+        usageSelect += '<option value="Launch">Script Launcher</option>';
+    }
+    usageSelect += '</select></div>';
+    var resourceSelect = '<div class="abu-xnat-interactivity-area-sub upload-area"><span class="interactivityAreaSpan">';
+    if (usageType === "upload") {
+        resourceSelect += 'Configured Resource:</span>';
+    } else {
+        resourceSelect += 'Upload location:</span>';
+    }
+    resourceSelect += '<select id="resourceSelect" onchange="XNAT.app.abu.updateModalAction()">';
+    if (XNAT.app.abu.contextResourceConfigs != undefined && XNAT.app.abu.contextResourceConfigs.length > 0) {
+        resourceSelect += '<option value="' + XNAT.app.abu.cacheConstant + '">Cache Space</option>';
+        for (var i = 0; i < resourceConfigs.length; i++) {
+            resourceSelect += ('<option value="' + resourceConfigs[i].name + '">' + resourceConfigs[i].name + '</option>');
+        }
+    } else {
+        resourceSelect += '<option value="' + XNAT.app.abu.cacheConstant + '">Cache Space</option>';
+    }
+    resourceSelect += '</select></div>';
+    var eventSelect = '<div class="abu-xnat-interactivity-area-sub eventhandler-area"><span id="script-select-text" class="interactivityAreaSpan">Script to run:</span> <select id="eventHandlerSelect" onchange="XNAT.app.abu.eventHandlerChange()">';
+    eventSelect += '</select></div>';
+    var whatToDoSelect = '<div class="abu-xnat-interactivity-area-sub whattodo-area"><span id="script-select-text" class="interactivityAreaSpan">Upload Selector:</span> <select id="whatToDoSelect" onchange="XNAT.app.abu.whatToDoChange()">';
+    whatToDoSelect += '</select></div>';
+    scriptDiv += usageSelect;
+    scriptDiv += resourceSelect;
+    if (XNAT.app.enableInternalScripts) {
+		scriptDiv += eventSelect;
 	}
-	$("div.title").find("span.inner").html(XNAT.app.abu.abuConfigs.modalOpts.title);
-	var events = XNAT.app.abu.automationEvents;
-	var type = $(XNAT.app.abu.currentLink).attr("data-type");
-	var props = $(XNAT.app.abu.currentLink).attr("data-props");
-	XNAT.app.abu.contextResourceConfigs = XNAT.app.abu.abuConfigs.getAllConfigsByType(type,props);		
-	var resourceConfigs = XNAT.app.abu.contextResourceConfigs;
-	var scriptDiv = '';
-	var usageSelect = '<div class="abu-xnat-interactivity-area-sub usage-area"><span class="interactivityAreaSpan">Usage:</span> <select id="usageSelect" onchange="XNAT.app.abu.usageSelectAction()">'; 
-                if (typeof usageType == 'undefined' || usageType == 'upload') {
-			XNAT.app.abu.usageSelect = 'Upload';
-			usageSelect+='<option value="Upload">Upload Files</option>'; 
-		}
-                if (typeof usageType == 'undefined' || usageType == 'launch') {
-			if (usageType == 'launch') {
-				XNAT.app.abu.usageSelect = 'Launch';
-			}
-			usageSelect+='<option value="Launch">Script Launcher</option>'; 
-		}
-	usageSelect+='</select></div>';
-	var resourceSelect = '<div class="abu-xnat-interactivity-area-sub upload-area"><span class="interactivityAreaSpan">';
-	if (usageType === "upload") {
-		resourceSelect+='Configured Resource:</span>';
-	} else {
-		resourceSelect+='Upload location:</span>';
-	}
-        resourceSelect+='<select id="resourceSelect" onchange="XNAT.app.abu.updateModalAction()">'; 
-	if (XNAT.app.abu.contextResourceConfigs!=undefined && XNAT.app.abu.contextResourceConfigs.length>0) {
-		resourceSelect+='<option value="' + XNAT.app.abu.cacheConstant + '">Cache Space</option>'; 
-		for (var i=0; i<resourceConfigs.length; i++) {
-			resourceSelect+=('<option value="' + resourceConfigs[i].name + '">' + resourceConfigs[i].name + '</option>');
-		}
-	} else {
-		resourceSelect+='<option value="' + XNAT.app.abu.cacheConstant + '">Cache Space</option>'; 
-	}
-	resourceSelect+='</select></div>';
-	var eventSelect = '<div class="abu-xnat-interactivity-area-sub eventhandler-area"><span id="script-select-text" class="interactivityAreaSpan">Script to run:</span> <select id="eventHandlerSelect" onchange="XNAT.app.abu.eventHandlerChange()">'; 
-	eventSelect+='</select></div>';
-	var whatToDoSelect = '<div class="abu-xnat-interactivity-area-sub whattodo-area"><span id="script-select-text" class="interactivityAreaSpan">Upload Selector:</span> <select id="whatToDoSelect" onchange="XNAT.app.abu.whatToDoChange()">'; 
-	whatToDoSelect+='</select></div>';
-	scriptDiv+=usageSelect;
-	scriptDiv+=resourceSelect;
-	scriptDiv+=eventSelect;
 	scriptDiv+=whatToDoSelect;
 	try {
 		xmodal.open(XNAT.app.abu.abuConfigs.modalOpts);

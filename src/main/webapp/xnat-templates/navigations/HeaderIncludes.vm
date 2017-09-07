@@ -109,6 +109,8 @@ $navigation.setTemplate("/BaseJS.vm")
     XNAT.app.showLeftBarSearch =  realValue($!siteConfig.uiShowLeftBarSearch);
     XNAT.app.showLeftBarBrowse = realValue($!siteConfig.uiShowLeftBarBrowse);
 
+    XNAT.app.enableInternalScripts = realValue($!siteConfig.enableInternalScripts);
+
     window.available_elements = [];
 
     #if($data.getSession().getAttribute("userHelper"))

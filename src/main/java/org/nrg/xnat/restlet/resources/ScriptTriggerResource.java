@@ -68,6 +68,14 @@ public class ScriptTriggerResource extends AutomationResource {
         final boolean hasTriggerId = StringUtils.isNotBlank(triggerId);
         final boolean hasId = StringUtils.isNotBlank(Id);
 
+        final Method method = request.getMethod();
+        final UserI  user   = getUser();
+        if (!XDAT.getSiteConfigPreferences().getEnableInternalScripts() && !Roles.isSiteAdmin(user)) {
+            final String message = "User " + user.getLogin() + " attempted to access script trigger despite internal scripting being disabled.";
+            _log.warn(message);
+            throw new ResourceException(Status.CLIENT_ERROR_FORBIDDEN, message);
+        }
+
         final String projectId;
         if (!hasTriggerId && !hasEvent && !hasId) {
             projectId = getProjectId();
@@ -97,13 +105,6 @@ public class ScriptTriggerResource extends AutomationResource {
             }
         }
 
-        final Method method = request.getMethod();
-        final UserI  user   = getUser();
-        if (!XDAT.getSiteConfigPreferences().getEnableInternalScripts() && !Roles.isSiteAdmin(user)) {
-            final String message = "User " + user.getLogin() + " attempted to access script trigger despite internal scripting being disabled.";
-            _log.warn(message);
-            throw new ResourceException(Status.CLIENT_ERROR_FORBIDDEN, message);
-        }
         if (StringUtils.isNotBlank(projectId)) {
             validateProjectAccess(projectId);
             setProjectId(projectId);
