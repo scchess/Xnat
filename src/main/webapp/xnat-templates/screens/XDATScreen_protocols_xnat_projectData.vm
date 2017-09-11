@@ -1,6 +1,7 @@
 <script type="text/javascript" src="$content.getURI("scripts/DynamicJSLoad.js")"></script>
 <script type="text/javascript" src="$content.getURI("scripts/debugWindow.js")"></script>
 <script type="text/javascript" src="$content.getURI("scripts/lib/x2js/xml2json.js")"></script>
+<script type="text/javascript" src="$content.getURI("scripts/xnat/app/customVars.js")"></script>
 <!--
 <script type="text/javascript" src="$content.getURI("scripts/ajaxProtocolManager.js")"></script>
 -->
@@ -79,22 +80,15 @@
                         var converter = new X2JS();
                         var jsonData = converter.xml2json(xmlData);
 
-                        jsonData.datatypeProtocol.definitions.definition.forEach(function(definition){
-                            var fields = (definition.fields) ? definition.fields.field : [];
-                            var fieldNames = [];
-                            if (fields.length) {
-                                fields.forEach(function(f){
-                                    fieldNames.push(f['_name']);
-                                })
-                            } else {
-                                fieldNames.push('n/a');
-                            }
-                            cvTable.tr({ className: 'cvar-'+definition['_ID'] })
-                                    .td({ className: 'left' }, definition['_ID'] )
-                                    .td({ className: 'truncate trunc200'}, fieldNames.toString() )
-                                    .td()
-                                    .td()
-                        })
+                        var customVars = jsonData.datatypeProtocol.definitions.definition;
+                        if (isArray(customVars)){
+                            customVars.forEach(function(customVar){
+                                XNAT.customVars.addTableRow(cvTable,customVar);
+                            })
+                        } else {
+                            XNAT.customVars.addTableRow(cvTable,customVars);
+                        }
+
                     })
 
             container.append(cvTable.table);
