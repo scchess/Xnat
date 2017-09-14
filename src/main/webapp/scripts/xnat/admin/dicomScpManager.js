@@ -144,7 +144,7 @@ var XNAT = getObject(XNAT || {});
             scroll: false,
             padding: '0',
             beforeShow: function(obj){
-                var $form = obj.$modal.find('#dicom-scp-editor-panel');
+                var $form = obj.$modal.find('form[name="dicomScpEditor"]');
                 var identifiers = dicomScpManager.identifiers;
                 var identifier_ids = Object.keys(identifiers);
                 if (identifier_ids.length > 1) {

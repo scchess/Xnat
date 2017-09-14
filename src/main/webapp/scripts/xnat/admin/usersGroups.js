@@ -370,7 +370,7 @@ var XNAT = getObject(XNAT);
             okLabel: 'Save',
             okClose: false,
             okAction: function(obj){
-                var $form = obj.$modal.find('form#user-account-form-panel');
+                var $form = obj.$modal.find('form[name="userAccountForm"]');
                 var doSave = saveUserData($form);
                 doSave.done(function(){
                     updated = true;
@@ -877,7 +877,7 @@ var XNAT = getObject(XNAT);
             okLabel: 'Save',
             okClose: 'false',
             okAction: function(obj){
-                var $form = obj.$modal.find('form#user-account-form-panel');
+                var $form = obj.$modal.find('form[name="userAccountForm"]');
                 var _username = $form.find('input[name="username"]').val();
                 // make sure new username is not a duplicate
                 var getUserList = usersGroups.userData().usernames();
