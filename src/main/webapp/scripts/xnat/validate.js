@@ -1054,13 +1054,13 @@ var XNAT = getObject(XNAT);
     // add event listeners for validation
     $(function(){
 
-        var $body = $(document.body);
+        var $doc = $(document);
 
-        $body.on('focus', ':input[data-validate]', function(){
+        $doc.on('focus', ':input[data-validate]', function(){
             $(this).removeClass('valid invalid');
         });
 
-        $body.on('blur', ':input[data-validate].onblur', function(){
+        $doc.on('blur', ':input[data-validate].onblur', function(){
             validate(this).check();
         });
 

@@ -306,13 +306,13 @@ var XNAT = getObject(XNAT || {});
         // that matches the URL, then use that
         if (doAjax) {
             // remove ajax prefix
-            obj.load = obj.load.replace(ajaxPrefix, '');
+            obj.load = obj.load.replace(ajaxPrefix, '') .trim();
             // add serverRoot to load url
-            obj.load = XNAT.url.rootUrl(obj.load.replace(ajaxPrefix, '').trim());
+            obj.load = XNAT.url.rootUrl(obj.load);
             // replace url params
             obj.load = urlParams($form, obj.load);
             // if data is already cached...
-            if (XNAT.data && XNAT.data[obj.load]) {
+            if (!obj.reload && XNAT.data && XNAT.data[obj.load]) {
                 // don't do another request
                 doAjax = false;
                 obj.prop = obj.load;
@@ -409,6 +409,7 @@ var XNAT = getObject(XNAT || {});
         }, obj.ajax || obj.xhr);
 
         obj.ajax.success = function(data){
+
             if (ajaxProp){
                 data = data[ajaxProp];
             }
@@ -420,6 +421,9 @@ var XNAT = getObject(XNAT || {});
             else {
                 values = data;
             }
+
+            // cache returned data
+            XNAT.data[obj.ajax.url] = values;
 
             // set values of form elements
             $form.setValues(values);
@@ -473,9 +477,9 @@ var XNAT = getObject(XNAT || {});
         });
 
         // text for 'submit' button
-        opts.submit = opts.submit || 'Save';
+        opts.submit = firstDefined(opts.submit, 'Save');
         // text for 'reset' button
-        opts.reset = opts.reset || 'Discard Changes';
+        opts.reset = firstDefined(opts.reset, 'Discard Changes');
 
         opts.action = opts.action ? XNAT.url.rootUrl(opts.action) : '#!';
 
@@ -489,6 +493,9 @@ var XNAT = getObject(XNAT || {});
                 opts.params = opts.params.map(function(param){
                     return strReplace(param);
                 })
+            }
+            else {
+                opts.params = strReplace(opts.params)
             }
             opts.action = XNAT.url.updateQueryString(opts.action, opts.params);
         }
@@ -547,51 +554,8 @@ var XNAT = getObject(XNAT || {});
             // addDataObjects()
         }
 
-        // // set form element values from an object map
-        // // HANDLED BY $('form').setValues({name:'value'}) now
-        // function dontSetValues(form, dataObj){
-        //     // find all form inputs with a name attribute
-        //     $$(form).find(':input').each(function(){
-        //
-        //         var $this = $(this);
-        //         var val = lookupObjectValue(dataObj, this.name||this.title);
-        //
-        //         if (Array.isArray(val)) {
-        //             val = val.join(', ');
-        //             $this.addClass('array-list')
-        //         }
-        //         else {
-        //             val = stringable(val) ? val : JSON.stringify(val);
-        //         }
-        //
-        //         // used on hidden inputs to reset values
-        //         if ($this.hasClasses('proxy && dirty')) {
-        //             this.value = $this.dataAttr('value');
-        //         }
-        //
-        //         //if (val === "") return;
-        //
-        //         // $this.not(':checkbox, :radio').changeVal(val);
-        //         $this.not(':radio').changeVal(val);
-        //
-        //         if (/checkbox/i.test(this.type)) {
-        //             this.checked = realValue(val);
-        //         }
-        //
-        //         if (/radio/i.test(this.type)) {
-        //             this.checked = isEqual(this.value, val);
-        //             if (this.checked) {
-        //                 $this.trigger('change');
-        //             }
-        //         }
-        //
-        //         $this.removeClass('dirty').dataAttr('value', val);
-        //
-        //     });
-        //
-        //     loadingDialog().closeAll();
-        //
-        // }
+        // set form element values from an object map
+        // HANDLED BY $('form').setValues({name:'value'}) now
 
         if (opts.load) {
             loadData(_formPanel, opts)
@@ -611,6 +575,7 @@ var XNAT = getObject(XNAT || {});
             $this.find('.ready').removeClass('ready');
             loadData(this, {
                 load: _load ? _load.replace(/^(\$\?)*/, '') : '',
+                reload: true, // force data reload (don't use stale cached data)
                 onload: function(){
                     // fire an 'onload' callback, if specified
                     opts.onload.apply(_formPanel, arguments);
@@ -751,11 +716,12 @@ var XNAT = getObject(XNAT || {});
                 },
                 success: function(){
                     var obj = {}, callback,
-                        _load = opts.refresh || opts.reload || opts.url || opts.load;
+                        _load = opts.refresh || opts.url || opts.load;
                     // actually, NEVER use returned data...
                     // ALWAYS reload from the server
                     // (prepending '$?' assures that)
                     obj.load = _load ? (_load.replace(/^(\$\?)*/, '$?')) : '';
+                    obj.reload = true; // force reload after submission
                     if (!silent){
                         XNAT.ui.banner.top(2000, 'Data saved successfully.', 'success');
                         loadData($form, obj);
