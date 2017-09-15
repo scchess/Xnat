@@ -816,7 +816,7 @@ var XNAT = getObject(XNAT||{}),
             }
             if ($form.hasClass('json') || /json/i.test(opts.contentType||'')){
                 // opts.data = formToJSON($form, true);
-                opts.data = JSON.stringify(form2js(_inputs, opts.delimiter||opts.delim||':', false));
+                opts.data = firstDefined(opts.data, JSON.stringify(form2js(_inputs, opts.delimiter||opts.delim||':', false)));
                 opts.processData = false;
                 if (opts.contentType === 'text/json') {
                     opts.contentType = 'text/plain';

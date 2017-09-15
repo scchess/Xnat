@@ -96,13 +96,6 @@
 
                     })();
 
-//                    function initInfoLinks(){
-//                        $('.infolink').click(function(e){
-//                            var idx = this.id.substr(9);
-//                            var help = infoContent[idx];
-//                            xmodal.message(help.title, help.content);
-//                        });
-//                    }
                 </script>
 
             </div>

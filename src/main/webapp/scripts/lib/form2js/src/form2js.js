@@ -50,14 +50,15 @@
 	 * "name" attribute defines structure of resulting object
 	 *
 	 * @param rootNode {Element|String} root form element (or it's id) or array of root elements
-	 * @param delimiter {String} structure parts delimiter defaults to '.'
-	 * @param skipEmpty {Boolean} should skip empty text values, defaults to true
-	 * @param nodeCallback {Function} custom function to get node value
-	 * @param useIdIfEmptyName {Boolean} if true value of id attribute of field will be used if name of field is empty
+	 * @param [delimiter] {String} structure parts delimiter defaults to '.'
+	 * @param [skipEmpty] {Boolean} should skip empty text values, defaults to true
+	 * @param [nodeCallback] {Function} custom function to get node value
+     * @param [useIdIfEmptyName] {Boolean} if true value of id attribute of field will be used if name of field is empty
+     * @param [getDisabled] {Boolean} if true values of disabled elements will be retrieved
 	 */
 	function form2js(rootNode, delimiter, skipEmpty, nodeCallback, useIdIfEmptyName, getDisabled)
 	{
-		getDisabled = getDisabled ? true : false;
+		getDisabled = !!getDisabled ;
 		if (typeof skipEmpty == 'undefined' || skipEmpty == null) skipEmpty = true;
 		if (typeof delimiter == 'undefined' || delimiter == null) delimiter = '.';
 		if (arguments.length < 5) useIdIfEmptyName = false;
@@ -83,6 +84,13 @@
 
 		return processNameValues(formValues, skipEmpty, delimiter);
 	}
+
+    /**
+	 * Return stringified output. Arguments are passed directly to main function.
+     */
+	form2js.string = function(){
+		return JSON.stringify(form2js.apply(this, arguments));
+	};
 
 	/**
 	 * Processes collection of { name: 'name', value: 'value' } objects.
@@ -245,7 +253,7 @@
 	{
 		var result = [],
 			currentNode = rootNode.firstChild;
-		
+
 		while (currentNode)
 		{
 			result = result.concat(extractNodeValues(currentNode, nodeCallback, useIdIfEmptyName, getDisabled));
@@ -258,7 +266,7 @@
     function extractNodeValues(node, nodeCallback, useIdIfEmptyName, getDisabled) {
         if (node.disabled && !getDisabled) return [];
 
-        var callbackResult, fieldValue, result, fieldName = getFieldName(node, useIdIfEmptyName);
+        var callbackResult, fieldValue, arrayDelim, result, fieldName = getFieldName(node, useIdIfEmptyName);
 
         callbackResult = nodeCallback && nodeCallback(node);
 
@@ -268,11 +276,11 @@
         else if (fieldName != '' && node.nodeName.match(/INPUT|TEXTAREA/i)) {
             fieldValue = getFieldValue(node, getDisabled);
 
+			arrayDelim = node.getAttribute('data-delim') || node.getAttribute('data-delimeter') || ',';
+
 			// convert items with 'array-list' class to an actual array
-			if (/array-list|list-array/i.test(node.className)) {
-				fieldValue = fieldValue.split(',').map(function(item, i){
-					return item.trim();
-				});
+			if (/array-list|list-array/i.test(node.className) && !Array.isArray(fieldValue)) {
+				fieldValue = fieldValue.split(arrayDelim);
 			}
 
 			if (fieldValue === null) {
@@ -303,7 +311,9 @@
 	function getFieldValue(fieldNode, getDisabled)
 	{
 		if (fieldNode.disabled && !getDisabled) return null;
-		
+
+		var arrayDelim = ',';
+
 		switch (fieldNode.nodeName) {
 			case 'INPUT':
 			case 'TEXTAREA':
@@ -324,7 +334,10 @@
 						break;
 
 					default:
-						return fieldNode.value;
+                        arrayDelim = fieldNode.getAttribute('data-delim') || fieldNode.getAttribute('data-delimeter') || ',';
+                        return /array-list|list-array/i.test(fieldNode.className) ?
+							fieldNode.value.split(arrayDelim) :
+							fieldNode.value;
 						break;
 				}
 				break;
