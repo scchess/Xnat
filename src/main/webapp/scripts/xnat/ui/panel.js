@@ -506,10 +506,10 @@ var XNAT = getObject(XNAT || {});
 
             hideFooter = (isDefined(opts.footer) && (opts.footer === false || /^-/.test(opts.footer))),
 
-            $saveBtn = footerButton(opts.submit, 'button', true, 'submit save pull-right'),
+            $saveBtn = footerButton(opts.submit, 'submit', true, 'submit save pull-right'),
             _saveBtn = $saveBtn[0],
 
-            $resetBtn = footerButton(opts.reset, 'button', true, 'revert pull-right'),
+            $resetBtn = footerButton(opts.reset, 'reset', true, 'revert pull-right'),
             _resetBtn = $resetBtn[0],
 
             _footer = [
