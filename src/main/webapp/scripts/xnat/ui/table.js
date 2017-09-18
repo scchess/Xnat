@@ -1097,20 +1097,25 @@ var XNAT = getObject(XNAT);
                     url: XNAT.url.rootUrl(loadUrl),
                     dataType: opts.dataType || 'json',
                     success: function(json){
+                        var DATA = json;
                         // support custom path for returned data
                         if (opts.path) {
-                            json = lookupObjectValue(json, opts.path);
+                            DATA = lookupObjectValue(json, opts.path);
                         }
                         else {
                             // handle data returned in ResultSet.Result array
-                            json = (json.ResultSet && json.ResultSet.Result) ? json.ResultSet.Result : json;
+                            DATA = (json.ResultSet && json.ResultSet.Result) ? json.ResultSet.Result : json;
                         }
                         // make sure there's data before rendering the table
                         if (isEmpty(json)) {
                             showMessage().noData(opts.messages ? opts.messages.noData || opts.messages.empty : '')
                         }
                         else {
-                            createTable(json);
+                            // transform data before rendering?
+                            if (isFunction(opts.apply || opts.transform)) {
+                                DATA = (opts.apply || opts.transform).call(opts, json);
+                            }
+                            createTable(DATA || json);
                         }
                     },
                     error: function(obj, status, message){
@@ -1140,7 +1145,12 @@ var XNAT = getObject(XNAT);
         //     return tableWrapper;
         // };
 
-        return {
+        var renderDone = false;
+        var renderTime = 0;
+        var INTERVAL = 10;
+
+        var obj = {
+            opts: opts,
             dataTable: newTable,
             table: newTable.table,
             element: tableWrapper,
@@ -1150,27 +1160,61 @@ var XNAT = getObject(XNAT);
                 return tableWrapper;
             },
             done: function(callback){
-                var result = newTable;
-                // do something with the table after it's created
-                if (isFunction(callback)) {
-                    result = callback.call(opts, newTable);
+                waitForIt(
+                    INTERVAL,
+                    // test
+                    function(){
+                        return renderDone;
+                    },
+                    // success callback
+                    function(){
+                        // do something with the table after it's created
+                        if (isFunction(callback)) {
+                            obj.result = callback.call(obj, newTable);
+                        }
+                    });
+                return obj;
+            },
+            fail: function(n, callback){
+                if (!callback){
+                    callback = n;
+                    n = 5000;
                 }
-                return result;
+                waitForIt(
+                    INTERVAL,
+                    // test
+                    function(){
+                        return (renderTime += INTERVAL) > (n || 30000)
+                    },
+                    // failure callback
+                    function(){
+                        callback.call(obj, newTable);
+                    })
             },
             // render: newTable.render
             render: function(container, empty, callback){
                 var $container = $$(container);
                 normalizeTableCells.call(tableWrapper);
+                // allow omission of [empty] argument
+                if (arguments.length === 2){
+                    if (isFunction(empty)) {
+                        callback = empty;
+                        empty = false;
+                    }
+                }
                 if (empty) {
                     $container.empty();
                 }
                 $container.append(tableWrapper);
                 if (isFunction(callback)) {
-                    callback.call(this, newTable);
+                    obj.result = callback.call(obj, newTable);
                 }
-                return tableWrapper;
+                renderDone = true;
+                return obj;
             }
         };
+
+        return obj;
 
     };
 

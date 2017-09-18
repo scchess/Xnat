@@ -47,7 +47,7 @@ var XNAT = getObject(XNAT);
     spawner.notSpawned = [];
 
     function setRoot(url){
-        url = url.replace(/^([*~.]\/*)/, '/');
+        url = url.replace(/^([*~.]\/+)/, '/');
         return XNAT.url.rootUrl(url)
     }
 
@@ -139,7 +139,7 @@ var XNAT = getObject(XNAT);
                 if (prop.action) {
                     prop.action = spawnerUrl(prop.action)
                 }
-                if (prop.load) {
+                if (prop.load && !/^([!?][?])/.test(prop.load)) {
                     prop.load = spawnerUrl(prop.load)
                 }
 
