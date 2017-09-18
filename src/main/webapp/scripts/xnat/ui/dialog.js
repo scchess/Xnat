@@ -393,6 +393,17 @@ window.xmodal = getObject(window.xmodal);
                     });
                 }
 
+                // tolerate 'buttons' object (instead of array)
+                if (!Array.isArray(this.buttons)) {
+                    _this.btnTemp = [];
+                    forOwn(this.buttons, function(name, obj){
+                        addClassName(obj, name);
+                        _this.btnTemp.push(obj)
+                    });
+                    this.buttons = _this.btnTemp;
+                    delete _this.btnTemp;
+                }
+
                 // footer buttons (on the right side)
                 this.footerButtons$ =
                     $.spawn('span.buttons', (this.buttons || []).map(function(btn, i){
