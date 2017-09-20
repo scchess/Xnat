@@ -21,6 +21,7 @@ body.xnat-dialog-open {
 body.xnat-dialog-open {
     position: fixed;
     padding-right: 15px;
+    margin-top: 1px;
 }
 
 div.xnat-dialog-container,

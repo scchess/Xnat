@@ -135,7 +135,7 @@ if (typeof jQuery == 'undefined') {
     // usage:
     // $('#element_id').drags();  // <- drag the element that's clicked on
     // $('#element_id').drags({handle:'.drag_handle'});
-    $.fn.drags = function (opt) {
+    $.fn.dragsNot = function (opt) {
 
         opt = $.extend({handle: '', cursor: 'move'}, opt);
 
