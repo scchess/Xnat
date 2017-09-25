@@ -30,8 +30,10 @@ import org.nrg.xdat.security.helpers.Users;
 import org.nrg.xdat.security.services.RoleHolder;
 import org.nrg.xdat.security.services.UserManagementServiceI;
 import org.nrg.xft.XFTItem;
+import org.nrg.xft.XFTTable;
 import org.nrg.xft.collections.ItemCollection;
 import org.nrg.xft.event.EventUtils;
+import org.nrg.xft.exception.DBPoolException;
 import org.nrg.xft.exception.ElementNotFoundException;
 import org.nrg.xft.exception.FieldNotFoundException;
 import org.nrg.xft.exception.XFTInitException;
@@ -56,6 +58,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 import java.io.*;
+import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
@@ -163,7 +166,45 @@ public class CustomVariablesApi extends AbstractXapiRestController {
                 }
                 return new ResponseEntity<>(stringWriter.getBuffer().toString(), HttpStatus.OK);
             } catch (IOException e) {
-                _log.error("An error occurred trying to write the preferences in ini format", e);
+                _log.error("An error occurred trying to write the field set", e);
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ApiOperation(value = "Retrieves the custom variable field definition groups.",
+            notes = "This retrieves an XML file with the field definition groups for all custom variables.",
+            response = String.class)
+    @ApiResponses({@ApiResponse(code = 200, message = "The custom variable field definition groups xml successfully built."),
+            @ApiResponse(code = 400, message = "Something is wrong with the request format."),
+            @ApiResponse(code = 404, message = "The request was valid but nothing was found."),
+            @ApiResponse(code = 500, message = "An unexpected or unknown error occurred")})
+    @XapiRequestMapping(value = "fieldDefinitionGroups", produces = MediaType.TEXT_PLAIN_VALUE, method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<String> getFieldDefinitionGroups() throws InsufficientPrivilegesException, NoContentException, NotFoundException {
+
+        UserI user = XDAT.getUserDetails();
+        if (user != null) {
+            try (final StringWriter stringWriter = new StringWriter()) {
+                try{
+                    String query = "SELECT id,data_type,description, xnat_fielddefinitiongroup_id FROM xnat_fielddefinitiongroup;";
+                    XFTTable table = XFTTable.Execute(query, user.getDBName(), user.getLogin());
+                    stringWriter.write("<fieldDefinitionGroups>");
+                    table.resetRowCursor();
+                    while (table.hasMoreRows()) {
+                        Object[] row = table.nextRow();
+                        stringWriter.write("<fieldDefinitionGroup data-type=\"" + row[1] + "\" id=\"" + row[3] + "\" name=\"" + row[0] + "\" description=\"" + row[2] + "\"/>");
+                    }
+                    stringWriter.write("</fieldDefinitionGroups>");
+                } catch (SQLException e) {
+                    _log.error("", e);
+                } catch (DBPoolException e) {
+                    _log.error("", e);
+                }
+                return new ResponseEntity<>(stringWriter.getBuffer().toString(), HttpStatus.OK);
+            } catch (IOException e) {
+                _log.error("An error occurred trying to write the preferences field definition groups", e);
                 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
