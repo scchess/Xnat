@@ -1,0 +1,68 @@
+##Copyright 2005 Harvard University / Howard Hughes Medical Institute (HHMI) All Rights Reserved
+$page.setTitle("Manage Data Types")
+#set ($template = $data.getTemplateInfo())
+$!template.setLayoutTemplate("DefaultExptList.vm")
+
+<div class="admin-content">
+    #if ($data.message)
+        <div class="error">$data.message</div><br>
+    #end
+
+    <header>
+        <h2 class="pull-left">
+            Manage Data Types
+        </h2>
+        <div class="clearfix clear"></div>
+    </header>
+    <div id="data-types-commands">
+        <!-- container for command buttons -->
+    </div>
+    <div id="data-types-table-container">
+        <!-- container where xnat-table will be injected -->
+    </div>
+    <div id="data-types-footer">
+        <!-- miscellaneous -->
+    </div>
+</div>
+
+## Prepare JSON representation of velocity data types object
+## Requires that $data_types has been defined
+<script>
+    var XNAT = getObject(XNAT || {});
+
+    (function(factory){
+        if (typeof define === 'function' && define.amd) {
+            define(factory);
+        }
+        else if (typeof exports === 'object') {
+            module.exports = factory();
+        }
+        else {
+            return factory();
+        }
+    }(function(){
+        var dataTypes;
+
+        XNAT.data = getObject(XNAT.data || {});
+
+        XNAT.data.dataTypes = dataTypes = [];
+
+        #foreach($data_type in $data_types)
+            dataTypes.push({
+                'element-name'  : '$!data_type.getProperty('element_name')',
+                'singular'      : '$!data_type.getProperty('singular')',
+                'plural'        : '$!data_type.getProperty('plural')',
+                'code'          : '$!data_type.getProperty('code')',
+                'accessible'    : '$!data_type.getProperty('accessible')',
+                'secure'        : '$!data_type.getProperty('secure')',
+                'searchable'    : '$!data_type.getProperty('searchable')',
+                'browse'        : '$!data_type.getProperty('browse')',
+            })
+        #end
+
+        XNAT.data.dataTypes.table = function(){
+
+        };
+    }));
+</script>
+
