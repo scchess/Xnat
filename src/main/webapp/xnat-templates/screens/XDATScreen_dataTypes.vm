@@ -41,15 +41,18 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
             return factory();
         }
     }(function(){
-        var dataTypes;
+        var dataTypes, showDataType, dataTypeList, spawnTable;
 
         XNAT.data = getObject(XNAT.data || {});
 
-        XNAT.data.dataTypes = dataTypes = [];
+        XNAT.data.dataTypes = getObject(XNAT.data.dataTypes || {});
+
+        XNAT.data.dataTypes.list = dataTypeList = []
 
         #foreach($data_type in $data_types)
-            dataTypes.push({
+            dataTypeList.push({
                 'element-name'  : '$!data_type.getProperty('element_name')',
+                'xsiType'       : '$!data_type.getProperty('element_name')',
                 'singular'      : '$!data_type.getProperty('singular')',
                 'plural'        : '$!data_type.getProperty('plural')',
                 'code'          : '$!data_type.getProperty('code')',
@@ -60,9 +63,111 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
             })
         #end
 
-        XNAT.data.dataTypes.table = function(){
+        XNAT.data.dataTypes.showDatatype = showDataType = function(){
 
-        };
+        }
+
+        function showIcon(val){
+            return val ? spawn('i',{ className: 'fa fa-check' }) : '';
+        }
+
+        function actionsMenu(xsiType){
+            return xsiType ? spawn('i',{ className: 'fa fa-bars'}) : '';
+        }
+
+        XNAT.data.dataTypes.spawnTable = spawnTable = function(){
+
+            var $dataRows = [];
+
+            return {
+                kind: 'table.dataTable',
+                name: 'dataTypesListing',
+                id: 'datatypes-listing',
+                data: dataTypeList,
+                table: {
+                    classes: 'datatype-listing',
+                    on: [
+                            ['click', 'a.viewDatatype', showDataType]
+                    ]
+                },
+                sortable: 'xsiType, label, code',
+                filterable: 'xsiType, label, code, access, secure, search, browse',
+                items: {
+                    xsiType: {
+                        label: '<b>Element (xsiType)</b>',
+                        th: { className: 'left' },
+                        apply: function(){
+                            return spawn('a.viewDatatype',this['xsiType'])
+                        }
+                    },
+                    label: {
+                        label: '<b>Label (Plural)</b>',
+                        apply: function(){
+                            return this['plural']
+                        }
+                    },
+                    code: {
+                        label: '<b>Code</b>',
+                        title: 'Short code used in the creation of IDs',
+                        apply: function(){
+                            return this['code']
+                        }
+                    },
+                    access: {
+                        label: '<b>Access</b>',
+                        title: 'Whether or not unspecified users can use this data-type in its $displayManager.getPluralDisplayNameForProject().toLowerCase()',
+                        td: { className: 'center' },
+                        apply: function(){
+                            return showIcon( this['accessible'] )
+                        }
+                    },
+                    secure: {
+                        label: '<b>Secure</b>',
+                        title: 'Whether or not access to data of this type should be restricted',
+                        td: { className: 'center' },
+                        apply: function(){
+                            return showIcon( this['secure'] )
+                        }
+                    },
+                    search: {
+                        label: '<b>Search</b>',
+                        title: 'Whether or not data of this type should be searchable',
+                        td: { className: 'center' },
+                        apply: function(){
+                            return showIcon( this['searchable'] )
+                        }
+                    },
+                    browse: {
+                        label: '<b>Browse</b>',
+                        title: 'Whether or not data of this type should be browseable',
+                        td: { className: 'center' },
+                        apply: function(){
+                            return showIcon( this['browse'] )
+                        }
+                    },
+                    actions: {
+                        label: '<b>Action</a>',
+                        td: { className: 'center' },
+                        apply: function(){
+                            return actionsMenu( this['xsiType'] );
+                        }
+                    }
+                }
+            }
+        }
+
+        XNAT.data.dataTypes.init = function(container){
+            var $manager = $$(container || '#data-types-table-container'), _dtTable;
+
+            _dtTable = XNAT.spawner.spawn({
+                datatypeTable: spawnTable()
+            });
+            _dtTable.done(function(){
+                this.render($manager.empty());
+            })
+        }
+
+        XNAT.data.dataTypes.init();
     }));
 </script>
 
