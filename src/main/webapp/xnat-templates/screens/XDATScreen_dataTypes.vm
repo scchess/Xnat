@@ -68,16 +68,35 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
         }
 
         function showIcon(val){
-            return val ? spawn('i',{ className: 'fa fa-check' }) : '';
+            if (val === '1') return spawn('i',{ className: 'fa fa-check' });
         }
 
-        function actionsMenu(xsiType){
-            return xsiType ? spawn('i',{ className: 'fa fa-bars'}) : '';
+        function actionsMenu(rootElement){
+            var actions = [
+                { label: 'Edit Data Type' },
+                { label: 'Manage Report Actions' },
+                { label: 'Manage Listing Actions' }
+            ], menuItems = [];
+
+            actions.forEach(function(action){
+                menuItems.push(
+                    spawn('li', [
+                        spawn('a.menu-action', { onclick: function(){ console.log(this,rootElement) }}, action.label)
+                    ]
+                ));
+            });
+
+            return spawn('!', [
+                spawn('div.inline-actions-menu-toggle',[
+                    spawn('i',{ className: 'fa fa-bars', title: 'Actions' })
+                ]),
+                spawn('ul.inline-actions-menu', { style: { display: 'none' }}, menuItems )
+            ]);
         }
 
         XNAT.data.dataTypes.spawnTable = spawnTable = function(){
 
-            var $dataRows = [];
+            var dataRows$ = [];
 
             return {
                 kind: 'table.dataTable',
@@ -94,62 +113,242 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                 filterable: 'xsiType, label, code, access, secure, search, browse',
                 items: {
                     xsiType: {
-                        label: '<b>Element (xsiType)</b>',
+                        label: 'Element (xsiType)',
                         th: { className: 'left' },
+                        filter: true,
                         apply: function(){
                             return spawn('a.viewDatatype',this['xsiType'])
                         }
                     },
                     label: {
-                        label: '<b>Label (Plural)</b>',
+                        label: 'Label (Plural)',
+                        filter: true,
                         apply: function(){
                             return this['plural']
                         }
                     },
                     code: {
-                        label: '<b>Code</b>',
+                        label: 'Code',
                         title: 'Short code used in the creation of IDs',
+                        filter: true,
                         apply: function(){
                             return this['code']
                         }
                     },
                     access: {
-                        label: '<b>Access</b>',
+                        label: 'Accessible',
                         title: 'Whether or not unspecified users can use this data-type in its $displayManager.getPluralDisplayNameForProject().toLowerCase()',
                         td: { className: 'center' },
+                        filter: function(table){
+                            return spawn('div.center',[
+                                XNAT.ui.select.menu({
+                                    value: 99,
+                                    options: {
+                                        all: {
+                                            label: 'All',
+                                            value: '99',
+                                            selected: true
+                                        },
+                                        on: {
+                                            label: 'True',
+                                            value: '1'
+                                        },
+                                        off: {
+                                            label: 'False',
+                                            value: '0'
+                                        }
+                                    },
+                                    element: {
+                                        id: 'filter-datatypes-accessible',
+                                        on: {
+                                            change: function(){
+                                                var filterClass = 'filter-accessible';
+                                                var selectedValue = this.value || 0;
+                                                dataRows$ = dataRows$.length ? dataRows$ : jq(table).find('tbody').find('tr');
+                                                if (selectedValue === '99') {
+                                                    dataRows$.removeClass(filterClass);
+                                                }
+                                                else {
+                                                    dataRows$.addClass(filterClass).filter(function(){
+                                                        var rowValue = this.querySelector('input.accessible-value').value;
+                                                        return selectedValue === rowValue;
+                                                    }).removeClass(filterClass);
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                }).element
+                            ])
+                        },
                         apply: function(){
-                            return showIcon( this['accessible'] )
+                            return spawn('!',[
+                                showIcon( this['accessible'] ),
+                                spawn('input.hidden.accessible-value|type=hidden', { value: this['accessible'] })
+                            ]);
                         }
                     },
-                    secure: {
-                        label: '<b>Secure</b>',
+                    secured: {
+                        label: 'Secured',
                         title: 'Whether or not access to data of this type should be restricted',
                         td: { className: 'center' },
+                        filter: function(table){
+                            return spawn('div.center',[
+                                XNAT.ui.select.menu({
+                                    value: 99,
+                                    options: {
+                                        all: {
+                                            label: 'All',
+                                            value: '99',
+                                            selected: true
+                                        },
+                                        on: {
+                                            label: 'True',
+                                            value: '1'
+                                        },
+                                        off: {
+                                            label: 'False',
+                                            value: '0'
+                                        }
+                                    },
+                                    element: {
+                                        id: 'filter-datatypes-secured',
+                                        on: {
+                                            change: function(){
+                                                var filterClass = 'filter-secured';
+                                                var selectedValue = this.value || 0;
+                                                dataRows$ = dataRows$.length ? dataRows$ : jq(table).find('tbody').find('tr');
+                                                if (selectedValue === '99') {
+                                                    dataRows$.removeClass(filterClass);
+                                                }
+                                                else {
+                                                    dataRows$.addClass(filterClass).filter(function(){
+                                                        var rowValue = this.querySelector('input.secured-value').value;
+                                                        return selectedValue === rowValue;
+                                                    }).removeClass(filterClass);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }).element
+                            ])
+                        },
                         apply: function(){
-                            return showIcon( this['secure'] )
+                            return spawn('!', [
+                                showIcon( this['secure'] ),
+                                spawn('input.hidden.secured-value|type=hidden',{ value: this['secure'] })
+                            ]);
                         }
                     },
                     search: {
-                        label: '<b>Search</b>',
+                        label: 'Searchable',
                         title: 'Whether or not data of this type should be searchable',
                         td: { className: 'center' },
+                        filter: function(table){
+                            return spawn('div.center',[
+                                XNAT.ui.select.menu({
+                                    value: 99,
+                                    options: {
+                                        all: {
+                                            label: 'All',
+                                            value: '99',
+                                            selected: true
+                                        },
+                                        on: {
+                                            label: 'True',
+                                            value: '1'
+                                        },
+                                        off: {
+                                            label: 'False',
+                                            value: '0'
+                                        }
+                                    },
+                                    element: {
+                                        id: 'filter-datatypes-searchable',
+                                        on: {
+                                            change: function(){
+                                                var filterClass = 'filter-searchable';
+                                                var selectedValue = this.value || 0;
+                                                dataRows$ = dataRows$.length ? dataRows$ : jq(table).find('tbody').find('tr');
+                                                if (selectedValue === '99') {
+                                                    dataRows$.removeClass(filterClass);
+                                                }
+                                                else {
+                                                    dataRows$.addClass(filterClass).filter(function(){
+                                                        var rowValue = this.querySelector('input.searchable-value').value;
+                                                        return selectedValue === rowValue;
+                                                    }).removeClass(filterClass);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }).element
+                            ])
+                        },
                         apply: function(){
-                            return showIcon( this['searchable'] )
+                            return spawn('!', [
+                                showIcon( this['searchable'] ),
+                                spawn('input.hidden.searchable-value|type=hidden',{ value: this['searchable'] })
+                            ]);
                         }
                     },
-                    browse: {
-                        label: '<b>Browse</b>',
+                    browseable: {
+                        label: 'Browseable',
                         title: 'Whether or not data of this type should be browseable',
                         td: { className: 'center' },
+                        filter: function(table){
+                            return spawn('div.center',[
+                                XNAT.ui.select.menu({
+                                    value: 99,
+                                    options: {
+                                        all: {
+                                            label: 'All',
+                                            value: '99',
+                                            selected: true
+                                        },
+                                        on: {
+                                            label: 'True',
+                                            value: '1'
+                                        },
+                                        off: {
+                                            label: 'False',
+                                            value: '0'
+                                        }
+                                    },
+                                    element: {
+                                        id: 'filter-datatypes-browseable',
+                                        on: {
+                                            change: function(){
+                                                var filterClass = 'filter-browseable';
+                                                var selectedValue = this.value || 0;
+                                                dataRows$ = dataRows$.length ? dataRows$ : jq(table).find('tbody').find('tr');
+                                                if (selectedValue === '99') {
+                                                    dataRows$.removeClass(filterClass);
+                                                }
+                                                else {
+                                                    dataRows$.addClass(filterClass).filter(function(){
+                                                        var rowValue = this.querySelector('input.browse-value').value;
+                                                        return selectedValue === rowValue;
+                                                    }).removeClass(filterClass);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }).element
+                            ])
+                        },
                         apply: function(){
-                            return showIcon( this['browse'] )
+                            return spawn('!', [
+                                showIcon( this['browse'] ),
+                                spawn('input.hidden.browse-value|type=hidden',{ value: this['browse'] })
+                            ]);
                         }
                     },
                     actions: {
-                        label: '<b>Action</a>',
+                        label: 'Action',
                         td: { className: 'center' },
                         apply: function(){
-                            return actionsMenu( this['xsiType'] );
+                            return actionsMenu(this['xsiType'] );
                         }
                     }
                 }
@@ -170,4 +369,11 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
         XNAT.data.dataTypes.init();
     }));
 </script>
+
+<style>
+    .filter-accessible,
+    .filter-secured,
+    .filter-searchable,
+    .filter-browseable { display: none; }
+</style>
 
