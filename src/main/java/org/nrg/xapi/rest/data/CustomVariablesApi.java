@@ -28,10 +28,7 @@ import org.nrg.xdat.bean.CatCatalogBean;
 import org.nrg.xdat.bean.XnatFielddefinitiongroupBean;
 import org.nrg.xdat.model.CatCatalogI;
 import org.nrg.xdat.model.XnatFielddefinitiongroupI;
-import org.nrg.xdat.om.XnatAbstractprotocol;
-import org.nrg.xdat.om.XnatDatatypeprotocol;
-import org.nrg.xdat.om.XnatInvestigatordata;
-import org.nrg.xdat.om.XnatProjectdata;
+import org.nrg.xdat.om.*;
 import org.nrg.xdat.security.Authorizer;
 import org.nrg.xdat.security.ElementSecurity;
 import org.nrg.xdat.security.XdatStoredSearch;
@@ -258,11 +255,11 @@ public class CustomVariablesApi extends AbstractXapiRestController {
         }
         XFTItem item = null;
         if (user!=null){
-            StringReader sr = new StringReader(xmlString);
-            InputSource is = new InputSource(sr);
+            try (StringReader sr = new StringReader(xmlString)) {
+                InputSource is = new InputSource(sr);
 
-            SAXReader reader = new SAXReader(user);
-            try {
+                SAXReader reader = new SAXReader(user);
+
 
                 item = reader.parse(is);
 
@@ -299,36 +296,47 @@ public class CustomVariablesApi extends AbstractXapiRestController {
                         temp.setProperty("xnat:datatypeProtocol/definitions/definition[ID=default]/data-type", temp.getProperty("data-type"));
                         temp.setProperty("xnat:datatypeProtocol/definitions/definition[ID=default]/project-specific", "false");
                     }
-                    PersistentWorkflowI wrk=PersistentWorkflowUtils.getOrCreateWorkflowData(null, user, proj.getItem(), EventUtils.newEventInstance(EventUtils.CATEGORY.PROJECT_ADMIN, EventUtils.TYPE.STORE_XML, "Modified event data-type protocol."));
-                    try {
-                        SaveItemHelper.authorizedSave(temp,user, false, false,wrk.buildEvent());
-                        PersistentWorkflowUtils.complete(wrk,wrk.buildEvent());
-                    } catch (Exception e1) {
-                        PersistentWorkflowUtils.fail(wrk,wrk.buildEvent());
-                        throw e1;
-                    }
 
-                    StringReader sr = new StringReader(xmlString);
-                    InputSource is = new InputSource(sr);
-                    SAXReader reader = new SAXReader(user);
-                    XFTItem itemToAdd = reader.parse(xmlString);
-                    temp.setDefinitions_definition(itemToAdd);
+                    try(StringReader sr2 = new StringReader(xmlString)) {
+                        InputSource is2 = new InputSource(sr2);
+                        SAXReader reader2 = new SAXReader(user);
+                        XFTItem itemToAdd = reader2.parse(is2);//or use xmlString directly
+                        temp.setDefinitions_definition(itemToAdd);
+                    } catch (Exception e3) {
+                        _log.error("", e3);
+                    }
                 }
-            } catch (Exception e) {
-                _log.error("", e);
+            } catch (Exception e2) {
+                _log.error("", e2);
             }
 
             if(temp==null){
                 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
             }else if(item!=null){
                 try{
-                    temp.addDefinitions_definition((XnatFielddefinitiongroupI) org.nrg.xdat.base.BaseElement.WrapItems(existing.getChildItems("definitions/definition")));
+                    temp.addDefinitions_definition(new XnatFielddefinitiongroup(item));
+                    //temp.addDefinitions_definition((XnatFielddefinitiongroupI) org.nrg.xdat.base.BaseElement.WrapItems(existing.getChildItems("definitions/definition")));
                 }
                 catch(Exception e){
                     _log.error("",e);
                 }
+                if(temp!=null){
+                    PersistentWorkflowI wrk=null;
+                    try {
+                        wrk=PersistentWorkflowUtils.getOrCreateWorkflowData(null, user, proj.getItem(), EventUtils.newEventInstance(EventUtils.CATEGORY.PROJECT_ADMIN, EventUtils.TYPE.STORE_XML, "Modified event data-type protocol."));
 
-               // existing.addDefinitions_definition(new XnatFielddefinitiongroupBean(temp.getItem()));
+                        SaveItemHelper.authorizedSave(temp,user, false, false,wrk.buildEvent());
+                        PersistentWorkflowUtils.complete(wrk,wrk.buildEvent());
+                    } catch (Exception e1) {
+                        _log.error("",e1);
+                        try {
+                            PersistentWorkflowUtils.fail(wrk, wrk.buildEvent());
+                        }catch(Exception e5){
+
+                        }
+                        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+                    }
+                }
                 try (final StringWriter stringWriter = new StringWriter()) {
                     stringWriter.write(temp.getItem().toXML_String());
                     return new ResponseEntity<>(stringWriter.getBuffer().toString(), HttpStatus.OK);
