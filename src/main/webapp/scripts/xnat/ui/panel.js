@@ -481,7 +481,7 @@ var XNAT = getObject(XNAT || {});
         // text for 'reset' button
         opts.reset = firstDefined(opts.reset, 'Discard Changes');
 
-        opts.action = opts.action ? XNAT.url.rootUrl(opts.action) : '#!';
+        opts.action = (opts.action && !/^#/.test(opts.action)) ? XNAT.url.rootUrl(opts.action) : opts.action || '#!';
 
         if ('params' in opts){
             if (isPlainObject(opts.params)) {
@@ -586,7 +586,7 @@ var XNAT = getObject(XNAT || {});
 
         // click 'Discard Changes' button to reload data
         $resetBtn.on('click', function(){
-            if (!/^#/.test($formPanel.attr('action'))){
+            if (!/^(\/*#)/.test($formPanel.attr('action'))){
                 $formPanel.triggerHandler('reload-data');
             }
         });
@@ -614,12 +614,27 @@ var XNAT = getObject(XNAT || {});
 
         $formPanel.on('submit-data', function(e){
 
-            var $form = $(this).removeClass('error'),
-                silent = $form.hasClass('silent'),
-                multiform = {};
+            var $form = $(this).removeClass('error');
+            var form0 = $form[0];
+            var silent = $form.hasClass('silent');
+            var formAction = $form.attr('action');
+            var formSubmit;
+            var multiform = {};
 
-            // don't submit forms with 'action' starting with '#'
-            if (/^#/.test($form.attr('action'))) {
+            // execute onsubmit handler for #[submitFunction()]
+            if (/^#\[/.test(formAction)) {
+                formAction = formAction.replace(/^(#\[)|(])$/g, '');
+                formSubmit = lookupObjectValue(formAction);
+                if (isFunction(formSubmit)) {
+                    return formSubmit.call(form0, $form, e);
+                }
+                else {
+                    return false;
+                }
+            }
+
+            // don't submit forms with 'action' starting with '#!'
+            if (/^#/.test(formAction)) {
                 return false;
             }
 
@@ -783,7 +798,7 @@ var XNAT = getObject(XNAT || {});
 
         // 'Save' button triggers a custom 'submit-data' event
         $saveBtn.on('click', function(){
-            if (!/^#/.test($formPanel.attr('action'))){
+            if (!/^#!/.test($formPanel.attr('action'))){
                 $formPanel.triggerHandler('submit-data');
             }
         });
@@ -861,7 +876,7 @@ var XNAT = getObject(XNAT || {});
             multiForm = spawn('form', {
                 classes: 'xnat-form-panel multi-form panel panel-default',
                 method: opts.method || 'POST',
-                action: opts.action ? XNAT.url.rootUrl(opts.action) : '#!',
+                action: (opts.action && !/^#/.test(opts.action)) ? XNAT.url.rootUrl(opts.action) : opts.action || '#!',
                 onsubmit: function(e){
 
                     e.preventDefault();
@@ -1226,7 +1241,7 @@ var XNAT = getObject(XNAT || {});
         var uploadForm = ['form', {
             id: opts.id + '-form',
             method: opts.method || 'POST',
-            action: opts.action ? XNAT.url.rootUrl(opts.action) : '#!',
+            action: (opts.action && !/^#/.test(opts.action)) ? XNAT.url.rootUrl(opts.action) : opts.action || '#!',
             className: addClassName(opts, 'file-upload ignore')
         }, [
             ['input', {
@@ -1256,12 +1271,12 @@ var XNAT = getObject(XNAT || {});
         config.input.id = config.input.id || config.id;
 
         config.method = opts.method || 'POST';
-        config.url = opts.url || opts.action ? XNAT.url.rootUrl(opts.action) : '#!';
+        config.url = opts.url || (opts.action && !/^#/.test(opts.action)) ? XNAT.url.rootUrl(opts.action) : opts.action || '#!';
 
         config.form = extend(true, {
             id: config.id + '-form',
             method: config.method || 'POST',
-            action: config.action ? XNAT.url.rootUrl(opts.action) : '#!',
+            action: (opts.action && !/^#/.test(opts.action)) ? XNAT.url.rootUrl(opts.action) : opts.action || '#!',
             className: addClassName(config, 'file-upload ignore')
         }, config.form);
 

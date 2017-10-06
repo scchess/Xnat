@@ -48,7 +48,7 @@ var XNAT = getObject(XNAT);
 
     function setRoot(url){
         url = url.replace(/^([*~.]\/+)/, '/');
-        return XNAT.url.rootUrl(url)
+        return /^#/.test(url) ? url : XNAT.url.rootUrl(url)
     }
 
     // process URL for spawner elements
@@ -489,7 +489,18 @@ var XNAT = getObject(XNAT);
             },
             always: request.always,
             spawn: spawnRender,
-            render: spawnRender
+            render: function(container, callback){
+                if (isFunction(callback)) {
+                    try {
+                        resolve.ok(callback);
+                        // callback.call(resolve)
+                    }
+                    catch (e) {
+                        if (jsdebug) console.error(e);
+                    }
+                }
+                return resolve;
+            }
         };
 
         return resolve;

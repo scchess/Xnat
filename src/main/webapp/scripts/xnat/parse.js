@@ -200,12 +200,14 @@ var XNAT = getObject(XNAT);
     /**
      * Execute [fn] callback for failure of parse/ajax
      * @param fn {Function}
+     * @param [e] {String} - Error message
      * @returns {Parser}
      */
-    Parser.fn.fail = function(fn){
+    Parser.fn.fail = function(fn, e){
         this.failCallbacks.push(fn);
         // obj.result = obj.value;
         doCallback.call(this, fn, 'failure');
+        if (e) console.error(e);
         return this;
     };
     Parser.fn.failure = Parser.fn.fail;
@@ -268,7 +270,7 @@ var XNAT = getObject(XNAT);
             // --- LOOKUP RETURN --- //
             return obj;
         }
-        // return false;
+        return undef;
     }
 
     Parser.fn.doLookup = doLookup;
@@ -328,18 +330,17 @@ var XNAT = getObject(XNAT);
             // do XHR
             obj.request = XNAT.xhr.get({
                 url: XNAT.url.restUrl(obj.url),
-                dataType: obj.dataType,
-                success: function(data){
-                    obj.result = obj.path ? obj.lookupMethod(data, obj.path) : data;
-                    obj.status = 'success';
-                    obj.done(success);
-                },
-                error: function(statusText){
-                    obj.result = statusText;
-                    obj.status = 'failure';
-                    console.error(arguments);
-                    obj.fail(failure);
-                }
+                dataType: obj.dataType//,
+                // success: function(data){
+                //     obj.result = obj.path ? obj.lookupMethod(data, obj.path) : data;
+                //     obj.status = 'success';
+                //     obj.done(success);
+                // },
+                // error: function(statusText){
+                //     obj.result = statusText;
+                //     obj.status = 'failure';
+                //     obj.fail(failure, arguments);
+                // }
             });
 
             var doneCallback = obj.done || obj.success;
@@ -353,21 +354,28 @@ var XNAT = getObject(XNAT);
                 });
                 return obj;
             };
+            if (isFunction(success)) {
+                obj.success(success);
+            }
 
             var failCallback = obj.fail || obj.failure;
             obj.fail = obj.failure = function(callback){
                 obj.request.fail(function(statusText){
                     obj.result = statusText;
                     obj.status = 'failure';
-                    console.error(arguments);
-                    failCallback.call(obj, callback);
+                    failCallback.call(obj, callback, arguments);
                 });
                 return obj;
             };
+            if (isFunction(failure)) {
+                obj.failure(failure);
+            }
+
             // --- AJAX RETURN --- //
             return obj;
         }
-        // return false;
+
+        return undef;
     }
 
     Parser.fn.doAjax = doAjax;
@@ -409,7 +417,7 @@ var XNAT = getObject(XNAT);
             // --- EVAL RETURN --- //
             return obj;
         }
-        // return false;
+        return undef;
     }
 
     Parser.fn.doEval = doEval;
@@ -455,9 +463,6 @@ var XNAT = getObject(XNAT);
         );
     };
 
-    // XNAT.parse.parseValue = parseValue;
-    // XNAT.parse.value = parseValue;
-
 
 
     /**
@@ -470,7 +475,7 @@ var XNAT = getObject(XNAT);
      */
     XNAT.parse = function(value){
         var newParser = new Parser(value);
-        return value ? newParser.parseValue() : newParser;
+        return value ? newParser.parseValue(value) : newParser;
     };
 
     // expose parseable() function as a static method

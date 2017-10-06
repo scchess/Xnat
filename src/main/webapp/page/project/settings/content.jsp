@@ -87,7 +87,7 @@
 
                         // render standard XNAT project settings tabs
                         getProjectSettings().ok(function(obj){
-                            this.render(XNAT.tabs.container);
+                            this.render(XNAT.tabs.container, XNAT.app.projectSettings.init);
                             this.done(function(){
                                 // render default XNAT project settings tabs
                                 XNAT.tab.activate(XNAT.tab.active, projectSettingsTabs);
@@ -102,6 +102,10 @@
                                     }
                                     //XNAT.tab.activate(XNAT.tab.active, projectSettingsTabs);
                                 });
+
+                                // populate values of form panels
+//                                XNAT.app.projectSettings.init();
+
                             });
                         });
                     },

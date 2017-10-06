@@ -541,6 +541,19 @@ $.fn.changeVal = function(){
 };
 
 
+// sets attribute AND property to 'checked'
+$.fn.checked = function(bool){
+    if ('checked' in this[0]) {
+        if (bool === false) {
+            this.removeAttr('checked').prop('checked', false);
+            return this;
+        }
+        this.attr('checked', 'checked').prop('checked', true);
+    }
+    return this;
+};
+
+
 // add or remove 'hidden' class
 // and trigger .show() or .hide()
 // or .fadeIn() or .fadeOut()

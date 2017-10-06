@@ -54,6 +54,17 @@ var XNAT = getObject(XNAT);
             e.preventDefault();
         });
 
+        // manhandle 'checked' attribute and property on radio buttons
+        // applies to radio buttons with the same name in the same form
+        $(document).on('click', 'input[type="radio"]', function(){
+            var radio$ = $(this);
+            // make sure we've got the custom 'checked' method
+            if (radio$.checked) {
+                radio$.closest('form').find('input[name="' + this.name + '"]').checked(false);
+                radio$.checked(true);
+            }
+        });
+
         // add version to title attribute of XNAT logos
         if (window.top.loggedIn !== undef && window.top.loggedIn === true) {
 

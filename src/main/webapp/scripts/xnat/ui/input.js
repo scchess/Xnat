@@ -65,7 +65,9 @@ var XNAT = getObject(XNAT);
             $el.changeVal(val);
         }
         else {
-            $el.val(val).trigger('change');
+            if ($el.val() !== val){
+                $el.val(val).trigger('change');
+            }
         }
         return $el;
     }
@@ -74,8 +76,11 @@ var XNAT = getObject(XNAT);
     function setValue(input, value){
 
         var $input = $$(input);
+        var inputs = $input.toArray();
         var _input = $input[0];
-        var _value = firstDefined(value, _input.value || '');
+        var _value = firstDefined(value, $input.val() || '');
+
+        _value = strReplace(_value);
 
         // don't set values of inputs with EXISTING
         // values that start with "@?"
@@ -90,7 +95,10 @@ var XNAT = getObject(XNAT);
         if (_value && lookupPrefix.test(_value+'')) {
             _value = _value.replace(lookupPrefix, '').trim();
             _value = lookupObjectValue(window, _value);
-            $input.val(_value);
+            inputs.forEach(function(_input){
+                // $(_input).changeVal(_value);
+                changeValue(_input, _value)
+            });
         }
 
         // try to get value from XHR
@@ -115,11 +123,13 @@ var XNAT = getObject(XNAT);
                         if (typeof val === 'string') {
                             val = JSON.parse(val);
                         }
-                        _value = JSON.stringify(val, null, 2);
+                        _value = isArray(val) ? val.join(', ') : JSON.stringify(val, null, 2);
                     }
-                    _input.value = '';
+                    // $input.val('');
                     // console.log(_input);
-                    setValue(_input, _value)
+                    inputs.forEach(function(_input){
+                        changeValue(_input, _value)
+                    })
                 },
                 error: function(){
                     console.error(arguments[0]);
@@ -135,8 +145,11 @@ var XNAT = getObject(XNAT);
         var evalString = '';
         if (evalPrefix.test(_value)) {
             evalString = _value.replace(evalPrefix, '').trim();
-            _value = eval('(' + evalString + ')');
-            $input.val(_value);
+            _value = eval(evalString);
+            inputs.forEach(function(_input){
+                // $input.changeVal(_value);
+                changeValue(_input, _value)
+            });
             // setValue(_input, eval('(' + evalString + ')'));
         }
 
@@ -184,10 +197,12 @@ var XNAT = getObject(XNAT);
 
     }
 
-    // set value(s) of specified input(s)
-    function setValues(inputs, values){
 
-    }
+    // set value(s) of specified input(s)
+    // function setValues(inputs, values){
+    //     var $inputs = $$(inputs);
+    //     setValue($inputs, values);
+    // }
 
 
     // ========================================
@@ -332,8 +347,8 @@ var XNAT = getObject(XNAT);
     // ========================================
 
 
-    // expose the 'setValue' function as a method of XNAT.input
-    input.setValue = setValue;
+    // alias XNAT.form.setValue to XNAT.input.setValue
+    input.setValue = XNAT.form.setValue;
 
 
     function setupType(type, className, opts){
@@ -381,6 +396,20 @@ var XNAT = getObject(XNAT);
             return input(type, config);
         }
     });
+
+    input.list = input.textList = input.arrayList = function(opts){
+        opts = cloneObject(opts);
+        opts.element = opts.element || {};
+        opts.element.data = opts.element.data || {};
+        var delim =
+            opts.element.data.delim ||
+            opts.element.data.delimiter ||
+            opts.delim || opts.delimiter ||
+            ',';
+        addClassName(opts.element, 'array-list');
+        addDataObjects(opts.element, { delim: delim });
+        return input.text(opts);
+    };
 
     // self-contained form for file uploads
     // with custom XHR functionality
@@ -590,12 +619,71 @@ var XNAT = getObject(XNAT);
     };
     otherTypes.push('radio');
 
+    // radio button group with easily configurable options
     input.radioGroup = function(config){
+
+        if (jsdebug) console.log('input.radioGroup');
+
         config = extend(true, {}, config, config.element);
-        addClassName(config, 'radio-group');
-        var layoutTable = XNAT.table();
-        layoutTable.tr();
-        layoutTable.td()
+
+        var selectedValue = config.value || '';
+        var radioGroupName = config.name;
+
+        var radioGroupOptions = spawn('div.radio-group.table-display', {
+            classes: [].concat(config.className || [], config.classes || []).join(' ')
+        });
+
+        var radios = [];
+
+        forOwn(config.items || config.options, function(name, item){
+            var id = item.id || randomID('xrg', false);
+            radioGroupName = radioGroupName || item.name || name;
+            var radio = spawn('input.radio-control', {
+                type: 'radio',
+                id: id,
+                name: radioGroupName,
+                checked: config.value === item.value,
+                value: item.value
+            });
+            radios.push(radio);
+            var label = item.label ? spawn('b.label', item.label || '') : '';
+            var radioCell = spawn('div.radio.nowrap.table-cell', [radio, label]);
+            var descCell = spawn('div.description.table-cell', [['p', item.description]]);
+            var optionRow = spawn('label.option.table-row', {
+                classes: [].concat(item.className || [], item.classes || []).join(' ')
+            }, [radioCell, descCell]);
+            radioGroupOptions.appendChild(optionRow);
+        });
+
+        var radioGroupContainer = spawn('div.radio-group-container', {
+            on: [
+                ['click', '.radio-control', function(e){
+                    console.log(this.value);
+                }]
+            ]
+        }, [radioGroupOptions]);
+
+        var tmp = {};
+        tmp[radioGroupName] = selectedValue;
+
+        console.log('===== SET RADIO GROUP VALUE =====');
+
+        XNAT.form.setValues(radios, tmp);
+
+        return {
+            element: radioGroupContainer,
+            spawned: radioGroupContainer,
+            load: function(){
+                XNAT.form.setValues(radios, tmp);
+            },
+            get: function(){
+                return radioGroupContainer
+            },
+            render: function(container){
+                $$(container).append(radioGroupContainer);
+                XNAT.form.setValues(radios, tmp);
+            }
+        }
     };
 
     // save a list of all available input types
@@ -653,7 +741,7 @@ var XNAT = getObject(XNAT);
 
         var textarea = spawn('textarea', opts.element);
 
-        setValue(textarea, _val);
+        input.setValue(textarea, _val);
 
         return {
             element: textarea,
@@ -668,6 +756,21 @@ var XNAT = getObject(XNAT);
 
     };
     XNAT.ui.textarea = input.textarea;
+
+    // add 'array-list' class to textarea.list elements
+    input.textarea.list = XNAT.ui.textarea.list = function(opts){
+        opts = cloneObject(opts);
+        opts.element = opts.element || {};
+        opts.element.data = opts.element.data || {};
+        var delim =
+            opts.element.data.delim ||
+            opts.element.data.delimiter ||
+            opts.delim || opts.delimiter ||
+            ',';
+        addClassName(opts.element, 'array-list');
+        addDataObjects(opts.element, { delim: delim });
+        return input.textarea(opts);
+    };
 
     // after the page is finished loading, set empty
     // input values from [data-lookup] attribute
