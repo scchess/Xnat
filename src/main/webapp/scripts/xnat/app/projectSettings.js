@@ -187,7 +187,7 @@ var XNAT = getObject(XNAT);
         getSettings(
             projectAnonUrl('status', 'format=json'),
             function(data) {
-                var status = data.ResultSet.Result[0].edit;
+                var status = data && data.ResultSet.Result.length ? data.ResultSet.Result[0].edit : false;
                 form$.find('#project-anon-enable').checked(realValue(status));
             },
             'An error occurred getting anon script status.'
@@ -196,7 +196,7 @@ var XNAT = getObject(XNAT);
         getSettings(
             projectAnonUrl('script', 'format=json'),
             function(data) {
-                var script = data.ResultSet.Result[0].script;
+                var script = data && data.ResultSet.Result.length ? data.ResultSet.Result[0].script : '';
                 form$.find('#project-anon-script').val(script);
             },
             'An error occurred getting anon script content.'

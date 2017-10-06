@@ -40,109 +40,110 @@
         border: 1px solid #d0d0d0;
     }
 
+    #events_table .item, #events_table .header, #events_manage_table .item, #events_manage_table .header {
+        border-bottom: 1px solid #888;
+        font: 11px Arial, Helvetica, sans-serif;
+        margin-top: 0;
+        margin-bottom: 0;
+        padding: 4px;
+        overflow: auto;
+    }
 
-            #events_table .item, #events_table .header, #events_manage_table .item, #events_manage_table .header {
-                border-bottom: 1px solid #888;
-                font: 11px Arial, Helvetica, sans-serif;
-                margin-top: 0;
-                margin-bottom: 0;
-                padding: 4px;
-                overflow: auto;
-            }
+    dl.item, item.item {
+        display: block;
+    }
 
-            dl.item, item.item {
-                display: block;
-            }
+    #events_table dl dl, #events_manage_table dl dl {
+        margin: 1px 0;
+    }
 
-            #events_table dl dl, #events_manage_table dl dl {
-                margin: 1px 0;
-            }
+    #events_table .header, #events_manage_table .header {
+        background-color: #ccc;
+        font-weight: bold;
+    }
 
-            #events_table .header, #events_manage_table .header {
-                background-color: #ccc;
-                font-weight: bold;
-            }
+    #events_table dl dt, #events_table dl dd, #events_manage_table dl dt, #events_manage_table dl dd {
+        display: block;
+        float: left;
+        padding: 4px 0;
+    }
 
-            #events_table dl dt, #events_table dl dd, #events_manage_table dl dt, #events_manage_table dl dd {
-                display: block;
-                float: left;
-                padding: 4px 0;
-            }
+    #events_table .item:hover {
+        background-color: #fff;
+    }
 
-            #events_table .item:hover {
-                background-color: #fff;
-            }
+    #events_manage_table .item:hover {
+        background-color: #fff;
+    }
 
-            #events_manage_table .item:hover {
-                background-color: #fff;
-            }
+    #events_table dd, #events_manage_table dd {
+        margin-left: 20px;
+    }
 
-            #events_table dd, #events_manage_table dd {
-                margin-left: 20px;
-            }
+    #events_table dd.col1, #events_manage_table dd.col1 {
+        width: 140px;
+        margin-left: 10px
+    }
 
-            #events_table dd.col1, #events_manage_table dd.col1 {
-                width: 140px;
-                margin-left: 10px
-            }
+    #events_table dd.col2, #events_manage_table dd.col2 {
+        width: 115px;
+    }
 
-            #events_table dd.col2, #events_manage_table dd.col2 {
-                width: 115px;
-            }
+    #events_table dd.col3, #events_manage_table dd.col3 {
+        width: 230px;
+    }
 
-            #events_table dd.col3, #events_manage_table dd.col3 {
-                width: 230px;
-            }
+    #events_table dd.col4, #events_manage_table dd.col4 {
+        width: 40px;
+    }
 
-            #events_table dd.col4, #events_manage_table dd.col4 {
-                width: 40px;
-            }
+    #events_table dd.col5, #events_manage_table dd.col5 {
+        width: 105px;
+    }
 
-            #events_table dd.col5, #events_manage_table dd.col5 {
-                width: 105px;
-            }
+    #events_table dd.col6, #events_manage_table dd.col6 {
+        width: 50px;
+    }
 
-            #events_table dd.col6, #events_manage_table dd.col6 {
-                width: 50px;
-            }
+    #events_table dd.col7, #events_manage_table dd.col7 {
+        width: 130px;
+    }
 
-            #events_table dd.col7, #events_manage_table dd.col7 {
-                width: 130px;
-            }
+    #events_table dd.colX, #events_manage_table dd.colX {
+        width: 90%;
+        padding-left: 70px;
+    }
 
-            #events_table dd.colX, #events_manage_table dd.colX {
-                width: 90%;
-                padding-left: 70px;
-            }
-            #events_table dd.colC, #events_manage_table dd.colC {
-                width: 90%;
-                padding-left: 10px;
-		padding-top: 2px;
-		padding-bottom: 2px;
-            }
+    #events_table dd.colC, #events_manage_table dd.colC {
+        width: 90%;
+        padding-left: 10px;
+        padding-top: 2px;
+        padding-bottom: 2px;
+    }
 
-            #events_table dd.colEx, #events_manage_table dd.colEx {
-                position: relative;
-            }
+    #events_table dd.colEx, #events_manage_table dd.colEx {
+        position: relative;
+    }
 
-            #events_table_title #events_manage_table_title {
-                font-weight: 700;
-            }
-            button.event-handler-button {
-                font: 11px Arial, Helvetica, sans-serif;
-                padding: 3px;
-                margin: -3px;
-            }
+    #events_table_title #events_manage_table_title {
+        font-weight: 700;
+    }
 
-            div.row3 {
-                float: right;
-                margin-top: 8px;
-            }
+    button.event-handler-button {
+        font: 11px Arial, Helvetica, sans-serif;
+        padding: 3px;
+        margin: -3px;
+    }
 
-            div.row4 {
-                clear: both;
-                margin-top: 8px;
-            }
+    div.row3 {
+        float: right;
+        margin-top: 8px;
+    }
+
+    div.row4 {
+        clear: both;
+        margin-top: 8px;
+    }
 
 </style>
 ##<script type="text/javascript">
@@ -166,11 +167,15 @@
         </tr>
         <tr>
             <td><label for="event" class="required"><strong>Event ID:</strong><i>*</i></label></td>
-            <td><select id="select_event" name="event" class="event"></select> <input type="text" id="select_input" class="event" style="display:none" size="15"/> <button class="customButton">Custom Value</button></td>
+            <td><select id="select_event" name="event" class="event"></select> <input type="text" id="select_input" class="event" style="display:none" size="15"/>
+                <button class="customButton">Custom Value</button>
+            </td>
         </tr>
         <tr id="filterRow">
             <td><label for="filters"><strong>Filters:</strong></label></td>
-            <td><div id="filterDiv"></div></td>
+            <td>
+                <div id="filterDiv"></div>
+            </td>
         </tr>
         <tr>
             <td><label for="scriptId" class="required"><strong>Script:</strong><i>*</i></label></td>
@@ -277,85 +282,85 @@
 ##            </script>
 ##        </div>
 ##    #end
-    <h3>Anonymization Script</h3>
-    <div>
-        <table id="script_table">
-            <tr>
-                <td class="highlighted" id="script_container">
-                ##      <DIV style="font-weight:700;">Anonymization Script</DIV>
-                    <TABLE>
-                        <TR>
-                            <TD>
-                                <label for="enable_anon_script">Enable Script</label><input id="enable_anon_script" type="checkbox" name="enable_anon_script" value="true"/>
-                            </TD>
-                        </TR>
-                        <TR>
-                            <TD><textarea id="script_text_area" rows="20" cols="80" disabled="disabled"></textarea></TD>
-                        </TR>
-                        <TR>
-                            <TD><input type="button" id="anon_script_save" value="Save" disabled="disabled"/></TD>
-                        </TR>
-                    </TABLE>
-                </td>
-            </tr>
-        </table>
-        <script>
-            var sg = new scriptGet(document.getElementById('script_container'), {
-                    'getStatus': serverRoot + '/data/config/edit/projects/$project.getId()/image/dicom/status?format=json',
-                    'putStatus': serverRoot + '/data/config/edit/projects/$project.getId()/image/dicom/status?activate=',
-                    'getScript': serverRoot + '/data/config/edit/projects/$project.getId()/image/dicom/script?format=json',
-                    'putScript': serverRoot + '/data/config/edit/projects/$project.getId()/image/dicom/script?inbody=true',
-                    'project': '$project.getId()',
-                    'enable_checkbox': 'enable_anon_script',
-                    'script_text_area': 'script_text_area',
-                    'save_button': 'anon_script_save'
-                });
-            sg.get();
-
-            var enableAnonScript = jq('#enable_anon_script');
-            var anonScript = jq('#script_text_area');
-
-            function toggleControlsOnAnonEnabled(){
-                var enabled = enableAnonScript.is(':checked');
-                anonScript.prop('disabled', !enabled);
-            }
-
-            function dirty(){
-                // Add check for class manager, since setting the initial value of the radio button
-                // will cause the dirty() function to be called, at which point the manager is null.
-                if (window.anonymizationManager && !window.anonymizationManager.wasDirty()) {
-                    window.anonymizationManager.dirtyForm();
-                }
-                toggleControlsOnAnonEnabled();
-            }
-
-            anonScript.bind('input propertychange', dirty);
-            enableAnonScript.change(dirty);
-
-            function configurationAnonymizationTabChange(obj){
-                if (obj.newValue.get("href") == "#anonymization") {
-                    if (window.anonymizationManager == undefined) {
-                        window.anonymizationManager = new SettingsTabManager('anonymization_mgmt_div', 'anonymization');
-                    }
-                    toggleControlsOnAnonEnabled();
-                }
-            }
-
-            function addAnonymizationMgmtMonitor(){
-                if (window.configurationTabView.get("activeTab").get("href") == "#anonymization") {
-                    if (window.anonymizationManager == undefined) {
-                        window.anonymizationManager = new SettingsTabManager('anonymization_mgmt_div', 'anonymization');
-                    }
-                }
-                else {
-                    window.configurationTabView.subscribe("activeTabChange", configurationAnonymizationTabChange);
-                }
-            }
-
-            YAHOO.util.Event.onDOMReady(addAnonymizationMgmtMonitor);
-            //  putConfigurationControls('anonymization', ['anonScript', 'enableAnonScript']);
-        </script>
-    </div>
+##    <h3>Anonymization Script</h3>
+##    <div>
+##        <table id="script_table">
+##            <tr>
+##                <td class="highlighted" id="script_container">
+##                ##      <DIV style="font-weight:700;">Anonymization Script</DIV>
+##                    <TABLE>
+##                        <TR>
+##                            <TD>
+##                                <label for="enable_anon_script">Enable Script</label><input id="enable_anon_script" type="checkbox" name="enable_anon_script" value="true"/>
+##                            </TD>
+##                        </TR>
+##                        <TR>
+##                            <TD><textarea id="script_text_area" rows="20" cols="80" disabled="disabled"></textarea></TD>
+##                        </TR>
+##                        <TR>
+##                            <TD><input type="button" id="anon_script_save" value="Save" disabled="disabled"/></TD>
+##                        </TR>
+##                    </TABLE>
+##                </td>
+##            </tr>
+##        </table>
+##        <script>
+##            var sg = new scriptGet(document.getElementById('script_container'), {
+##                'getStatus': serverRoot + '/data/config/edit/projects/$project.getId()/image/dicom/status?format=json',
+##                'putStatus': serverRoot + '/data/config/edit/projects/$project.getId()/image/dicom/status?activate=',
+##                'getScript': serverRoot + '/data/config/edit/projects/$project.getId()/image/dicom/script?format=json',
+##                'putScript': serverRoot + '/data/config/edit/projects/$project.getId()/image/dicom/script?inbody=true',
+##                'project': '$project.getId()',
+##                'enable_checkbox': 'enable_anon_script',
+##                'script_text_area': 'script_text_area',
+##                'save_button': 'anon_script_save'
+##            });
+##            sg.get();
+##
+##            var enableAnonScript = jq('#enable_anon_script');
+##            var anonScript = jq('#script_text_area');
+##
+##            function toggleControlsOnAnonEnabled(){
+##                var enabled = enableAnonScript.is(':checked');
+##                anonScript.prop('disabled', !enabled);
+##            }
+##
+##            function dirty(){
+##                // Add check for class manager, since setting the initial value of the radio button
+##                // will cause the dirty() function to be called, at which point the manager is null.
+##                if (window.anonymizationManager && !window.anonymizationManager.wasDirty()) {
+##                    window.anonymizationManager.dirtyForm();
+##                }
+##                toggleControlsOnAnonEnabled();
+##            }
+##
+##            anonScript.bind('input propertychange', dirty);
+##            enableAnonScript.change(dirty);
+##
+##            function configurationAnonymizationTabChange(obj){
+##                if (obj.newValue.get("href") == "#anonymization") {
+##                    if (window.anonymizationManager == undefined) {
+##                        window.anonymizationManager = new SettingsTabManager('anonymization_mgmt_div', 'anonymization');
+##                    }
+##                    toggleControlsOnAnonEnabled();
+##                }
+##            }
+##
+##            function addAnonymizationMgmtMonitor(){
+##                if (window.configurationTabView.get("activeTab").get("href") == "#anonymization") {
+##                    if (window.anonymizationManager == undefined) {
+##                        window.anonymizationManager = new SettingsTabManager('anonymization_mgmt_div', 'anonymization');
+##                    }
+##                }
+##                else {
+##                    window.configurationTabView.subscribe("activeTabChange", configurationAnonymizationTabChange);
+##                }
+##            }
+##
+##            YAHOO.util.Event.onDOMReady(addAnonymizationMgmtMonitor);
+##            //  putConfigurationControls('anonymization', ['anonScript', 'enableAnonScript']);
+##        </script>
+##    </div>
 ##    <h3>Series Import Filters</h3>
 ##    <div>
 ##        <table id="series_import_filter_table">
@@ -434,7 +439,7 @@
 
     <h3>Event Handlers</h3>
     <div id="events_list" style="min-height:120px;">
-        ##<p id="no_events_defined" style="display:none;padding:20px;">There are no events currently defined for this site.</p>
+    ##<p id="no_events_defined" style="display:none;padding:20px;">There are no events currently defined for this site.</p>
         <p id="no_event_handlers" style="display:none;padding:20px;">There are no event handlers currently configured for this project.</p>
         <!--
         <table id="events_table" class="xnat-table" style="display:none;width:100%;">
@@ -475,7 +480,7 @@
                 content$.slideDown().addClass('active');
                 return;
             }
-            if (content$.is(':visible')){
+            if (content$.is(':visible')) {
                 content$.slideUp(function(){
                     content$.removeClass('active');
                     h3s$.removeClass('active');
