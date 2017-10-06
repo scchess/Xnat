@@ -187,10 +187,6 @@ div.spacer {
     border-bottom: 1px solid #aaa;
 }
 
-div.option {
-    /* */
-}
-
 #tabbedList {
     margin: 10px;
 }
@@ -669,6 +665,17 @@ font[color="yellow"] {
 .bad:hover {
     background: #ccc;
     color: #999;
+}
+
+/* classes for table layout */
+.table-display {
+    display: table;
+}
+.table-display .table-row {
+    display: table-row;
+}
+.table-display .table-cell {
+    display: table-cell;
 }
 
 /* table styling for a ruled table */
@@ -1170,6 +1177,36 @@ body input[type="submit"]:focus,
 body input[type="reset"]:focus {
     outline: none !important;
 }
+
+
+/* style radioGroup widgets */
+.radio-group {
+    display: table;
+    margin-top: 15px;
+}
+
+.radio-group .option {
+    display: table-row
+}
+
+.radio-group .radio .label {
+    display: inline-block;
+    padding-left: 10px;
+}
+
+.radio-group .radio input[type="radio"] {
+    /*display: inline-block;*/
+}
+
+.radio-group .description {
+    padding-left: 10px;
+}
+
+.radio-group .description > p,
+form.panel .radio-group .description > p {
+    margin-bottom: 1em;
+}
+
 
 /* special 'hidden' button that reveals the click target on hover */
 .btn-hover {
@@ -2882,6 +2919,9 @@ span.spacer {
 .mgmt_container #notifications_mgmt_div th {
     padding-right: 10px;
 }
+
+/* style radio group elements */
+
 
 /* styling for "xnat-table" table */
 .xnat-table {

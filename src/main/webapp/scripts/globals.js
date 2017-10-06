@@ -409,7 +409,7 @@ function lookupObjectValue(root, objStr, prop){
         root = window;
     }
 
-    if (!objStr) return '';
+    if (typeof objStr !== 'string') return '';
 
     root = root || window;
 
@@ -437,6 +437,11 @@ function lookupObjectValue(root, objStr, prop){
         // start or end with a delimiter
         if (part > '') parts.push(part);
     });
+
+    if (/window/i.test(parts[0])) {
+        root = window;
+        parts.shift();
+    }
 
     parts.forEach(function(part, i){
         // start at the root object

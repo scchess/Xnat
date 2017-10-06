@@ -940,7 +940,7 @@ var XNAT = getObject(XNAT || {});
 
     // setup a dialog box that contains stuff
     panel.dialogForm = panel.formDialog = function(opts){
-        var dialog = new xmodal.Modal
+        //var dialog = new xmodal.Modal
     };
 
     panel.info = function(opts){};
@@ -1106,6 +1106,14 @@ var XNAT = getObject(XNAT || {});
         return XNAT.ui.template.panelInput(opts).get();
     };
 
+    panel.input.list = panel.input.arrayList = function(opts){
+        opts = cloneObject(opts);
+        opts.data = getObject(opts.data);
+        addClassName(opts, 'array-list');
+        addDataObjects(opts, { delim: opts.delim || opts.delimiter || ',' });
+        return XNAT.ui.template.panelInput(opts).get();
+    };
+
     panel.input.number = function panelInputNumber(opts){
         opts = cloneObject(opts);
         opts.type = 'number';
@@ -1154,14 +1162,14 @@ var XNAT = getObject(XNAT || {});
         return XNAT.ui.template.panelInput(opts).get();
     };
 
-    panel.input.checkbox = function panelInputCheckbox(opts){
+    panel.input.checkbox = panel.checkbox = function panelInputCheckbox(opts){
         opts = cloneObject(opts);
         opts.type = 'checkbox';
         addClassName(opts, 'checkbox');
         return XNAT.ui.template.panelInput(opts).get();
     };
 
-    panel.input.switchbox = function panelInputSwitchbox(opts){
+    panel.input.switchbox = panel.switchbox = function panelInputSwitchbox(opts){
         opts = cloneObject(opts);
         opts.type = 'checkbox';
         opts.kind = 'switchbox';
@@ -1169,11 +1177,18 @@ var XNAT = getObject(XNAT || {});
         return XNAT.ui.template.panelInput(opts).get();
     };
 
-    panel.input.radio = function panelInputRadio(opts){
+    panel.input.radio = panel.radio = function panelInputRadio(opts){
         opts = cloneObject(opts);
         opts.type = 'radio';
         addClassName(opts, 'radio');
         return XNAT.ui.template.panelInput(opts).get();
+    };
+
+    panel.input.radioGroup = panel.radioGroup = function panelRadioGroup(opts){
+        opts = cloneObject(opts);
+        var radioGroup = XNAT.ui.input.radioGroup(opts);
+        addClassName(opts, 'panel-radio-group');
+        return XNAT.ui.template.panelDisplay(opts, radioGroup.element).get();
     };
 
     panel.input.hidden = function panelInputHidden(opts){
@@ -1313,11 +1328,9 @@ var XNAT = getObject(XNAT || {});
     };
     panel.input.textarea = panel.textarea;
 
-    panel.textarea.arrayList = function(opts){
-        opts = extend(true, {}, {
-            element: { $: { addClass: 'array-list' } }
-        }, opts);
-        return panel.textarea(opts);
+    panel.textarea.list = panel.textarea.arrayList = function(opts){
+        var textarea = XNAT.ui.input.textarea.list(opts).get();
+        return XNAT.ui.template.panelDisplay(opts, textarea);
     };
 
     //////////////////////////////////////////////////

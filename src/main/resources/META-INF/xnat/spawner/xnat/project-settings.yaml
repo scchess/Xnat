@@ -5,110 +5,145 @@ root:
     groups:
         projectAdmin: Project Administration
     contents:
-        ${dataHandling}
-        ${notificationsEvents}
-        ${users}
+        ${quarantine}
+        ${prearchive}
+        ${projectAnon}
+        ${seriesImport}
+        ${dicomPETMR}
+        ${PETTracerSettings}
+        ${notifications}
+        ${scanType}
+        ${projectSettingsJS}
 
 # define tabs
-dataHandling:
+
+quarantine:
     kind: tab
-    label: Data Handling
+    label: Quarantine
     group: projectAdmin
     contents:
         ${quarantineSettings}
-        ${prearchiveSettings}
-        ${dicomConfig}
-        #${scanTypeMapping}
 
-notificationsEvents:
+prearchive:
     kind: tab
-    label: "Notifications & Events"
+    label: Prearchive
+    group: projectAdmin
+    contents:
+        ${prearchiveSettings}
+
+projectAnon:
+    kind: tab
+    label: Anonymization
+    group: projectAdmin
+    contents:
+        ${projectAnonForm}
+
+seriesImport:
+    kind: tab
+    label: Series Import Filters
+    group: projectAdmin
+    contents:
+        ${seriesImportForm}
+
+eventHandlers:
+    kind: tab
+    label: Event Handlers
+    group: projectAdmin
+    contents:
+        ${eventHandlerSetup}
+
+dicomPETMR:
+    kind: tab
+    label: DICOM PET/MR
+    group: projectAdmin
+    contents:
+        ${dicomConfig}
+
+scanType:
+    kind: tab
+    label: Scan Type Mapping
+    group: projectAdmin
+    contents:
+        ${scanTypeMapping}
+
+PETTracerSettings:
+    kind: tab
+    label: PET Tracers
+    group: projectAdmin
+    contents:
+        ${PETTracers}
+
+notifications:
+    kind: tab
+    label: Notifications
     group: projectAdmin
     contents:
         ${notificationsConfig}
 
 
 
-# ==================================================
-# 'Data Handling' tab
-# ==================================================
 quarantineSettings:
     kind: panel.form
     id: quarantine-settings
     label: Define Quarantine Settings
-    load: /data/projects/{{XNAT.data.context.project}}/quarantine_code > [[quarantine]]
     action: /data/projects/{{XNAT.data.context.project}}/quarantine_code/[[quarantine]]?XNAT_CSRF={{csrfToken}}
     method: PUT
     contents:
-        yesQuarantine:
-            kind: input.radio
+        quarantineRadios:
+            kind: input.radioGroup
             name: quarantine
-            id: yes-quarantine
-            value: "1"
-            layout: block
-            label: '<b style="width:30px;display:inline-block;">Yes</b>'
-            description: >
-                All new experiments (and modified experiments) are quarantined and must be specifically activated.
-        noQuarantine:
-            kind: input.radio
-            name: quarantine
-            id: no-quarantine
-            value: "0"
-            layout: block
-            label: '<b style="width:30px;display:inline-block;">No</b>'
-            description: >
-                New and modified experiments will not be quarantined.
+            value: $? /data/projects/{{XNAT.data.context.project}}/quarantine_code
+            options:
+                yes:
+                    label: "Yes"
+                    value: "1"
+                    description: >
+                        All new experiments (and modified experiments) are quarantined and must be specifically activated.
+                no:
+                    label: "No"
+                    value: "0"
+                    description: >
+                        New and modified experiments will not be quarantined.
 
 prearchiveSettings:
     kind: panel.form
     id: prearchive-settings
     label: Define Prearchive Settings
-    load: /data/projects/{{XNAT.data.context.project}}/prearchive_code > [[prearchive]]
     action: /data/projects/{{XNAT.data.context.project}}/prearchive_code/[[prearchive]]?XNAT_CSRF={{csrfToken}}
     method: PUT
     contents:
-        prearc0:
-            kind: input.radio
+        prearchiveRadios:
+            kind: input.radioGroup
             name: prearchive
-            id: prearchive-0
-            value: "0"
-            layout: block
-            description: >
-                All image data should be placed in a temporary location (prearchive) before being
-                manually transferred into the permanent archive.
-        prearc4:
-            kind: input.radio
-            name: prearchive
-            id: prearchive-4
-            value: "4"
-            layout: block
-            description: >
-                All image data will be placed into the archive automatically, but anything matching
-                existing files will be rejected. Data which doesn't match a pre-existing project will
-                be placed in an 'Unassigned' project.
-        prearc5:
-            kind: input.radio
-            name: prearchive
-            id: prearchive-5
-            value: "5"
-            layout: block
-            description: >
-                All image data will be placed into the archive automatically and will overwrite existing files.
-                Data which doesn't match a pre-existing project will be placed in an 'Unassigned' project.
-#        bogus: '<span class="bogus"></span>'
-#        foo:
-#            - ['p.foo', 'Foo content']
-#            - '<p class="bar">Bar Content</p>'
+            value: $? /data/projects/{{XNAT.data.context.project}}/prearchive_code
+            options:
+                prearc0:
+                    id: prearchive-0
+                    value: "0"
+                    label: ""
+                    description: >
+                        All image data should be placed in a temporary location (prearchive) before being
+                        manually transferred into the permanent archive.
+                prearc4:
+                    id: prearchive-4
+                    value: "4"
+                    label: ""
+                    description: >
+                        All image data will be placed into the archive automatically, but anything matching
+                        existing files will be rejected. Data which doesn't match a pre-existing project will
+                        be placed in an 'Unassigned' project.
+                prearc5:
+                    id: prearchive-5
+                    value: "5"
+                    label: ""
+                    description: >
+                        All image data will be placed into the archive automatically and will overwrite existing files.
+                        Data which doesn't match a pre-existing project will be placed in an 'Unassigned' project.
 
 dicomConfig:
     kind: panel.form
     label: DICOM Configuration
-    load: /data/projects/{{XNAT.data.context.project}}/config/separatePETMR/config?contents=true > [[separatePETMR]]
-    action: /data/projects/{{XNAT.data.context.project}}/config/separatePETMR/config < [[separatePETMR|text/plain]]
-    method: PUT
-    params:
-        - inbody=true
-        - XNAT_CSRF={{csrfToken}}
+    action: ""
     contents:
         separatePETMR:
             kind: panel.select.single
@@ -118,7 +153,7 @@ dicomConfig:
                 Should data generated by PET-MR scanners be created as a single PET/MR imaging session,
                 created as a single PET imaging session, or separated into PET and MR sessions?
             options:
-                "default": "Use the system default"
+                system: "Use the system default"
                 petmr: "Create as PET/MR session"
                 pet: "Create as PET session"
                 separate: "Separate into PET and MR sessions"
@@ -128,48 +163,70 @@ scanTypeMapping:
     kind: panel.form
     id: scan-type-mapping
     label: Define Scan Type Mapping
-    load: /data/projects/{{XNAT.data.context.project}}/scan_type_mapping > [[scan_type_mapping]]
-    action: /data/projects/{{XNAT.data.context.project}}/scan_type_mapping/[[scan_type_mapping]]?XNAT_CSRF={{csrfToken}}
-    method: PUT
+    action: ""
+    element:
+        onsubmit: "XNAT.app.project.setScanTypeMapping"
     contents:
-        yesScanTypeMapping:
-            kind: input.radio
+        scan_type_mapping:
+            kind: input.radioGroup
             name: scan_type_mapping
-            id: yes-scan-type-mapping
-            value: "true"
-            layout: block
-            label: '<b style="width:30px;display:inline-block;">Yes</b>'
+            id: scan-type-mapping-radios
+            options:
+                yes:
+                    label: "Yes"
+                    value: "true"
+                    description: >
+                        Incoming scans will have their type attribute set based on historical scan type mapping data.
+                no:
+                    label: "No"
+                    value: "false"
+                    description: >
+                        Incoming scans will have their type attribute set to be identical to their series description.
+
+PETTracers:
+    kind: panel.form
+    id: pet-tracers
+    label: PET Tracers
+    action: ""
+    contents:
+        petTracersSettings:
+            tag: textarea#pet-tracers-settings.hidden|name=petTracersSettings
+        enableTracers:
+            kind: panel.input.switchbox
+            name: status
+            id: enable-pet-tracers
+            label: Enable Project PET Tracers
+            onText: PET Tracers Enabled
+            offText: PET Tracers Disabled
+        contents:
+            kind: panel.textarea
+            name: contents
+            id: pet-tracer-contents
+            label: PET Tracer List
             description: >
-                Incoming scans will have their type attribute set based on historical scan type mapping data.
-        noScanTypeMapping:
-            kind: input.radio
-            name: scan_type_mapping
-            id: no-scan-type-mapping
-            value: "false"
-            layout: block
-            label: '<b style="width:30px;display:inline-block;">No</b>'
-            description: >
-                Incoming scans will have their type attribute set to be identical to their series description.
+                List entries should be separated by whitespace.
+        helperJS:
+            tag: script
+            content: >
+                $(document).on('click', '#enable-pet-tracers', function(){
+                    this.value = this.checked ? 'enabled' : 'disabled'
+                })
 
+# --------------------------------------------------
 # ==================================================
 
 
 
+
+
 # ==================================================
-# 'Notifications & Events' tab
-# ==================================================
+# 'Notifications' tab elements
+# --------------------------------------------------
+
 notificationsConfig:
     kind: panel.form
     id: notifications-config
     label: Notifications Configuration
-    load: /data/projects/{{XNAT.data.context.project}}/resources/notifications/files/archival.lst > [[notif_list]]
-    action: /data/projects/{{XNAT.data.context.project}}/resources/notifications/files/archival.lst < [[notif_list|text/plain]]
-    method: PUT
-    params:
-        inbody: true
-        overwrite: true
-        content: NOTIFY_ARCHIVAL
-        XNAT_CSRF: "{{csrfToken}}"
     contents:
         notif_list:
             kind: panel.textarea
@@ -179,7 +236,111 @@ notificationsConfig:
             description: >
                 Emails should be comma separated (i.e. tim@somewhere.com,jenny@somewhere.com).
 
+# --------------------------------------------------
 # ==================================================
+
+
+
+
+
+# ==================================================
+# 'Anonymization' tab elements
+# --------------------------------------------------
+
+projectAnonForm:
+    kind: panel.form
+    id: project-anon-form
+    label: Project Anonymization Script
+    contents:
+        enableScript:
+            kind: panel.switchbox
+            label: Enable Script
+            id: project-anon-enable
+            name: enableScript
+            onText: Project Anon Script Enabled
+            offText: Project Anon Script Disabled
+        anonScriptText:
+            kind: panel.textarea
+            code: text
+            id: project-anon-script
+            label: Script
+            name: anonScriptText
+            description: >
+                Double-click to open in a code editor dialog.
+
+# --------------------------------------------------
+# ==================================================
+
+
+
+
+
+# ==================================================
+# 'Series Import' tab elements
+# --------------------------------------------------
+
+seriesImportForm:
+    kind: panel.form
+    id: series-import-form
+    label: Series Import Filters
+    reset: Reset
+    contents:
+        about:
+            tag: p
+            content: >
+                This is the series import filter applied to incoming and archiving DICOM resources for your project.
+                This filter can also be supplemented by the site-wide series import filter.
+        filterSettingsSubhead:
+            kind: panel.subhead
+            label: Filter Settings
+        enableFilter:
+            kind: panel.input.switchbox
+            name: enabled
+            id: series-import-enable
+            label: Enable Filter
+            onText: Filter Enabled
+            offText: Filter Disabled
+        filterMode:
+            kind: panel.select.single
+            label: Mode
+            name: mode
+            id: filter-mode
+            options:
+                whitelist: Whitelist
+                blacklist: Blacklist
+                modalityMap: Modality Map
+            description: >
+                Creating a whitelist means that <i>only</i> DICOM series with a series description
+                that matches one of series filter patterns will be considered by XNAT import tools
+                such as the <a href="/app/template/UploadAssistantPage.vm">XNAT Upload
+                Assistant</a>. Creating a blacklist means that all DICOM series will be considered
+                <i>except</i> for series that have one of the specified series filter patterns. A
+                modality map lets you specify boolean expressions in JavaScript that can use DICOM
+                header values from incoming DICOM objects to decide the appropriate modality for the
+                destination session.
+        seriesImportFilter:
+            kind: panel.textarea
+            id: series-import-filter
+            name: list
+            element:
+                rows: 20
+            description: >
+                The series filters can be written as exact string matches, but also can be regular expressions. The regular expressions are evaluated
+                using the <a href="http://docs.oracle.com/javase/tutorial/essential/regex/" target="_blank">Java regular expression syntax</a>. These
+                expressions are case-insensitive, i.e. the string "SAG LOCALIZER" will also match "Sag Localizer".
+
+# --------------------------------------------------
+# ==================================================
+
+
+
+
+
+# projectSettings.js file
+projectSettingsJS:
+    tag: "script|src=/scripts/xnat/app/projectSettings.js"
+
+
 
 
 

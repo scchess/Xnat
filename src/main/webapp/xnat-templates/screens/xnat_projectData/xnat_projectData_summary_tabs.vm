@@ -7,9 +7,16 @@
     <div id="projectSummary" class="yui-navset">
         #if ($isProjectAdmin)
             <span id="project-settings-btn-container" class="hidden pull-right"></span>
+            #set ($scanTypeMapping = $project.getUseScanTypeMapping())
             #set ($projectSettingsUri = "/page/project/settings/content.jsp?id=$project.getId()")
             <script>
                 (function(){
+
+                    XNAT.data = getObject(XNAT.data);
+                    XNAT.data.project = getObject(XNAT.data.project);
+
+                    // set this for use in spawned panel
+                    XNAT.data.project.scanTypeMapping = realValue('$!scanTypeMapping');
 
                     function setUrlHash(str){
                         var base = window.location.href.split('#')[0];

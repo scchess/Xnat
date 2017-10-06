@@ -41,7 +41,7 @@
     }
 
 
-            #events_table .item, #events_table .header, #events_manage_table .item, #events_manage_table .header,#import_events_manage_table .item, #import_events_manage_table .header {
+            #events_table .item, #events_table .header, #events_manage_table .item, #events_manage_table .header {
                 border-bottom: 1px solid #888;
                 font: 11px Arial, Helvetica, sans-serif;
                 margin-top: 0;
@@ -54,16 +54,16 @@
                 display: block;
             }
 
-            #events_table dl dl, #events_manage_table dl dl, #import_events_manage_table dl dl {
+            #events_table dl dl, #events_manage_table dl dl {
                 margin: 1px 0;
             }
 
-            #events_table .header, #events_manage_table .header, #import_events_manage_table .header {
+            #events_table .header, #events_manage_table .header {
                 background-color: #ccc;
                 font-weight: bold;
             }
 
-            #events_table dl dt, #events_table dl dd, #events_manage_table dl dt, #events_manage_table dl dd, #import_events_manage_table dl dt, #import_events_manage_table dl dd {
+            #events_table dl dt, #events_table dl dd, #events_manage_table dl dt, #events_manage_table dl dd {
                 display: block;
                 float: left;
                 padding: 4px 0;
@@ -76,52 +76,26 @@
             #events_manage_table .item:hover {
                 background-color: #fff;
             }
-			
-			#import_events_manage_table .item:hover {
-                background-color: #fff;
-            }
 
-            #events_table dd, #events_manage_table dd, #import_events_manage_table dd {
+            #events_table dd, #events_manage_table dd {
                 margin-left: 20px;
             }
-			
-			#import_events_manage_table dd.col0 {
-                width: 15px;
-                margin-left: 5px;
-            }
-			
-			#import_events_manage_table dd.col1 {
-                width: 180px;
-                margin-left: 15px
-            }
-			
-			#import_events_manage_table dd.col2 {
-                width: 180px;
-            }
-			
-			#import_events_manage_table dd.col3 {
-                width: 230px;
-            }
-			
-			
 
             #events_table dd.col1, #events_manage_table dd.col1 {
                 width: 140px;
                 margin-left: 10px
             }
-			
-			
 
             #events_table dd.col2, #events_manage_table dd.col2 {
-                width: 145px;
+                width: 115px;
             }
 
             #events_table dd.col3, #events_manage_table dd.col3 {
-                width: 200px;
+                width: 230px;
             }
 
             #events_table dd.col4, #events_manage_table dd.col4 {
-                width: 30px;
+                width: 40px;
             }
 
             #events_table dd.col5, #events_manage_table dd.col5 {
@@ -140,14 +114,14 @@
                 width: 90%;
                 padding-left: 70px;
             }
-            #events_table dd.colC, #events_manage_table dd.colC,#import_events_manage_table dd.colC {
+            #events_table dd.colC, #events_manage_table dd.colC {
                 width: 90%;
                 padding-left: 10px;
-				padding-top: 2px;
-				padding-bottom: 2px;
+		padding-top: 2px;
+		padding-bottom: 2px;
             }
 
-            #events_table dd.colEx, #events_manage_table dd.colEx, #import_events_manage_table dd.colEx {
+            #events_table dd.colEx, #events_manage_table dd.colEx {
                 position: relative;
             }
 
@@ -326,21 +300,21 @@
             </tr>
         </table>
         <script>
-            var sg = new scriptGet(document.getElementById('script_container'),
-                    {
-                        'getStatus': serverRoot + '/data/config/edit/projects/$project.getId()/image/dicom/status?format=json',
-                        'putStatus': serverRoot + '/data/config/edit/projects/$project.getId()/image/dicom/status?activate=',
-                        'getScript': serverRoot + '/data/config/edit/projects/$project.getId()/image/dicom/script?format=json',
-                        'putScript': serverRoot + '/data/config/edit/projects/$project.getId()/image/dicom/script?inbody=true',
-                        'project': '$project.getId()',
-                        'enable_checkbox': 'enable_anon_script',
-                        'script_text_area': 'script_text_area',
-                        'save_button': 'anon_script_save'
-                    });
+            var sg = new scriptGet(document.getElementById('script_container'), {
+                    'getStatus': serverRoot + '/data/config/edit/projects/$project.getId()/image/dicom/status?format=json',
+                    'putStatus': serverRoot + '/data/config/edit/projects/$project.getId()/image/dicom/status?activate=',
+                    'getScript': serverRoot + '/data/config/edit/projects/$project.getId()/image/dicom/script?format=json',
+                    'putScript': serverRoot + '/data/config/edit/projects/$project.getId()/image/dicom/script?inbody=true',
+                    'project': '$project.getId()',
+                    'enable_checkbox': 'enable_anon_script',
+                    'script_text_area': 'script_text_area',
+                    'save_button': 'anon_script_save'
+                });
             sg.get();
 
             var enableAnonScript = jq('#enable_anon_script');
             var anonScript = jq('#script_text_area');
+
             function toggleControlsOnAnonEnabled(){
                 var enabled = enableAnonScript.is(':checked');
                 anonScript.prop('disabled', !enabled);
@@ -382,81 +356,81 @@
             //  putConfigurationControls('anonymization', ['anonScript', 'enableAnonScript']);
         </script>
     </div>
-    <h3>Series Import Filters</h3>
-    <div>
-        <table id="series_import_filter_table">
-            <tr>
-                <td colspan="2" class="highlighted" id="series_import_filter_container">
-                ## WHY IS THIS IN A TABLE? C'MON MAN, IT'S 2015
-                    <table cellspacing="8">
-                        <tr>
-                            <td>
-                                This is the series import filter applied to incoming and archiving DICOM resources for your
-                                project. This filter can also be supplemented by the site-wide series import filter.
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <label for="enable_series_import_filter">Enable Filter</label><input type="checkbox" name="enable_series_import_filter" id="enable_series_import_filter"/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><label for="series_import_filter_mode_list">Mode</label>
-                                <select name="series_import_filter_mode_list" id="series_import_filter_mode_list" disabled placeholder="Enter white- or blacklisted series import filters separated by newlines, e.g. <b>localizer</b> for localizer series. Enter a modality-mapped series import filter as JSON.">
-                                    <option value="whitelist">Whitelist</option>
-                                    <option value="blacklist">Blacklist</option>
-                                    <option value="modalityMap">Modality Map</option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="info">
-                                    Creating a whitelist means that <i>only</i> DICOM series with a series description
-                                    that matches one of series filter patterns will be considered by XNAT import tools
-                                    such as the <a href="$link.setPage("UploadAssistantPage.vm")">XNAT Upload
-                                    Assistant</a>. Creating a blacklist means that all DICOM series will be considered
-                                    <i>except</i> for series that have one of the specified series filter patterns. A
-                                    modality map lets you specify boolean expressions in JavaScript that can use DICOM
-                                    header values from incoming DICOM objects to decide the appropriate modality for the
-                                    destination session.
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <textarea id="series_import_filter_text_area" rows="20" cols="80" disabled="disabled"></textarea>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="info">
-                                    The series filters can be written as exact string matches, but also can be regular expressions. The regular expressions are evaluated using the
-                                    <a href="http://docs.oracle.com/javase/tutorial/essential/regex/" target="_blank">Java regular expression syntax</a>. These expressions are
-                                    case-insensitive, i.e. the string "SAG LOCALIZER" will also match "Sag Localizer".
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><input type="button" id="series_import_filter_save" value="Save" disabled="disabled"/>
-                            </td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-        </table>
-        <script>
-            var filtersGet = new seriesImportFiltersGet({
-                'container': document.getElementById('series_import_filter_container'),
-                'project': '$project.getId()',
-                'enable_checkbox': 'enable_series_import_filter',
-                'mode_list': 'series_import_filter_mode_list',
-                'filters_text_area': 'series_import_filter_text_area',
-                'save_button': 'series_import_filter_save'
-            });
-            filtersGet.get();
-        </script>
-    </div>
+##    <h3>Series Import Filters</h3>
+##    <div>
+##        <table id="series_import_filter_table">
+##            <tr>
+##                <td colspan="2" class="highlighted" id="series_import_filter_container">
+##                ## WHY IS THIS IN A TABLE? C'MON MAN, IT'S 2015
+##                    <table cellspacing="8">
+##                        <tr>
+##                            <td>
+##                                This is the series import filter applied to incoming and archiving DICOM resources for your
+##                                project. This filter can also be supplemented by the site-wide series import filter.
+##                            </td>
+##                        </tr>
+##                        <tr>
+##                            <td>
+##                                <label for="enable_series_import_filter">Enable Filter</label><input type="checkbox" name="enable_series_import_filter" id="enable_series_import_filter"/>
+##                            </td>
+##                        </tr>
+##                        <tr>
+##                            <td><label for="series_import_filter_mode_list">Mode</label>
+##                                <select name="series_import_filter_mode_list" id="series_import_filter_mode_list" disabled placeholder="Enter white- or blacklisted series import filters separated by newlines, e.g. <b>localizer</b> for localizer series. Enter a modality-mapped series import filter as JSON.">
+##                                    <option value="whitelist">Whitelist</option>
+##                                    <option value="blacklist">Blacklist</option>
+##                                    <option value="modalityMap">Modality Map</option>
+##                                </select>
+##                            </td>
+##                        </tr>
+##                        <tr>
+##                            <td>
+##                                <div class="info">
+##                                    Creating a whitelist means that <i>only</i> DICOM series with a series description
+##                                    that matches one of series filter patterns will be considered by XNAT import tools
+##                                    such as the <a href="$link.setPage("UploadAssistantPage.vm")">XNAT Upload
+##                                    Assistant</a>. Creating a blacklist means that all DICOM series will be considered
+##                                    <i>except</i> for series that have one of the specified series filter patterns. A
+##                                    modality map lets you specify boolean expressions in JavaScript that can use DICOM
+##                                    header values from incoming DICOM objects to decide the appropriate modality for the
+##                                    destination session.
+##                                </div>
+##                            </td>
+##                        </tr>
+##                        <tr>
+##                            <td>
+##                                <textarea id="series_import_filter_text_area" rows="20" cols="80" disabled="disabled"></textarea>
+##                            </td>
+##                        </tr>
+##                        <tr>
+##                            <td>
+##                                <div class="info">
+##                                    The series filters can be written as exact string matches, but also can be regular expressions. The regular expressions are evaluated using the
+##                                    <a href="http://docs.oracle.com/javase/tutorial/essential/regex/" target="_blank">Java regular expression syntax</a>. These expressions are
+##                                    case-insensitive, i.e. the string "SAG LOCALIZER" will also match "Sag Localizer".
+##                                </div>
+##                            </td>
+##                        </tr>
+##                        <tr>
+##                            <td><input type="button" id="series_import_filter_save" value="Save" disabled="disabled"/>
+##                            </td>
+##                        </tr>
+##                    </table>
+##                </td>
+##            </tr>
+##        </table>
+##        <script>
+##            var filtersGet = new seriesImportFiltersGet({
+##                'container': document.getElementById('series_import_filter_container'),
+##                'project': '$project.getId()',
+##                'enable_checkbox': 'enable_series_import_filter',
+##                'mode_list': 'series_import_filter_mode_list',
+##                'filters_text_area': 'series_import_filter_text_area',
+##                'save_button': 'series_import_filter_save'
+##            });
+##            filtersGet.get();
+##        </script>
+##    </div>
 
     <h3>Event Handlers</h3>
     <div id="events_list" style="min-height:120px;">
@@ -477,8 +451,7 @@
         <div id="events_table" class="xnat-table" style="display:none;width:100%;">
         </div>
         <br>
-        <button type="button" id="manage_event_handlers" class="btn1" style="font-size:12px;">Add Event Handlers</button>
-        <button type="button" id="import_event_handlers" class="btn1" style="font-size:12px;">Import Event Handlers</button>
+        <button type="button" id="manage_event_handlers" class="btn1" style="font-size:12px;">Manage Event Handlers</button>
     </div>
 
     #addCustomScreens($project.getXSIType() "report/manage_tab")

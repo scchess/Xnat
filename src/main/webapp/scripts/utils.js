@@ -312,7 +312,7 @@ function removeClasses(el, classes){
 
 /**
  * Build an object to be used for [data-*] attributes.
- * NOTE: this function does not
+ * NOTE: this function does not SET the element attributes.
  * @param elConfig {Object} - config object to be used for a spawned element
  * @param attrs {Object} - object map of attribute name (key) and value to set (value)
  * @returns {Object} - returns modified elConfig object w/new properties
@@ -554,6 +554,33 @@ $.fn.hidden = function(bool, speed){
         method = speed ? 'fadeIn' : 'show';
         this.removeClass('hidden')[method](speed);
     }
+    return this;
+};
+
+
+// add or remove 'disabled' class
+// and set 'disabled' attribute and property
+$.fn.disabled = function(bool){
+    var $this = this;
+    if (bool || bool == null) {
+        $this.addClass('disabled');
+        $this.each(function(i, element){
+            element.disabled = true;
+            element.setAttribute('disabled', 'disabled');
+        });
+    }
+    else {
+        $this.removeClass('disabled');
+        $this.each(function(i, element){
+            element.disabled = false;
+            element.removeAttribute('disabled');
+        });
+    }
+    return $this;
+};
+
+$.fn.enabled = function(bool){
+    this.disabled(!firstDefined(bool, true));
     return this;
 };
 

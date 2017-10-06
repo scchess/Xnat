@@ -66,12 +66,12 @@
 		if (arguments.length < 5) useIdIfEmptyName = false;
 
 		rootNode = (typeof rootNode == 'string') ? document.getElementById(rootNode) : rootNode;
-		
+
 		var fieldValues,
 				formFieldsByName;
 
 		fieldValues = object2array(data);
-		formFieldsByName = getFields(rootNode, useIdIfEmptyName, delimiter, {}, true);
+		formFieldsByName = getFields(rootNode, useIdIfEmptyName, delimiter, {}, false);
 
 		for (var i = 0; i < fieldValues.length; i++)
 		{

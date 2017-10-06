@@ -73,6 +73,7 @@ window.xmodal = getObject(window.xmodal);
     dialog.updateUIDs = function(){
         var uids = [];
         var openDialogs = [];
+        dialog.topUID = '';
         dialog.uids.forEach(function(uid){
             if (!dialog.dialogs[uid]) return;
             if (uids.indexOf(uid) > -1) return;
