@@ -292,7 +292,7 @@ var XNAT = getObject(XNAT);
         }
 
         // // copy value to [data-*] attribute for non-password inputs
-        // config.data.value = (!/password/i.test(config.type)) ? config.value : '!';
+        config.data.value = (!/password/i.test(config.type)) ? config.value : '!';
         //
         // // lookup a value if it starts with '??'
         // // tolerate '??=' or '??:' syntax
@@ -602,13 +602,26 @@ var XNAT = getObject(XNAT);
     // allow use of an existing checkbox as a second argument
     input.switchbox = function(config, ckbx){
         config = cloneObject(config);
-        addClassName(config, 'switchbox');
-        return spawn('label.switchbox', [
-            ckbx || input('checkbox', config).spawned,
+        config.kind = 'input.switchbox';
+        var chkbox = ckbx || input('checkbox', config).element;
+        var NAME = chkbox.name || chkbox.title || chkbox.id;
+        var VALUES = config.values || config.options || 'true|false';
+        chkbox.title = NAME || '';
+        chkbox.name = '';
+        addClassName(chkbox, 'switchbox controller');
+        var swboxParts = [
+            chkbox,
             ['span.switchbox-outer', [['span.switchbox-inner']]],
             ['span.switchbox-on', config.onText||''],
-            ['span.switchbox-off', config.offText||'']
-        ])
+            ['span.switchbox-off', config.offText||''],
+            ['input.proxy|type=hidden', { name: NAME }]
+        ];
+        // return the 'outer' switchbox container
+        return spawn(
+            'label.switchbox',
+            { title: NAME ? NAME + '=' + VALUES : '' },
+            swboxParts
+        );
     };
     otherTypes.push('switchbox');
 
@@ -666,7 +679,7 @@ var XNAT = getObject(XNAT);
         var tmp = {};
         tmp[radioGroupName] = selectedValue;
 
-        console.log('===== SET RADIO GROUP VALUE =====');
+        if (jsdebug) console.log('/////  SET RADIO GROUP VALUE  /////');
 
         XNAT.form.setValues(radios, tmp);
 

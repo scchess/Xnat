@@ -268,11 +268,12 @@ function hasAllClasses(el, classes){
 
 // add new element class without destroying existing class
 function addClassName(el, newClasses){
-    var hasClassList = useClassList && el.classList,
-        elClasses    = (el.className||'').split(/\s+/);
+    var hasClassList = useClassList && el.classList;
+    var elClasses    = (el.className||'').split(/\s+/);
     // make sure 'newClasses' is an array
     newClasses = [].concat(newClasses||[]).join(' ').split(/\s+/);
     newClasses.forEach(function(cls){
+        if (!cls) return;
         if (hasClassList) {
             el.classList.add(cls);
         }
@@ -284,12 +285,12 @@ function addClassName(el, newClasses){
         }
     });
     // create new className string
-    elClasses = elClasses.join(' ').trim();
+    var className = elClasses.join(' ').trim();
     if (!hasClassList){
         // set the new className and return the string
-        el.className = elClasses;
+        el.className = className;
     }
-    return elClasses;
+    return className;
 
 }
 
@@ -543,7 +544,10 @@ $.fn.changeVal = function(){
 
 // sets attribute AND property to 'checked'
 $.fn.checked = function(bool){
-    if ('checked' in this[0]) {
+    if (this.length && 'checked' in this[0]) {
+        if (bool == null) {
+            return this[0].checked;
+        }
         if (bool === false) {
             this.removeAttr('checked').prop('checked', false);
             return this;

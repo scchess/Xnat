@@ -438,11 +438,6 @@ function lookupObjectValue(root, objStr, prop){
         if (part > '') parts.push(part);
     });
 
-    if (/window/i.test(parts[0])) {
-        root = window;
-        parts.shift();
-    }
-
     parts.forEach(function(part, i){
         // start at the root object
         if (i === 0) {

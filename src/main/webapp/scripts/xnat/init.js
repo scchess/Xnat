@@ -65,6 +65,30 @@ var XNAT = getObject(XNAT);
             }
         });
 
+        // make sure switchboxes track values properly
+        // encode the input name and values into the [title] attribute of the outer <label> element:
+        // <label class="switchbox" title="myInput=checkedValue|uncheckedValue">
+        $(document).on('change', 'input.switchbox.controller', function(){
+            var chkbox$ = $(this);
+            var chkbox0 = chkbox$[0];
+            var switch$ = chkbox$.closest('label.switchbox');
+            var switch0 = switch$[0];
+            var NAME    = switch0.title.split('=')[0];
+            var VALUES  = (switch0.title.split('=')[1] || '').split('|') || ['true', 'false'];
+            var proxy$  = switch$.find('input.proxy');
+            var proxy0  = proxy$[0];
+            if (!proxy0) {
+                proxy0 = spawn('input.proxy|type=hidden');
+                switch0.appendChild(proxy0);
+            }
+            proxy0.name = NAME;
+            proxy0.value = chkbox0.checked ? VALUES[0] : VALUES[1];
+            // set [name] attribute for the checkbox to an empty string
+            if (chkbox0.name) {
+                chkbox0.name = '';
+            }
+        });
+
         // add version to title attribute of XNAT logos
         if (window.top.loggedIn !== undef && window.top.loggedIn === true) {
 

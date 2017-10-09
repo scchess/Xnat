@@ -47,6 +47,12 @@ var XNAT = getObject(XNAT);
         getInputByName(form$, name).val(value+'').change();
     }
 
+    // check for { ResultSet: { Result: [] } }
+    function getResultSetResult(data){
+        return (data && data.ResultSet && data.ResultSet.Result) ?
+            data.ResultSet.Result :
+            [];
+    }
 
     function getSettings(url, successOrElements, errorMsg){
         return XNAT.xhr.get({
@@ -183,12 +189,22 @@ var XNAT = getObject(XNAT);
 
     projectSettings.getProjectAnonScript = function(form){
         var form$ = (form !== undef) ? $$(form) : $$('#project-anon-form');
+        var enabled$ = form$.find('#project-anon-enable');
+        var script$ = form$.find('#project-anon-script');
         // 'enabled' checkbox
         getSettings(
             projectAnonUrl('status', 'format=json'),
             function(data) {
-                var status = data && data.ResultSet.Result.length ? data.ResultSet.Result[0].edit : false;
-                form$.find('#project-anon-enable').checked(realValue(status));
+                var result = getResultSetResult(data);
+                var status = result[0] && 'edit' in result[0] ? result[0].edit : false;
+                status = realValue(status);
+                enabled$.checked(status);
+                // do we want to disable/enable script editing
+                // based on 'enabled' status?
+                // enabled$.on('click', function(){
+                //     script$.enabled(enabled$[0].checked);
+                // });
+                // script$.enabled(status);
             },
             'An error occurred getting anon script status.'
         );
@@ -196,8 +212,9 @@ var XNAT = getObject(XNAT);
         getSettings(
             projectAnonUrl('script', 'format=json'),
             function(data) {
-                var script = data && data.ResultSet.Result.length ? data.ResultSet.Result[0].script : '';
-                form$.find('#project-anon-script').val(script);
+                var result = getResultSetResult(data);
+                var script = result[0] && 'script' in result[0] ? result[0].script : '';
+                script$.val(script);
             },
             'An error occurred getting anon script content.'
         );
@@ -214,16 +231,20 @@ var XNAT = getObject(XNAT);
             function(){
                 // submit script content if 'active/enabled'
                 if (activate) {
-                    var scriptContentUrl = XNAT.url.csrfUrl(projectAnonUrl('script', 'inbody=true'));
-                    XNAT.xhr.request({
-                        method: 'PUT',
+                    var scriptContentUrl = XNAT.url.csrfUrl(projectAnonUrl('script', 'inbody=true&activate=' + activate));
+                    XNAT.xhr.put({
                         url: scriptContentUrl,
                         data: form$.find('#project-anon-script').val(),
                         contentType: 'text/plain',
                         processData: false,
                         success: function(){
                             if (jsdebug) console.log('success: ' + scriptContentUrl);
-                            XNAT.ui.banner.top(2000, 'Project anon script enabled and saved.', 'success');
+                            // if (activate) {
+                                XNAT.ui.banner.top(2000, 'Project anon script enabled and saved.', 'success');
+                            // }
+                            // else {
+                            //     XNAT.ui.banner.top(2000, 'Project anon script was saved and set as "disabled".', 'success');
+                            // }
                         },
                         failure: function(e){
                             if (jsdebug) {
@@ -235,7 +256,7 @@ var XNAT = getObject(XNAT);
                     })
                 }
                 else {
-                    XNAT.ui.banner.top(2000, 'Project anon script disabled.', 'success');
+                    XNAT.ui.banner.top(2000, 'Project anon script disabled (and not saved).', 'success');
                 }
             },
             'An error occurred setting project anon script.'
@@ -244,12 +265,79 @@ var XNAT = getObject(XNAT);
     ////////////////////////////////////////////////////////////////////////////////
 
 
+
+    // Series Import Filters
+    ////////////////////////////////////////////////////////////////////////////////
+
+    function seriesImportUrl(params){
+        params = params ? '?' + [].concat(params || []).join('&') : '';
+        return '/data/projects/' + projectId + '/config/seriesImportFilter/config' + params;
+    }
+
+    projectSettings.getSeriesImportFilter = function(form){
+        var form$ = (form !== undef) ? $$(form) : $$('#series-import-form');
+        var enabled$ = form$.find('#series-import-enable');
+        var mode$ = form$.find('#filter-mode');
+        var filter$ = form$.find('#series-import-filter');
+        getSettings(
+            seriesImportUrl(),
+            function(data) {
+                var result = getResultSetResult(data);
+                var contents = result[0] && 'contents' in result[0] ? result[0].contents : '[]';
+                var settings = JSON.parse(contents);
+                enabled$.checked(settings.enabled);
+                mode$.val(settings.mode).change();
+                filter$.val(settings.list);
+            },
+            'An error occurred getting series import filter.'
+        );
+    };
+
+    // probably will not use this since the form submits JSON
+    projectSettings.setSeriesImportFilter = function(form, e){
+        if (e && e.preventDefault) e.preventDefault();
+        var form$ = (form !== undef) ? $$(form) : $$('#series-import-form');
+        var enabled$ = form$.find('#series-import-enable');
+        var enabled = enabled$[0].checked;
+        var params = ['status=enabled', 'inbody=true'];
+        // var mode$ = form$.find('#filter-mode');
+        // var filter$ = form$.find('#series-import-filter');
+        var seriesImportSubmitUrl = XNAT.url.csrfUrl(seriesImportUrl(params));
+        var seriesImportData = form2js(form$[0]);
+        XNAT.xhr.put({
+            url: seriesImportSubmitUrl,
+            data: JSON.stringify(seriesImportData),
+            contentType: 'text/plain',
+            processData: false,
+            success: function(){
+                if (jsdebug) console.log('success: ' + seriesImportSubmitUrl);
+                if (enabled) {
+                    XNAT.ui.banner.top(2000, 'Series import filter saved.', 'success');
+                }
+                else {
+                    XNAT.ui.banner.top(2000, 'Series import filter disabled.', 'success');
+                }
+            },
+            failure: function(e){
+                if (jsdebug) {
+                    console.error('error:');
+                    console.error(arguments);
+                }
+                XNAT.ui.dialog.message(false, ('An error occurred saving series import filter: ') + '<br><br>' + e);
+            }
+        })
+    };
+    ////////////////////////////////////////////////////////////////////////////////
+
+
+
     projectSettings.init = function(){
         console.log('projectSettings.init');
         getProjectId();
         projectSettings.getQuarantineCode();
         projectSettings.getPrearhchiveCode();
         projectSettings.getProjectAnonScript();
+        projectSettings.getSeriesImportFilter();
         // etc...
     };
 

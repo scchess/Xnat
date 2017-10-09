@@ -34,6 +34,8 @@
                                     width: '90%',
                                     height: '90%',
                                     maxBtn: true,
+                                    esc: false,
+                                    enter: false,
                                     title: 'Project Settings for $project.getId()',
                                     content: html,
                                     buttons: [

@@ -1186,10 +1186,11 @@ var XNAT = getObject(XNAT || {});
 
     panel.input.switchbox = panel.switchbox = function panelInputSwitchbox(opts){
         opts = cloneObject(opts);
-        opts.type = 'checkbox';
-        opts.kind = 'switchbox';
-        addClassName(opts, 'switchbox');
-        return XNAT.ui.template.panelInput(opts).get();
+        var switchbox = XNAT.ui.input.switchbox(opts);
+        // opts.type = 'checkbox';
+        // opts.kind = 'switchbox';
+        addClassName(opts, 'panel-switchbox switchbox');
+        return XNAT.ui.template.panelDisplay(opts, switchbox).get();
     };
 
     panel.input.radio = panel.radio = function panelInputRadio(opts){

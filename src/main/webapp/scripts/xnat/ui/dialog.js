@@ -422,10 +422,10 @@ window.xmodal = getObject(window.xmodal);
             }).append(this.content$);
 
             // trigger submit on 'enter'?
-            this.enter = firstDefined(this.enter, true);
+            this.enter = firstDefined(this.enter, false);
 
             // close on 'esc'
-            this.esc = firstDefined(this.esc, true);
+            this.esc = firstDefined(this.esc, false);
 
             // footer (where the footer content and buttons go)
             if (this.footer !== false) {

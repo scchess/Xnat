@@ -264,12 +264,9 @@ projectAnonForm:
             offText: Project Anon Script Disabled
         anonScriptText:
             kind: panel.textarea
-            code: text
             id: project-anon-script
             label: Script
             name: anonScriptText
-            description: >
-                Double-click to open in a code editor dialog.
 
 # --------------------------------------------------
 # ==================================================
@@ -286,7 +283,7 @@ seriesImportForm:
     kind: panel.form
     id: series-import-form
     label: Series Import Filters
-    reset: Reset
+    action: "#[XNAT.app.projectSettings.setSeriesImportFilter]"
     contents:
         about:
             tag: p
@@ -301,6 +298,7 @@ seriesImportForm:
             name: enabled
             id: series-import-enable
             label: Enable Filter
+            options: 'true|false'
             onText: Filter Enabled
             offText: Filter Disabled
         filterMode:
