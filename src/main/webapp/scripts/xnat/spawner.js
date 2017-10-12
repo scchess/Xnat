@@ -25,7 +25,7 @@ var XNAT = getObject(XNAT);
     }
 }(function(){
 
-    var undefined,
+    var undef,
         ui, spawner,
         NAMESPACE  = 'XNAT.ui',
         $          = jQuery || null, // check and localize
@@ -57,17 +57,30 @@ var XNAT = getObject(XNAT);
         return setRoot(_url);
     }
 
+    // add [prefix] and [suffix] to id
+    function rewriteId(el0, prefix, suffix){
+        var oldId = el0.id.split('-X-')[1] || el0.id; // watch out for previously rewritten ids
+        var newId = (prefix || randomID('idx', false)) + '-X-' + oldId + (suffix ? ('-X-' + suffix) : '');
+        return (el0.id = newId);
+    }
+
+    // extract original id
+    function revertId(el0){
+        return (el0.id = el0.id.split('-X-')[1] || el0.id);
+    }
+
     // ==================================================
     // MAIN FUNCTION
     spawner.spawn = spawner.init = function spawnerInit(obj){
 
         var frag  = document.createDocumentFragment(),
             $frag = $(frag),
+            template$, template$$, tmplId,
             callbacks = [],
-            undefined;
+            undef;
 
         try {
-            if (!obj || firstDefined(obj.kind || false, undefined) === null) {
+            if (!obj || firstDefined(obj.kind || false, undef) === null) {
                 return null;
             }
         }
@@ -79,9 +92,53 @@ var XNAT = getObject(XNAT);
 
         forOwn(obj, function(item, prop){
 
-            var kind, element, method, spawnedElement, $spawnedElement, _spwnd;
+            var show, hide, kind, element, method, spawnedElement, $spawnedElement, _spwnd;
+
+            // spawn the item?
+            if (prop.show !== undef) {
+                show = realValue(strReplace(prop.show));
+                if (show === prop.show) {
+                    show = lookupObjectValue(prop.show);
+                }
+            }
+            if (prop.hide !== undef) {
+                hide = realValue(strReplace(prop.hide));
+                if (hide === prop.hide) {
+                    hide = lookupObjectValue(prop.hide);
+                }
+                show = !hide;
+            }
+
+
+            // if 'show' evaluates to false, return early (and don't render)
+            if (/^false$/i.test(show)) return;
+
 
             try {
+
+                // pick up an existing element
+                if (prop.template !== undef) {
+                    template$ = $$(prop.template);
+                    // append and return if found
+                    if (template$.length) {
+                        // rewrite template ids to prevent conflicts
+                        // and return the custom id
+                        tmplId = randomID('tmplx', false);
+                        template$.find('[id]').each(function(){
+                            rewriteId(this, tmplId)
+                        });
+                        // clones the template...
+                        // http://api.jquery.com/clone/
+                        // BEWARE DUPLICATE ID ATTRIBUTE VALUES
+                        template$$ = template$.clone(true);
+                        // modify ids of all elements with an id
+                        $frag.append(template$$.hidden(false).removeClass('html-template'));
+                        template$$.find('[id]').each(function(){
+                            revertId(this);
+                        });
+                        return;
+                    }
+                }
 
                 if (stringable(prop)) {
                     $frag.append(prop);

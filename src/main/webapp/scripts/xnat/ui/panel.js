@@ -266,6 +266,19 @@ var XNAT = getObject(XNAT || {});
 
         obj.load = (obj.load+'').trim();
 
+        // if 'load' starts with '#[' execute global (namespaced) function
+        var fnRegex = /^#\[(.*)]$/g;
+        var fnExe = fnRegex.test(obj.load) ? lookupObjectValue(obj.load.split(fnRegex)[1]) : null;
+        if (isFunction(fnExe)) {
+            try {
+                return fnExe.call(_form, $form, obj);
+            }
+            catch (e) {
+                if (jsdebug) console.error(e);
+                return;
+            }
+        }
+
         obj.queryString = '';
 
         // save query string

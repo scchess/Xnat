@@ -157,12 +157,28 @@ XNAT = getObject(XNAT);
             // obj.$modal (or obj.__modal)
             beforeShow: function(obj){
                 // set the value of <input type="text" class="email">
-                obj.$modal.find('input.email').val('name@domain.com');
+                var email = obj.$modal.find('input.email').val();
+                return XNAT.validate.email(email).check();
             },
 
             // do something after the dialog is fully rendered
             afterShow: function(obj){
                 obj.$modal.find('input.email').focus().select();
+            },
+
+            // do something BEFORE closing the dialog
+            // 'beforeHideResult' is set with the returned value of 'beforeHide'
+            beforeHide: function(obj){
+                return obj.dialog$.find('#to-check').val();
+            },
+
+            // do something when the dialog is hidden (but still in the DOM)
+            onHide: function(obj){
+                if (!obj.beforeHideResult) {
+                    alert('Not closing.');
+                    return false;
+                }
+                return fooFn();
             },
 
             // do something after the dialog closes
@@ -181,6 +197,17 @@ XNAT = getObject(XNAT);
         }
 
     };
+
+
+    var dialogInstance = XNAT.dialog.init({ content: 'Hello.' });
+
+    dialogInstance.show(200, function(){
+        // check 'beforeShowResult' before showing
+        if (!this.beforeShowResult) {
+            XNAT.dialog.message(false, 'Enter a valid email address.');
+        }
+    });
+
 
     //////////////////////////////////////////////////
     // we can uncomment these if we think we need to

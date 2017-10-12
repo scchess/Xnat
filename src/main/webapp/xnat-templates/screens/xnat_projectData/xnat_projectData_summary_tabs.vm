@@ -92,7 +92,7 @@
             #set($canReadSubjects=$data.getSession().getAttribute("userHelper").canRead("xnat:subjectData/project","$project.getId()"))
             #if($isProjectAdmin)
                 <li><a href="#tab3"><em>Access</em></a></li>
-                <li><a href="#othermgmt"><em>Manage</em></a></li>
+                <li class="hidden"><a href="#othermgmt"><em>Manage</em></a></li>
                 <li><a href="#tab4"><em>Pipelines</em></a></li>
             #end
             #foreach($tab in $tabs)
@@ -109,7 +109,7 @@
                     <div id="tab3" class="pad10">
                         <p>#parse($turbineUtils.getTemplateName("_summary_management","xnat:projectData",$project.getId()))</p>
                     </div>
-                    <div id="othermgmt" class="pad10">
+                    <div id="othermgmt" class="pad10 hidden">
                         <p>#parse($turbineUtils.getTemplateName("_summary_manage","xnat:projectData",$project.getId()))</p>
                     </div>
                     <div id="tab4">

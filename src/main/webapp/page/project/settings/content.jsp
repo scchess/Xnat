@@ -7,6 +7,19 @@
 
 <c:url var="SITE_ROOT" value=""/>
 
+<%-- get certain siteConfig settings to determine display of project settings tabs --%>
+<script>
+
+    XNAT.data.siteConfig = getObject(XNAT.data.siteConfig || {});
+
+    <c:import url="/xapi/siteConfig/uiAllowQuarantine" var="uiAllowQuarantine"/>
+    XNAT.data.siteConfig.uiAllowQuarantine = realValue(${uiAllowQuarantine});
+
+    <c:import url="/xapi/siteConfig/projectAllowAutoArchive" var="projectAllowAutoArchive"/>
+    XNAT.data.siteConfig.projectAllowAutoArchive = realValue(${projectAllowAutoArchive});
+
+</script>
+
 <style type="text/css">
     #project-settings-header { margin-bottom: 20px; }
 </style>

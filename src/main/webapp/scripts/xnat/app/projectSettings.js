@@ -54,17 +54,31 @@ var XNAT = getObject(XNAT);
             [];
     }
 
-    function getSettings(url, successOrElements, errorMsg){
+    /**
+     *
+     * @param url {String} - url string
+     * @param [successOrElements] {Function|Array} - Success callback or array with form and input name
+     * @param [error] {String|Function} - Error message string or failure callback
+     */
+    function getSettings(url, successOrElements, error){
         return XNAT.xhr.get({
             url: XNAT.url.restUrl(url),
             success: function(data){
                 if (jsdebug) console.log('success: ' + url);
+                if (!successOrElements) {
+                    return;
+                }
                 if (Array.isArray(successOrElements)) {
-                    successOrElements.push(data); // add returned value to argument array
+                    successOrElements[2] = data || successOrElements[2] || ''; // add returned value to argument array
                     setInputValue.apply(this, successOrElements);
                 }
                 else {
-                    successOrElements.apply(this, arguments);
+                    try {
+                        successOrElements.apply(this, arguments);
+                    }
+                    catch (e) {
+                        if (jsdebug) console.error(e);
+                    }
                 }
             },
             failure: function(e){
@@ -72,21 +86,43 @@ var XNAT = getObject(XNAT);
                     console.error('error:');
                     console.error(arguments);
                 }
-                XNAT.ui.dialog.message(false, (errorMsg||'An error occurred: ') +  '<br><br>' + e);
+                if (!error) {
+                    return;
+                }
+                if (isString(error)) {
+                    XNAT.ui.dialog.message(false, (error||'An error occurred: ') +  '<br><br>' + e);
+                }
+                else {
+                    try {
+                        error.apply(this, arguments);
+                    }
+                    catch (e) {
+                        if (jsdebug) console.error(e);
+                    }
+                }
             }
         });
     }
 
-    function submitSettings(url, success, errorMsg, method){
-        return XNAT.xhr[method || 'put']({
-            url: XNAT.url.csrfUrl(url),
+    function submitSettings(obj){
+        var URL = XNAT.url.csrfUrl(obj.url);
+        var success = obj.success || '';
+        var error = obj.failure || obj.error || '';
+        return XNAT.xhr.request(extend(true, {}, obj, {
+            method: obj.method || 'put',
+            url: URL,
             success: function(data){
-                if (jsdebug) console.log('success: ' + url);
-                if (success) {
-                    success.apply(this, arguments);
+                if (jsdebug) console.log('success: ' + URL);
+                if (isString(success)) {
+                    XNAT.ui.banner.top(2000, success || 'Settings saved.', 'success');
                 }
-                else {
-                    XNAT.ui.banner.top(2000, 'Settings saved.', 'success');
+                else if (isFunction(success)) {
+                    try {
+                        success.apply(this, arguments);
+                    }
+                    catch (e) {
+                        if (jsdebug) console.error(e);
+                    }
                 }
             },
             failure: function(e){
@@ -94,9 +130,19 @@ var XNAT = getObject(XNAT);
                     console.error('error:');
                     console.error(arguments);
                 }
-                XNAT.ui.dialog.message(false, (errorMsg||'An error occurred: ') +  '<br><br>' + e);
+                if (isString(error)) {
+                    XNAT.ui.dialog.message(false, (error || 'An error occurred: ') +  '<br><br>' + e);
+                }
+                else if (isFunction(error)) {
+                    try {
+                        error.apply(this, arguments);
+                    }
+                    catch (e) {
+                        if (jsdebug) console.error(e);
+                    }
+                }
             }
-        })
+        }))
     }
 
 
@@ -111,7 +157,7 @@ var XNAT = getObject(XNAT);
         return '/data/projects/' + projectId + '/quarantine_code' + (value !== undef ? ('/' + value) : '');
     }
 
-    projectSettings.getQuarantineCode = function(form){
+    projectSettings.getQuarantineCode = function getQuarantineCode(form){
         var form$ = (form !== undef) ? $$(form) : $$('#quarantine-settings');
         getSettings(
             quarantineUrl(),
@@ -123,18 +169,17 @@ var XNAT = getObject(XNAT);
         );
     };
 
-    projectSettings.setQuarantineCode = function(form, e){
+    projectSettings.setQuarantineCode = function setQuarantineCode(form, e){
         if (e && e.preventDefault) e.preventDefault();
         var form$ = (form !== undef) ? $$(form) : $$('#quarantine-settings');
         var code = getInputByName(form$, 'quarantine').filter(':checked').val();
-        submitSettings(
-            quarantineUrl(code),
-            false,
-            // function() {
+        submitSettings({
+            url: quarantineUrl(code),
+            // success: function() {
             //     XNAT.ui.banner.top(2000, 'Quarantine set to ' + (/1/.test(code) ? 'Yes' : 'No'), 'success')
             // },
-            'An error occurred setting quarantine preferences.'
-        );
+            error: 'An error occurred setting quarantine preferences.'
+        });
     };
     ////////////////////////////////////////////////////////////////////////////////
 
@@ -150,7 +195,7 @@ var XNAT = getObject(XNAT);
         return '/data/projects/' + projectId + '/prearchive_code' + (value !== undef ? ('/' + value) : '');
     }
 
-    projectSettings.getPrearhchiveCode = function(form){
+    projectSettings.getPrearhchiveCode = function getPrearhchiveCode(form){
         var form$ = (form !== undef) ? $$(form) : $$('#prearchive-settings');
         getSettings(
             prearchiveUrl(),
@@ -162,20 +207,21 @@ var XNAT = getObject(XNAT);
         );
     };
 
-    projectSettings.setPrearchiveCode = function(form, e){
+    projectSettings.setPrearchiveCode = function setPrearchiveCode(form, e){
         if (e && e.preventDefault) e.preventDefault();
         var form$ = (form !== undef) ? $$(form) : $$('#prearchive-settings');
         var code = getInputByName(form$, 'prearchive').filter(':checked').val();
-        submitSettings(
-            prearchiveUrl(code),
-            false,
-            // function() {
+        submitSettings({
+            url: prearchiveUrl(code),
+            // succes: function() {
             //     XNAT.ui.banner.top(2000, 'Quarantine set to ' + (/1/.test(code) ? 'Yes' : 'No'), 'success')
             // },
-            'An error occurred setting prearchive preferences.'
-        );
+            error: 'An error occurred setting prearchive preferences.'
+        });
     };
     ////////////////////////////////////////////////////////////////////////////////
+
+
 
 
 
@@ -187,7 +233,7 @@ var XNAT = getObject(XNAT);
         return '/data/config/edit/projects/' + projectId + '/image/dicom/' + item + (param !== undef ? ('?' + param) : '' );
     }
 
-    projectSettings.getProjectAnonScript = function(form){
+    projectSettings.getProjectAnonScript = function getProjectAnonScript(form){
         var form$ = (form !== undef) ? $$(form) : $$('#project-anon-form');
         var enabled$ = form$.find('#project-anon-enable');
         var script$ = form$.find('#project-anon-script');
@@ -221,14 +267,14 @@ var XNAT = getObject(XNAT);
 
     };
 
-    projectSettings.setProjectAnonScript = function(form, e){
+    projectSettings.setProjectAnonScript = function setProjectAnonScript(form, e){
         if (e && e.preventDefault) e.preventDefault();
         var form$ = (form !== undef) ? $$(form) : $$('#project-anon-form');
         var activate = form$.find('#project-anon-enable').prop('checked');
         // set 'enabled' status
-        submitSettings(
-            projectAnonUrl('status', 'activate=' + activate),
-            function(){
+        submitSettings({
+            url: projectAnonUrl('status', 'activate=' + activate),
+            success: function(){
                 // submit script content if 'active/enabled'
                 if (activate) {
                     var scriptContentUrl = XNAT.url.csrfUrl(projectAnonUrl('script', 'inbody=true&activate=' + activate));
@@ -240,7 +286,7 @@ var XNAT = getObject(XNAT);
                         success: function(){
                             if (jsdebug) console.log('success: ' + scriptContentUrl);
                             // if (activate) {
-                                XNAT.ui.banner.top(2000, 'Project anon script enabled and saved.', 'success');
+                            XNAT.ui.banner.top(2000, 'Project anon script enabled and saved.', 'success');
                             // }
                             // else {
                             //     XNAT.ui.banner.top(2000, 'Project anon script was saved and set as "disabled".', 'success');
@@ -251,7 +297,7 @@ var XNAT = getObject(XNAT);
                                 console.error('error:');
                                 console.error(arguments);
                             }
-                            XNAT.ui.dialog.message(false, ('An error occurred saving project anon script: ') +  '<br><br>' + e);
+                            XNAT.ui.dialog.message(false, ('An error occurred saving project anon script: ') + '<br><br>' + e);
                         }
                     })
                 }
@@ -259,13 +305,16 @@ var XNAT = getObject(XNAT);
                     XNAT.ui.banner.top(2000, 'Project anon script disabled (and not saved).', 'success');
                 }
             },
-            'An error occurred setting project anon script.'
-        );
+            error: 'An error occurred setting project anon script.'
+        });
     };
     ////////////////////////////////////////////////////////////////////////////////
 
 
 
+
+
+    ////////////////////////////////////////////////////////////////////////////////
     // Series Import Filters
     ////////////////////////////////////////////////////////////////////////////////
 
@@ -274,7 +323,7 @@ var XNAT = getObject(XNAT);
         return '/data/projects/' + projectId + '/config/seriesImportFilter/config' + params;
     }
 
-    projectSettings.getSeriesImportFilter = function(form){
+    projectSettings.getSeriesImportFilter = function getSeriesImportFilter(form){
         var form$ = (form !== undef) ? $$(form) : $$('#series-import-form');
         var enabled$ = form$.find('#series-import-enable');
         var mode$ = form$.find('#filter-mode');
@@ -294,7 +343,7 @@ var XNAT = getObject(XNAT);
     };
 
     // probably will not use this since the form submits JSON
-    projectSettings.setSeriesImportFilter = function(form, e){
+    projectSettings.setSeriesImportFilter = function setSeriesImportFilter(form, e){
         if (e && e.preventDefault) e.preventDefault();
         var form$ = (form !== undef) ? $$(form) : $$('#series-import-form');
         var enabled$ = form$.find('#series-import-enable');
@@ -331,6 +380,59 @@ var XNAT = getObject(XNAT);
 
 
 
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // DICOM config - Separate PET/MR
+    ////////////////////////////////////////////////////////////////////////////////
+
+    function dicomConfigUrl(param){
+        return '/data/projects/' + projectId + '/config/separatePETMR/config' + (param !== undef ? ('?' + param) : '' );
+    }
+
+    projectSettings.getDicomConfig = function getDicomConfig(form){
+        var form$ = (form !== undef) ? $$(form) : $$('#dicom-separate-petmr');
+        var menu$ = form$.find('#dicom-petmr-menu');
+        getSettings(
+            dicomConfigUrl('contents=true'),
+            // [<form>, 'inputName', 'fallbackValue']
+            // [form$, 'separatePETMR', 'system'],
+            function(data) {
+                var result = data+'' || 'system';
+                menu$.changeVal(result);
+            },
+            function(){
+                menu$.changeVal('system');
+            }
+        );
+    };
+
+    projectSettings.setDicomConfig = function setDicomConfig(form, e){
+        if (e && e.preventDefault) e.preventDefault();
+        var form$ = (form !== undef) ? $$(form) : $$('#dicom-separate-petmr');
+        var menu$ = form$.find('#dicom-petmr-menu');
+        var val = menu$.val();
+        // do DELETE if set to 'system' (dumb)
+        if (/system/i.test(val)) {
+            XNAT.xhr['delete'](XNAT.url.csrfUrl(dicomConfigUrl()))
+        }
+        else {
+            submitSettings({
+                url: XNAT.url.csrfUrl(dicomConfigUrl('inbody=true')),
+                data: menu$.val(),
+                processData: false,
+                contentType: 'text/plain',
+                success: 'Project DICOM PET/MR handling preferences saved.',
+                error: 'An error occurred setting project DICOM PET/MR handling.'
+            });
+        }
+    };
+    ////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
     projectSettings.init = function(){
         console.log('projectSettings.init');
         getProjectId();
@@ -338,6 +440,7 @@ var XNAT = getObject(XNAT);
         projectSettings.getPrearhchiveCode();
         projectSettings.getProjectAnonScript();
         projectSettings.getSeriesImportFilter();
+        projectSettings.getDicomConfig();
         // etc...
     };
 
