@@ -401,6 +401,9 @@ var XNAT = getObject(XNAT);
             try {
                 // --- DO THE eval() --- //
                 obj.result = eval(val);
+                if (obj.result === undef) {
+                    obj.result = val;
+                }
                 obj.status = 'success';
                 // call the [success] callback and return 'success/done' method for chaining
                 obj.done(success);
@@ -408,7 +411,7 @@ var XNAT = getObject(XNAT);
             }
             catch(e) {
                 if (window.jsdebug) console.error(e);
-                obj.result = '';
+                obj.result = val;
                 obj.status = 'failure';
                 // call the [failure] callback and return 'failure/fail' method for chaining
                 obj.fail(failure);

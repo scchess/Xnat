@@ -90,7 +90,9 @@ var XNAT = getObject(XNAT);
                     return;
                 }
                 if (isString(error)) {
-                    XNAT.ui.dialog.message(false, (error||'An error occurred: ') +  '<br><br>' + e);
+                    console.log(error || 'An error occurred: ');
+                    console.log(e);
+                    // XNAT.ui.dialog.message(false, (error||'An error occurred: ') +  '<br><br>' + e);
                 }
                 else {
                     try {
@@ -114,7 +116,7 @@ var XNAT = getObject(XNAT);
             success: function(data){
                 if (jsdebug) console.log('success: ' + URL);
                 if (isString(success)) {
-                    XNAT.ui.banner.top(2000, success || 'Settings saved.', 'success');
+                    XNAT.ui.banner.top(3000, success || 'Settings saved.', 'success');
                 }
                 else if (isFunction(success)) {
                     try {
@@ -131,7 +133,8 @@ var XNAT = getObject(XNAT);
                     console.error(arguments);
                 }
                 if (isString(error)) {
-                    XNAT.ui.dialog.message(false, (error || 'An error occurred: ') +  '<br><br>' + e);
+                    // console.log((error || 'An error occurred: ') + e);
+                    XNAT.ui.dialog.message(false, (error || 'An error occurred: ') +  '<br><br>' + (isObject(e) ? JSON.stringify(e) : e+''));
                 }
                 else if (isFunction(error)) {
                     try {
@@ -433,6 +436,54 @@ var XNAT = getObject(XNAT);
 
 
 
+    ////////////////////////////////////////////////////////////////////////////////
+    // PET Tracers
+    ////////////////////////////////////////////////////////////////////////////////
+
+    function petTracersUrl(param){
+        return '/data/projects/' + projectId + '/config/tracers/tracers/' + (param !== undef ? ('?' + param) : '' );
+    }
+
+    projectSettings.getPetTracers = function getPetTracers(form){
+        var form$ = (form !== undef) ? $$(form) : $$('#pet-tracers-form');
+        var enabled$ = form$.find('#enable-pet-tracers');
+        var contents$ = form$.find('#pet-tracer-contents');
+        getSettings(
+            petTracersUrl('format=json'),
+            function(data) {
+                var result = getResultSetResult(data);
+                var status = result[0] && 'status' in result[0] ? result[0].status : 'disabled';
+                var contents = result[0] && 'contents' in result[0] ? result[0].contents : '';
+                enabled$.checked(/enabled/i.test(status)).val(status);
+                contents$.val(contents);
+            },
+            'An error occurred getting PET tracers.'
+        );
+    };
+
+    projectSettings.setPetTracers = function setPetTracers(form, e){
+        if (e && e.preventDefault) e.preventDefault();
+        var form$ = (form !== undef) ? $$(form) : $$('#pet-tracers-form');
+        var enabled$ = form$.find('#enable-pet-tracers');
+        var contents$ = form$.find('#pet-tracer-contents');
+        // set 'enabled' status
+        var isEnabled = enabled$[0].checked;
+        var URL = isEnabled ? petTracersUrl('inbody=true') : petTracersUrl('status=disabled');
+        submitSettings({
+            url: URL,
+            data: isEnabled ? contents$.val() : '',
+            contentType: 'text/plain',
+            processData: false,
+            success: isEnabled ? 'PET tracers saved.' : 'PET tracers disabled.',
+            error: 'An error occurred setting PET tracers.'
+        });
+    };
+    ////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
     projectSettings.init = function(){
         console.log('projectSettings.init');
         getProjectId();
@@ -441,6 +492,7 @@ var XNAT = getObject(XNAT);
         projectSettings.getProjectAnonScript();
         projectSettings.getSeriesImportFilter();
         projectSettings.getDicomConfig();
+        projectSettings.getPetTracers();
         // etc...
     };
 

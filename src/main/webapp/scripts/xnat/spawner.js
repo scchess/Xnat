@@ -484,6 +484,28 @@ var XNAT = getObject(XNAT);
     };
 
 
+    // only CHECK for the presence of an element - do not render
+    spawner.check = function(nsPath){
+        var url = XNAT.url.restUrl('/xapi/spawner/resolve/' + nsPath);
+        var request = XNAT.xhr.get(url);
+        // add an 'ok' method to the request object itself
+        request.ok = function(callback){
+            request.done(function(obj, txtStatus, xhr){
+                // only fire success for 200 status
+                if (xhr.status === 200) {
+                    if (isFunction(callback)){
+                        callback.apply(request, arguments)
+                    }
+                }
+                else {
+                    if (jsdebug) console.log(xhr);
+                }
+            })
+        };
+        return request;
+    };
+
+
     // spawn elements with only the namespace/element path,
     // container/selector, and an optional AJAX config object
     // XNAT.spawner.resolve('siteAdmin/root').render('#page-container');

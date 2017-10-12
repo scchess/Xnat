@@ -10,17 +10,13 @@ root:
         ${projectAnon}
         ${seriesImport}
         ${dicomPETMR}
-        ${PETTracerSettings}
-        ${notifications}
-        ${scanType}
-        ${projectResources}
-        #${siteConfigObj}
         #${projectSettingsJS}
+        #${PETTracerSettings}
+        #${notifications}
+        #${scanType}
+        #${projectSettingsInit}
 
 # define tabs
-
-siteConfigObj:
-    tag: "script|src=/scripts/xnat/data/siteConfig.js.jsp"
 
 quarantine:
     show: "{{XNAT.data.siteConfig.uiAllowQuarantine}}"  # render depending on the value of this variable
@@ -100,11 +96,7 @@ quarantineSettings:
     kind: panel.form
     id: quarantine-settings
     label: Define Quarantine Settings
-    load: "#[XNAT.app.projectSettings.getQuarantineCode]"
     action: "#[XNAT.app.projectSettings.setQuarantineCode]"
-    #load: /data/projects/{{XNAT.data.context.project}}/quarantine_code > [[quarantine]]
-    #action: /data/projects/{{XNAT.data.context.project}}/quarantine_code/[[quarantine]]?XNAT_CSRF={{csrfToken}}
-    #method: PUT
     contents:
         quarantineRadios:
             kind: input.radioGroup
@@ -126,16 +118,11 @@ prearchiveSettings:
     kind: panel.form
     id: prearchive-settings
     label: Define Prearchive Settings
-    load: "#[XNAT.app.projectSettings.getPrearhchiveCode]"
     action: "#[XNAT.app.projectSettings.setPrearchiveCode]"
-    #load: /data/projects/{{XNAT.data.context.project}}/prearchive_code > [[prearchive]]
-    #action: /data/projects/{{XNAT.data.context.project}}/prearchive_code/[[prearchive]]?XNAT_CSRF={{csrfToken}}
-    #method: PUT
     contents:
         prearchiveRadios:
             kind: input.radioGroup
             name: prearchive
-            #value: $? /data/projects/{{XNAT.data.context.project}}/prearchive_code
             options:
                 prearc0:
                     id: prearchive-0
@@ -164,9 +151,6 @@ dicomConfig:
     kind: panel.form
     id: dicom-separate-petmr
     label: DICOM Configuration
-    #load: /data/projects/{{XNAT.data.context.project}}/config/separatePETMR/config?contents=true > [[separatePETMR]]
-    #action: /data/projects/{{XNAT.data.context.project}}/config/separatePETMR/config?inbody=true&XNAT_CSRF={{csrfToken}} < [[separatePETMR]]
-    load: "#[XNAT.app.projectSettings.getDicomConfig]"
     action: "#[XNAT.app.projectSettings.setDicomConfig]"
     contents:
         separatePETMR:
@@ -208,9 +192,9 @@ scanTypeMapping:
 
 PETTracers:
     kind: panel.form
-    id: pet-tracers
+    id: pet-tracers-form
     label: PET Tracers
-    action: "#[XNAT.app.projectSettings.setPetTracer]"
+    action: "#[XNAT.app.projectSettings.setPetTracers]"
     contents:
         petTracersSettings:
             tag: textarea#pet-tracers-settings.hidden|name=petTracersSettings
@@ -219,6 +203,7 @@ PETTracers:
             name: status
             id: enable-pet-tracers
             label: Enable Project PET Tracers
+            values: "enabled|disabled"
             onText: PET Tracers Enabled
             offText: PET Tracers Disabled
         contents:
@@ -274,7 +259,6 @@ projectAnonForm:
     kind: panel.form
     id: project-anon-form
     label: Project Anonymization Script
-    load: "#[XNAT.app.projectSettings.getProjectAnonScript]"
     action: "#[XNAT.app.projectSettings.setProjectAnonScript]"
     contents:
         enableScript:
@@ -307,13 +291,6 @@ seriesImportForm:
     kind: panel.form
     id: series-import-form
     label: Series Import Filters
-#    load: /data/projects/{{XNAT.data.context.projectID}}/config/seriesImportFilter/config | :ResultSet:Resul:0:contents
-#    action: /data/projects/{{XNAT.data.context.projectID}}/config/seriesImportFilter/config?status=[[enabled]] < [[seriesImportFilter]]
-#    contentType: text/plain
-#    params:
-#        - inbody=true
-#        - XNAT_CSRF={{csrfToken}}
-    load: "#[XNAT.app.projectSettings.getSeriesImportFilter]"
     action: "#[XNAT.app.projectSettings.setSeriesImportFilter]"
     contents:
         about:
@@ -380,6 +357,10 @@ projectSettingsJS:
     tag: "script|src=/scripts/xnat/app/projectSettings.js"
 
 
+projectSettingsInit:
+    tag: script
+    content: >
+        XNAT.app.projectSettings.init()
 
 
 
