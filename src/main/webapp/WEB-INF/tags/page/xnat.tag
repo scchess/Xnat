@@ -23,15 +23,15 @@
 
 <head>
 
-    <c:if test="${empty requestScope.hasInit}">
-        <pg:init>
-            <c:if test="${empty requestScope.hasVars}">
-                <pg:jsvars/>
-            </c:if>
-        </pg:init>
-    </c:if>
+    <pg:init/>
+    <pg:jsvars/>
 
     ${headTop}
+
+    <c:set var="js" value="min.js"/>
+    <c:if test="${param.debug == true}">
+        <c:set var="js" value="js"/>
+    </c:if>
 
     <title>${empty title ? 'XNAT' : title}</title>
 
@@ -76,8 +76,8 @@
 
     <!-- required libraries -->
     <script src="${SITE_ROOT}/scripts/lib/loadjs/loadjs.js"></script>
-    <script src="${SITE_ROOT}/scripts/lib/jquery/jquery.js"></script>
-    <script src="${SITE_ROOT}/scripts/lib/jquery/jquery-migrate.js"></script>
+    <script src="${SITE_ROOT}/scripts/lib/jquery/jquery.${js}"></script>
+    <script src="${SITE_ROOT}/scripts/lib/jquery/jquery-migrate.${js}"></script>
     <script type="text/javascript">
         // use 'jq' to avoid _possible_ conflicts with Velocity
         var jq = jQuery;
@@ -85,8 +85,8 @@
 
     <!-- jQuery plugins -->
     <link rel="stylesheet" type="text/css" href="${SITE_ROOT}/scripts/lib/jquery-plugins/chosen/chosen.min.css?${versionString}">
-    <script src="${SITE_ROOT}/scripts/lib/jquery-plugins/chosen/chosen.jquery.min.js"></script>
-    <script src="${SITE_ROOT}/scripts/lib/jquery-plugins/jquery.maskedinput.min.js"></script>
+    <script src="${SITE_ROOT}/scripts/lib/jquery-plugins/chosen/chosen.jquery.${js}"></script>
+    <script src="${SITE_ROOT}/scripts/lib/jquery-plugins/jquery.maskedinput.${js}"></script>
     <script src="${SITE_ROOT}/scripts/lib/jquery-plugins/jquery.hasClasses.js"></script>
     <script src="${SITE_ROOT}/scripts/lib/jquery-plugins/jquery.dataAttr.js"></script>
     <script src="${SITE_ROOT}/scripts/lib/jquery-plugins/jquery.form.js"></script>
@@ -96,6 +96,10 @@
     <script src="${SITE_ROOT}/scripts/lib/js.cookie.js"></script>
     <script src="${SITE_ROOT}/scripts/lib/yamljs/dist/yaml.js"></script>
     <script src="${SITE_ROOT}/scripts/lib/form2js/src/form2js.js"></script>
+    <script src="${SITE_ROOT}/scripts/lib/form2js/src/js2form.js"></script>
+    <script src="${SITE_ROOT}/scripts/lib/x2js/xml2json.js"></script>
+    <script src="${SITE_ROOT}/scripts/lib/DefiantJS/dist/defiant.${js}"></script>
+    <script src="${SITE_ROOT}/scripts/lib/jsonpath/jsonpath.js"></script>
     <script src="${SITE_ROOT}/scripts/lib/ace/ace.js"></script>
 
     <!-- XNAT utility functions -->
@@ -175,18 +179,13 @@
     <!-- YUI css -->
     <%--<link rel="stylesheet" type="text/css" href="${SITE_ROOT}/scripts/yui/build/assets/skins/sam/skin.css?v=1.7.0a1">--%>
 
+    <!-- app.css loaded first -->
+    <link rel="stylesheet" type="text/css" href="${SITE_ROOT}/style/app.css?${versionString}">
+
     <!-- Icon sets -->
     <link rel="stylesheet" type="text/css" href="${SITE_ROOT}/style/font-awesome.min.css?${versionString}">
     <link rel="stylesheet" type="text/css" href="${SITE_ROOT}/style/icons.css?${versionString}">
     <link rel="stylesheet" type="text/css" href="${SITE_ROOT}/page/admin/style.css?${versionString}">
-
-    <!-- xdat.css and xnat.css loaded last to override YUI styles -->
-    <link rel="stylesheet" type="text/css" href="${SITE_ROOT}/style/app.css?${versionString}">
-
-    <%-- styles for tabbed interface --%>
-    <%-- TODO: rename and move file or integrate it into app.css --%>
-    <link rel="stylesheet" type="text/css" href="${SITE_ROOT}/page/admin/style.css?${versionString}">
-
 
     <!-- legacy XNAT scripts -->
     <link rel="stylesheet" type="text/css" href="${SITE_ROOT}/scripts/xmodal-v1/xmodal.css?${versionString}">
@@ -205,12 +204,14 @@
 
     <!-- XNAT JLAPI scripts -->
     <script src="${SITE_ROOT}/scripts/xnat/util/sub64.js"></script>
+    <script src="${SITE_ROOT}/scripts/xnat/parse.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/validate.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/url.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/xhr.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/cookie.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/event.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/element.js"></script>
+    <script src="${SITE_ROOT}/scripts/xnat/ui/form.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/ui/templates.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/ui/input.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/ui/select.js"></script>

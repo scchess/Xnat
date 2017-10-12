@@ -28,11 +28,62 @@
 ##        </tr>
 ##    </table>
 ##    <script type="text/javascript" src="$content.getURI("scripts/config/MultiValueConfig.js")"></script>
-##
+##    #set($projectID = $project.getId())
 ##    <script type="text/javascript">
+##
+##        (function(window){
+##
+##            var XNAT = getObject(window.XNAT || {});
+##            XNAT.app = getObject(XNAT.app || {});
+##            XNAT.app.projectSettings = getObject(XNAT.app.projectSettings || {});
+##
+##            function deleteConfiguration(){
+##                var dicomPetmrMenu$ = $('#dicom-petmr-menu');
+##                var doDelete = XNAT.xhr['delete']({
+##                    url: XNAT.url.csrfUrl('/data/projects/$projectID/config/separatePETMR/config'),
+##                    contentType: 'text/plain'
+##                });
+##                doDelete.done(function(){
+##                    dicomPetmrMenu$.disable(true)
+##                })
+##                doDelete.fail(function(jqXHR, status, error){
+##                    dicomPetmrMenu$.disabled(false);
+##                    XNAT.dialog.message('Failure', 'Failed to modify setting: [' + status + '] ' + error);
+##                })
+##            }
+##
+##            XNAT.app.projectSettings.dicomConfig = new MultiValueConfig(
+##                "#dicom-petmr-menu",
+##                "/data/projects/$projectID/config/separatePETMR/config",
+##                false,
+##                'delete',
+##                { delete: deleteConfiguration }
+##            );
+##
+##            XNAT.app.projectSettings.getDicomConfig = XNAT.app.projectSettings.dicomConfig.init;
+##            XNAT.app.projectSettings.setDicomConfig = XNAT.app.projectSettings.dicomConfig.update;
+##
+##            $(document).ready(function(){
+##                XNAT.app.projectSettings.getDicomConfig();
+##            });
+##
+##            window.XNAT = XNAT;
+##
+##        })(this)
+##
 ##        function deleteConfiguration() {
+##
+##            var dicomPetmrMenu$ = $('#dicom-petmr-menu');
+##
+##            var doDelete = XNAT.xhr['delete']({
+##                url: XNAT.url.csrfUrl('/data/projects/$projectID/config/separatePETMR/config'),
+##                contentType: 'text/plain'
+##            });
+##            doDelete.done(function(){
+##                dicomPetmrMenu$.disable(true)
+##            })
 ##            jq.ajax({
-##                url: serverRoot + "/data/projects/$project.getId()/config/separatePETMR/config?XNAT_CSRF=" + window.csrfToken,
+##                url: serverRoot + "/data/projects/$projectID/config/separatePETMR/config?XNAT_CSRF=" + window.csrfToken,
 ##                type: 'DELETE',
 ##                contentType: "text/plain"
 ##            }).done(function () {
@@ -43,7 +94,7 @@
 ##            });
 ##        }
 ##
-##        XNAT.app.PETMR = new MultiValueConfig("#separatePETMR", "/data/projects/$project.getId()/config/separatePETMR/config", false, "delete", {delete: deleteConfiguration});
+##        XNAT.app.PETMR = new MultiValueConfig("#separatePETMR", "/data/projects/$projectID/config/separatePETMR/config", false, "delete", {delete: deleteConfiguration});
 ##
 ##        function addDicomTabMonitor() {
 ##            XNAT.app.PETMR.init();
