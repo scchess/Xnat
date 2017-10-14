@@ -91,7 +91,7 @@ var XNAT = getObject(XNAT);
                 }
                 if (isString(error)) {
                     console.log(error || 'An error occurred: ');
-                    console.log(e);
+                    console.error(e);
                     // XNAT.ui.dialog.message(false, (error||'An error occurred: ') +  '<br><br>' + e);
                 }
                 else {
@@ -468,7 +468,7 @@ var XNAT = getObject(XNAT);
         var contents$ = form$.find('#pet-tracer-contents');
         // set 'enabled' status
         var isEnabled = enabled$[0].checked;
-        var URL = isEnabled ? petTracersUrl('inbody=true') : petTracersUrl('status=disabled');
+        var URL = isEnabled ? petTracersUrl('status=enabled&inbody=true') : petTracersUrl('status=disabled');
         submitSettings({
             url: URL,
             data: isEnabled ? contents$.val() : '',
@@ -484,16 +484,68 @@ var XNAT = getObject(XNAT);
 
 
 
+    ////////////////////////////////////////////////////////////////////////////////
+    // Notification list
+    ////////////////////////////////////////////////////////////////////////////////
+
+    projectSettings.setNotificationsList = function setNotificationList(form, e){
+        if (e && e.preventDefault) e.preventDefault();
+        var URL = '/data/projects/' + projectId + '/resources/notifications/files/archival.lst';
+        var form$ = (form !== undef) ? $$(form) : $$('#notifications-config');
+        var list$ = form$.find('#notification-email-list');
+        var val = (list$.val()+'').trim();
+        // do DELETE if empty (dumb)
+        if (val === '') {
+            submitSettings({
+                method: 'DELETE',
+                url: XNAT.url.csrfUrl(URL),
+                success: 'Notifications list removed.',
+                error: 'An error occurred removing the notifications list.'
+            });
+        }
+        else {
+            submitSettings({
+                url: XNAT.url.csrfUrl(URL, [
+                    'inbody=true',
+                    'overwrite=true',
+                    'content=NOTIFY_ARCHIVAL'
+                ]),
+                data: val,
+                processData: false,
+                contentType: 'text/plain',
+                success: 'Notifications list saved.',
+                error: 'An error occurred saving the notifications list.'
+            });
+        }
+    };
+    ////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
     projectSettings.init = function(){
-        console.log('projectSettings.init');
+
+        console.log('projectSettings.init()');
+
         getProjectId();
-        projectSettings.getQuarantineCode();
-        projectSettings.getPrearhchiveCode();
+
+        // projectSettings.getQuarantineCode();
+        // projectSettings.getPrearhchiveCode();
         projectSettings.getProjectAnonScript();
         projectSettings.getSeriesImportFilter();
         projectSettings.getDicomConfig();
         projectSettings.getPetTracers();
         // etc...
+
+        var scanTypeMappingRadios = $$('?scan_type_mapping');
+        // set initial value of the scan type mapping radio buttons
+        scanTypeMappingRadios.filter('[value="' + XNAT.data.project.scanTypeMapping + '"]').checked(true);
+        // set initial value of the scan type mapping radio buttons
+        $(document).off('click.scan-type-mapping').on('click.scan-type-mapping', '[name="scan_type_mapping"]', function(){
+            XNAT.data.project.scanTypeMapping = this.value;
+        });
+
     };
 
 

@@ -5,16 +5,16 @@ root:
     groups:
         projectAdmin: Project Administration
     contents:
+        ${projectSettingsJS}
         ${quarantine}
         ${prearchive}
         ${projectAnon}
         ${seriesImport}
+        ${PETTracers}
         ${dicomPETMR}
-        #${projectSettingsJS}
-        #${PETTracerSettings}
-        #${notifications}
-        #${scanType}
-        #${projectSettingsInit}
+        ${notifications}
+        ${scanType}
+        ${projectSettingsInit}
 
 # define tabs
 
@@ -62,26 +62,19 @@ projectResources:
     contents:
         ${projectResourceSettings}
 
+PETTracers:
+    kind: tab
+    label: PET Tracers
+    group: projectAdmin
+    contents:
+        ${PETTracersForm}
+
 dicomPETMR:
     kind: tab
     label: DICOM PET/MR
     group: projectAdmin
     contents:
         ${dicomConfig}
-
-scanType:
-    kind: tab
-    label: Scan Type Mapping
-    group: projectAdmin
-    contents:
-        ${scanTypeMapping}
-
-PETTracerSettings:
-    kind: tab
-    label: PET Tracers
-    group: projectAdmin
-    contents:
-        ${PETTracers}
 
 notifications:
     kind: tab
@@ -90,18 +83,28 @@ notifications:
     contents:
         ${notificationsConfig}
 
+scanType:
+    kind: tab
+    label: Scan Type Mapping
+    group: projectAdmin
+    contents:
+        ${scanTypeMapping}
+
 
 
 quarantineSettings:
     kind: panel.form
     id: quarantine-settings
     label: Define Quarantine Settings
-    action: "#[XNAT.app.projectSettings.setQuarantineCode]"
+    load: "/data/projects/{{XNAT.data.context.project}}/quarantine_code > [[quarantine]]"
+    reload: true
+    action: "/data/projects/{{XNAT.data.context.project}}/quarantine_code/[[quarantine]]?XNAT_CSRF={{csrfToken}}"
+    method: put
+    contentType: text/plain
     contents:
         quarantineRadios:
             kind: input.radioGroup
             name: quarantine
-            #value: $? /data/projects/{{XNAT.data.context.project}}/quarantine_code
             options:
                 yes:
                     label: "Yes"
@@ -114,11 +117,17 @@ quarantineSettings:
                     description: >
                         New and modified experiments will not be quarantined.
 
+
 prearchiveSettings:
     kind: panel.form
     id: prearchive-settings
     label: Define Prearchive Settings
-    action: "#[XNAT.app.projectSettings.setPrearchiveCode]"
+    load: "/data/projects/{{XNAT.data.context.project}}/prearchive_code > [[prearchive]]"
+    reload: true
+    action: "/data/projects/{{XNAT.data.context.project}}/prearchive_code/[[prearchive]]?XNAT_CSRF={{csrfToken}}"
+    actionx: "#[XNAT.app.projectSettings.setPrearchiveCode]"
+    method: put
+    contentType: text/plain
     contents:
         prearchiveRadios:
             kind: input.radioGroup
@@ -172,7 +181,8 @@ scanTypeMapping:
     kind: panel.form
     id: scan-type-mapping
     label: Define Scan Type Mapping
-    action: "#[XNAT.app.projectSettings.setScanTypeMapping]"
+    action: "/data/projects/{{XNAT.data.context.project}}/scan_type_mapping/[[scan_type_mapping]]?XNAT_CSRF={{csrfToken}}"
+    method: put
     contents:
         scan_type_mapping:
             kind: input.radioGroup
@@ -190,14 +200,12 @@ scanTypeMapping:
                     description: >
                         Incoming scans will have their type attribute set to be identical to their series description.
 
-PETTracers:
+PETTracersForm:
     kind: panel.form
     id: pet-tracers-form
     label: PET Tracers
     action: "#[XNAT.app.projectSettings.setPetTracers]"
     contents:
-        petTracersSettings:
-            tag: textarea#pet-tracers-settings.hidden|name=petTracersSettings
         enableTracers:
             kind: panel.input.switchbox
             name: status
@@ -213,12 +221,6 @@ PETTracers:
             label: PET Tracer List
             description: >
                 List entries should be separated by whitespace.
-        helperJS:
-            tag: script
-            content: >
-                $(document).on('click', '#enable-pet-tracers', function(){
-                    this.value = this.checked ? 'enabled' : 'disabled'
-                })
 
 # --------------------------------------------------
 # ==================================================
@@ -235,14 +237,29 @@ notificationsConfig:
     kind: panel.form
     id: notifications-config
     label: Notifications Configuration
+    load: "/data/projects/{{XNAT.data.context.project}}/resources/notifications/files/archival.lst > [[notif_list]]"
+    reload: true
+    actionUrlDisabled: "/data/projects/{{XNAT.data.context.project}}/resources/notifications/files/archival.lst < [[notif_list]]"
+    action: "#[XNAT.app.projectSettings.setNotificationsList]"
+    contentTypeDisabled: "text/plain"
+    methodDisabled: PUT
+    paramsDisabled:
+        - inbody=true
+        - overwrite=true
+        - content=NOTIFY_ARCHIVAL
+        - XNAT_CSRF={{csrfToken}}
     contents:
         notif_list:
             kind: panel.textarea
+            id: notification-email-list
             name: notif_list
             label: Email Addresses
-            validation: emails allow-empty
+            validation:
+                type: emails allow-empty
+                message: "Please enter properly formatted email addresses."
             description: >
                 Emails should be comma separated (i.e. tim@somewhere.com,jenny@somewhere.com).
+
 
 # --------------------------------------------------
 # ==================================================

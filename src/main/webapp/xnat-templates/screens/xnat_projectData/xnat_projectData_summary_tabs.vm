@@ -6,7 +6,7 @@
 <div id="project_summary_module" style="display:none">
     <div id="projectSummary" class="yui-navset">
         #if ($isProjectAdmin)
-            <script src="$content.getURI('/scripts/xnat/app/projectSettings.js')"></script>
+##            <script src="$content.getURI('/scripts/xnat/app/projectSettings.js')"></script>
             <span id="project-settings-btn-container" class="hidden pull-right"></span>
             #set ($scanTypeMapping = $project.getUseScanTypeMapping())
             #set ($projectSettingsUri = "/page/project/settings/content.jsp?id=$project.getId()")
@@ -17,7 +17,7 @@
                     XNAT.data.project = getObject(XNAT.data.project);
 
                     // set this for use in spawned panel
-                    XNAT.data.project.scanTypeMapping = realValue('$!scanTypeMapping');
+                    XNAT.data.project.scanTypeMapping = '$!scanTypeMapping';
 
                     function setUrlHash(str){
                         var base = window.location.href.split('#')[0];
@@ -55,8 +55,9 @@
 
                     function spawnProjectSettingsBtn(){
                         var projectSettingsBtn$ = $.spawn('button#project-settings-btn.btn.btn-hover', {
-                            title: "@!$content.getURI($projectSettingsUri)",
+                            title: "Open Project Settings",
                             style: { marginTop: '2px' },
+                            data: { dialog: '@!$content.getURI($projectSettingsUri)' },
                             on: {
                                 click: function(e){
                                     e.preventDefault();
@@ -71,7 +72,7 @@
                     XNAT.spawner
                         .check('xnat:projectSettings/root')
                         .ok(
-                            // Spawner element found, show 'Project Settings' in 'Actions' menu
+                            // Spawner element found, show 'Project Settings' button
                             function(){
                                 spawnProjectSettingsBtn();
                                 if (/[#!]settings/i.test(window.location.href)){

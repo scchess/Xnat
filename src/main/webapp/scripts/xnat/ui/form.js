@@ -101,7 +101,7 @@ var XNAT = getObject(XNAT);
         }
 
 
-        var valString = (val+'');
+        var valString = val !== undef ? (val+'') : '';
         var inputValueString = (inputValue+'');
 
         // add value to [data-value] attribute

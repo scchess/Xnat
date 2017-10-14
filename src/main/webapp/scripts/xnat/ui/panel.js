@@ -143,6 +143,30 @@ var XNAT = getObject(XNAT || {});
         }
     }
 
+
+    function addValidation(config){
+        var _validate;
+        if (config.validate || config.validation) {
+            _validate = (config.validate || config.validation);
+            config.data = config.data || {};
+            if (typeof _validate === 'string') {
+                config.data.validate = _validate;
+                if (config.message) {
+                    config.data.message = config.message;
+                }
+            }
+            else {
+                config.data.validate = _validate.type;
+                config.datamessage = _validate.message || '';
+            }
+            delete config.validate;
+            delete config.validation;
+            delete config.message;
+        }
+        return config;
+    }
+
+
     /**
      * Initialize panel.
      * @param [opts] {Object} Config object
@@ -342,7 +366,7 @@ var XNAT = getObject(XNAT || {});
 
                 // get the values
                 if (name) {
-                    values[name] = lookupObjectValue(window, obj.load, obj.prop);
+                    values[name] = lookupObjectValue(window, obj.load, obj.prop)[name];
                 }
                 else {
                     values = lookupObjectValue(window, obj.load, obj.prop);
@@ -367,7 +391,7 @@ var XNAT = getObject(XNAT || {});
             // lastly try to eval the 'load' value
             try {
                 if (name) {
-                    values[name] = eval(obj.load);
+                    values[name] = (eval(obj.load))[name];
                 }
                 else {
                     values = eval(obj.load);
@@ -587,7 +611,7 @@ var XNAT = getObject(XNAT || {});
             $this.find('.valid, .invalid').removeClass('valid invalid');
             $this.find('.ready').removeClass('ready');
             loadData(this, {
-                load: _load ? _load.replace(/^(\$\?)*/, '') : '',
+                load: _load,
                 reload: true, // force data reload (don't use stale cached data)
                 onload: function(){
                     // fire an 'onload' callback, if specified
@@ -646,7 +670,7 @@ var XNAT = getObject(XNAT || {});
                 }
             }
 
-            // don't submit forms with 'action' starting with '#!'
+            // don't submit forms with 'action' starting with '#'
             if (/^#/.test(formAction)) {
                 return false;
             }
@@ -748,7 +772,7 @@ var XNAT = getObject(XNAT || {});
                     // actually, NEVER use returned data...
                     // ALWAYS reload from the server
                     // (prepending '$?' assures that)
-                    obj.load = _load ? (_load.replace(/^(\$\?)*/, '$?')) : '';
+                    obj.load = _load;
                     obj.reload = true; // force reload after submission
                     if (!silent){
                         XNAT.ui.banner.top(2000, 'Data saved successfully.', 'success');
@@ -1177,7 +1201,7 @@ var XNAT = getObject(XNAT || {});
             config.message = opts.message;
         }
         // addClassName(opts, 'input-text password');
-        var passwordInput = XNAT.ui.input.password(opts.element);
+        var passwordInput = XNAT.ui.input.password(config);
         // return XNAT.ui.template.panelInput(opts, passwordInput.element).spawned;
         // return panel.display(opts, passwordInput.element).spawned;
         return XNAT.ui.template.panelDisplay(opts, passwordInput.element).get();
@@ -1230,9 +1254,7 @@ var XNAT = getObject(XNAT || {});
         }, opts.element);
         addClassName(opts.element, [opts.className, opts.classes, opts.addClass, 'hidden']);
         if (opts.validation || opts.validate) {
-            addDataObjects(opts.element, {
-                validate: opts.validation || opts.validate
-            });
+            addValidation(opts);
         }
         // no need to wrap this in panel-specific elements
         return spawn('input', opts.element);

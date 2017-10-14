@@ -169,7 +169,7 @@ var XNAT = getObject(XNAT);
             if (_input.value === '') {
                 _input.value = _value;
             }
-            //changeValue($this, val);
+            // changeValue($input, _value);
         }
         else if (/radio/i.test(_input.type)) {
             _input.checked = isEqual(_input.value, _value);
@@ -204,12 +204,34 @@ var XNAT = getObject(XNAT);
     //     setValue($inputs, values);
     // }
 
+    function addValidation(config){
+        var _validate;
+        if (config.validate || config.validation) {
+            _validate = (config.validate || config.validation);
+            config.data = config.data || {};
+            if (typeof _validate === 'string') {
+                config.data.validate = _validate;
+                if (config.message) {
+                    config.data.message = config.message;
+                }
+            }
+            else {
+                config.data.validate = _validate.type;
+                config.datamessage = _validate.message || '';
+            }
+            delete config.validate;
+            delete config.validation;
+            delete config.message;
+        }
+        return config;
+    }
+
 
     // ========================================
     // MAIN FUNCTION
     input = function inputElement(type, config){
 
-        var _input, _label, labelText, descText, _layout;
+        var _input, _label, labelText, descText, _validate, _layout;
 
         // only one argument?
         // could be a config object
@@ -230,17 +252,7 @@ var XNAT = getObject(XNAT);
         // addClassName(config, config.type);
 
         // add validation [data-*] attributes
-        if (config.validate || config.validation) {
-            config.data.validate = config.validate || config.validation;
-            delete config.validation; // don't pass these to the spawn() function
-            delete config.validate;   // ^^
-        }
-
-        // add validation error message
-        if (config.message) {
-            config.data.message = config.message;
-            delete config.message;
-        }
+        addValidation(config);
 
         _label = spawn('label');
         // _label.style.marginBottom = '10px';
@@ -606,6 +618,11 @@ var XNAT = getObject(XNAT);
         var chkbox = ckbx || input('checkbox', config).element;
         var NAME = chkbox.name || chkbox.title || chkbox.id;
         var VALUES = config.values || config.options || 'true|false';
+        var proxy = spawn('input.hidden.proxy', {
+            type: 'hidden',
+            name: NAME,
+            value: config.value || ''
+        });
         chkbox.title = NAME || '';
         chkbox.name = '';
         addClassName(chkbox, 'switchbox controller');
@@ -614,7 +631,7 @@ var XNAT = getObject(XNAT);
             ['span.switchbox-outer', [['span.switchbox-inner']]],
             ['span.switchbox-on', config.onText||''],
             ['span.switchbox-off', config.offText||''],
-            ['input.proxy|type=hidden', { name: NAME }]
+            proxy
         ];
         // return the 'outer' switchbox container
         return spawn(
@@ -751,6 +768,12 @@ var XNAT = getObject(XNAT);
         }
 
         opts.element.rows = opts.rows || opts.element.rows || 10;
+
+        opts.element.validate = '' ||
+            opts.element.validate || opts.validate ||
+            opts.element.validation || opts.validation;
+
+        addValidation(opts.element);
 
         var textarea = spawn('textarea', opts.element);
 
