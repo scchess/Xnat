@@ -2,14 +2,12 @@
 
 <!-- START BaseJS.vm -->
 
-#set ($versionString = "v=1.7.3c")
+#set ($versionString = "v=1.7.5a")
 #set ($SITE_ROOT = $content.getURI(""))
-#set ($debugParam = $data.getParameters().getString('debug'))
-#set ($jsDebugParam = $data.getParameters().getString('jsdebug'))
-#set ($DEBUG = ($debugParam == 'true' || $jsDebugParam == 'true'))
 
 #if ($DEBUG)
     #set ($js = "js")
+    <script>console.log('========== DEBUG ==========')</script>
 #else
     #set ($js = "min.js")
 #end

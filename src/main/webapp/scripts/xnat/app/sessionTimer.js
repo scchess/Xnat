@@ -499,7 +499,7 @@ var XNAT = getObject(XNAT);
 
         timeout.touch = function(opts){
             return XNAT.xhr.get(extend(true, {
-                url: XNAT.url.restUrl('/xapi/siteConfig/buildInfo')
+                url: XNAT.url.rootUrl('/xapi/siteConfig/buildInfo')
             }, opts || {}));
         };
 

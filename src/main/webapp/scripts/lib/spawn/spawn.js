@@ -158,7 +158,7 @@
             // ...or 'appendable' nodes
             else {
                 try {
-                    el.appendChild(child);
+                    el.appendChild(child.jquery ? child[0] : child);
                 }
                 catch (e) {
                     // try appending with jQuery

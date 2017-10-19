@@ -93,9 +93,11 @@
             </div>
 
             <script type="text/javascript">
-                var frontTabs = new YAHOO.widget.TabView('super_search');
-                wrangleTabs('#super_search');
-                XNAT.app.searchMethodToggler();
+                (function(){
+                    var frontTabs = new YAHOO.widget.TabView('super_search');
+                    wrangleTabs('#super_search');
+                    XNAT.app.searchMethodToggler();
+                })()
             </script>
 
         </li>

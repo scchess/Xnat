@@ -29,7 +29,8 @@
     ${headTop}
 
     <c:set var="js" value="min.js"/>
-    <c:if test="${param.debug == true}">
+    <c:if test="${param.debug == true || param.jsdebug == true}">
+        <c:set var="DEBUG" value="true"/>
         <c:set var="js" value="js"/>
     </c:if>
 
@@ -40,14 +41,18 @@
     <%--<c:set var="_scriptsLib" value="${SITE_ROOT}/scripts/lib"/>--%>
     <c:set var="csrfToken" value="${sessionScope.csrfToken}"/>
     <c:set var="_user" value="${sessionScope.username}"/>
-    <c:set var="versionString" value="v=1.7.3a"/>
+    <c:set var="versionString" value="v=1.7.5a"/>
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="cache-control" content="max-age=0">
-    <meta http-equiv="cache-control" content="no-cache">
-    <meta http-equiv="expires" content="-1">
-    <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT">
+
+    <c:if test="${not empty DEBUG}">
+        <meta http-equiv="Pragma" content="no-cache">
+        <meta http-equiv="cache-control" content="max-age=0">
+        <meta http-equiv="cache-control" content="no-cache">
+        <meta http-equiv="expires" content="-1">
+        <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT">
+        <script>console.log('DEBUG')</script>
+    </c:if>
 
     <!-- load polyfills before ANY other JavaScript -->
     <script src="${SITE_ROOT}/scripts/polyfills.js"></script>
@@ -654,7 +659,7 @@ ${bodyTop}
 
         }
 
-        loadMainNav();
+        //loadMainNav();
 
     </script>
 
