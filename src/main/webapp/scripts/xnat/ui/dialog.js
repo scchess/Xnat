@@ -588,6 +588,11 @@ window.xmodal = getObject(window.xmodal);
         return this;
     };
 
+    // specify and change width of a dialog instance
+    Dialog.fn.setWidth = function(width) {
+        this.dialog$.css('width', pxSuffix(width))
+    };
+
     // re-calculate height of modal body if window.innerHeight has changed
     Dialog.fn.setHeight = function(scale){
 
@@ -933,8 +938,8 @@ window.xmodal = getObject(window.xmodal);
         }
 
         // TODO: to destroy or not to destroy?
-        // TODO: ANSER - ALWAYS DESTROY ON CLOSE
-        if (this.nuke || this.destroyOnClose || _destroy) {
+        // TODO: ANSWER - ALWAYS DESTROY ON CLOSE
+        if (firstDefined(this.nuke, this.destroyOnClose, _destroy)) {
             this.destroy();
         }
         return this;
@@ -1060,12 +1065,9 @@ window.xmodal = getObject(window.xmodal);
 
     // global function to close and optionally destroy ANY dialog
     dialog.close = function(dlg, destroy){
-        var DLG = dialog.toggle(dlg, 'close');
+        var DLG = dialog.dialogs[dlg || dialog.topUID];
         if (!DLG) return null;
-        if (DLG.nuke || DLG.destroyOnClose || destroy) {
-            DLG.destroy();
-        }
-        return DLG;
+        return DLG.close(DLG.nuke || DLG.destroyOnClose || destroy);
     };
 
     // close ALL open dialogs
@@ -1290,6 +1292,33 @@ window.xmodal = getObject(window.xmodal);
         return window.top.XNAT.ui.dialog[method](obj);
     };
 
+    function iframeDialog(url, opts){
+
+        opts = cloneObject(opts);
+
+        var iframe = {
+                open: '<iframe ',
+                attrs: [],
+                close: '></iframe>'
+            },
+            dialog = {
+                // size: 'med',
+                padding: '0',
+                maxBtn: true
+            };
+
+        iframe.attrs.push('src="' + url + '"');
+        if (opts.name) {
+            iframe.attrs.push('name="' + opts.name + '"');
+        }
+        iframe.attrs.push('seamless');
+        iframe.attrs.push('style="width:100%;height:100%;position:absolute;border:none;"');
+
+        opts.content = url ? (iframe.open+iframe.attrs.join(' ')+iframe.close) : '(no url specified)';
+
+        return XNAT.dialog.open($.extend(true, {}, dialog, opts));
+    }
+
     // iframe 'popup' with sensible defaults
     dialog.iframe = function(url, title, width, height, opts){
 
@@ -1303,6 +1332,7 @@ window.xmodal = getObject(window.xmodal);
 
         if (isPlainObject(url)) {
             extendDeep(config, url);
+            url = config.src || config.url;
         }
         else if (isPlainObject(title)) {
             config.src = url;
@@ -1317,13 +1347,77 @@ window.xmodal = getObject(window.xmodal);
             }, getObject(opts))
         }
 
-        return xmodal.iframe(config);
+        return iframeDialog(url, config);
+
+    };
+
+    // load an html teplate into the dialog via ajax
+    dialog.load = function (url, obj){
+
+        if (!arguments.length) {
+            console.error('dialog.load() requires at least a url or config object');
+            return;
+        }
+
+        var tmpl;
+
+        var config = {
+            title: '',
+            width: 800,
+            // height: 600,
+            maxBtn: true,
+            esc: false,
+            enter: false,
+            nuke: true,
+            buttons: [{
+                label: 'Close',
+                isDefault: true,
+                close: true
+            }]
+        };
+
+        if (isPlainObject(url)) {
+            extendDeep(config, url);
+        }
+        else if (isString(url)) {
+            extendDeep(config, obj);
+            config.url = url;
+        }
+
+        if (!config.url) {
+            console.error('dialog.load() requires a "url" property');
+            return;
+        }
+
+        config.url = XNAT.url.rootUrl(config.url);
+
+        config.content$ = $.spawn('div.load-content');
+        config.content = config.content$[0];
+
+        config.beforeShow = function(obj){
+            config.content$.load(config.url, function(){
+                obj.setHeight(config.content$.height() + 100)
+            });
+        };
+
+        return dialog.open(config);
 
     };
 
     doc$.ready(function(){
         // generate the loadingBar on DOM ready
-        window.body$ = $('body');
+        var body$ = window.body$ = $(document.body);
+        // elements with a 'data-dialog="@/url/to/your/template.html" attribute
+        // will render a new dialog that loads the specified template
+        body$.on('click', '[data-dialog^="@"]', function(e){
+            e.preventDefault();
+            var this$ = $(this);
+            var config = {};
+            var dialogOpts = this$.data('dialogOpts');
+            if (dialogOpts) {
+                config = parseOptions(dialogOpts);
+            }
+        });
         dialog.loadingbar = dialog.loadingBar = dialog.loading().hide();
     });
 

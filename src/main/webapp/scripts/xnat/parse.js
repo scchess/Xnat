@@ -23,8 +23,8 @@ var XNAT = getObject(XNAT);
     var REGEX = {};
 
     // does the string start with one of these...?
-    // ??  !?  $?  ~/  {{  ((
-    REGEX.parseable = /^(\?\?|!\?|\$\?|~\/|{{|\(\()/;
+    // ??  !?  #?  $?  ~/  {{  ((
+    REGEX.parseable = /^(\?\?|!\?|#\?|\$\?|~\/|{{|\(\()/;
 
     // search for a value at a specific object path location
     // value: '$? /data/stuff/thing | :ResultSet:Result:0:contents'   // use lookupObjectValue()
@@ -51,6 +51,14 @@ var XNAT = getObject(XNAT);
     REGEX.lookupTest = /^{{.+}}$/;
     REGEX.lookupTrim = /^{{\s*|\s*}}$/g;
     REGEX.lookupReplace = /{{\s*(.+)\s*}}/;
+
+    // #? = execute function by name
+    // value: "#? NS.func.name()"
+    REGEX.fnPrefix = /^#\?[:=\s]*/;
+
+    REGEX.fnTest = /^#\?.+(\(\))*$/;
+    REGEX.fnTrim = /^(#\?[:=\s]*)|(\(\))$/g;
+    REGEX.fnReplace = /^#\?[:=\s]*(.+)\s*\(\)$/;
 
     // !? = use result of JS eval() from the supplied string
     // value: "!? (function(){ return $('#thing').val() })()"
@@ -82,7 +90,7 @@ var XNAT = getObject(XNAT);
     function parseable(value){
         var VAL = (value + '').trim();
         // a 'parseable' string MUST start with
-        // one of these: ??  !?  $?  ~/  {{  ((
+        // one of these: ??  !?  #?  $?  ~/  {{  ((
         return REGEX.parseable.test(VAL);
     }
 
@@ -231,6 +239,8 @@ var XNAT = getObject(XNAT);
 
         if (REGEX.lookupPrefix.test(value) || REGEX.lookupTest.test(value)) {
 
+            if (jsdebug) console.log('===== doLookup =====');
+
             obj.value = value.replace(REGEX.lookupPrefix, '')
                              .replace(REGEX.lookupTrim, '')
                              .split('|')[0].trim();
@@ -286,14 +296,14 @@ var XNAT = getObject(XNAT);
      */
     function doAjax(val, success, failure){
 
-        console.log('===== doAjax =====');
-
         var obj = this;
         // lookup value using XHR?
         // $? /path/to/data
         // $? /path/to/stuff | $.:ResultSet:Result:0
         // $? /path/to/other $:xml
         if (REGEX.ajaxPrefix.test(val)) {
+
+            if (jsdebug) console.log('===== doAjax =====');
 
             obj.url = val.replace(REGEX.ajaxPrefix, '');
             obj.url = obj.url.split('|')[0];
@@ -329,7 +339,7 @@ var XNAT = getObject(XNAT);
 
             // do XHR
             obj.request = XNAT.xhr.get({
-                url: XNAT.url.restUrl(obj.url),
+                url: XNAT.url.rootUrl(obj.url),
                 dataType: obj.dataType//,
                 // success: function(data){
                 //     obj.result = obj.path ? obj.lookupMethod(data, obj.path) : data;
@@ -383,6 +393,57 @@ var XNAT = getObject(XNAT);
 
 
     /**
+     * Should we get the value by executing a function by name?
+     * @param value {*}
+     * @param success {Function}
+     * @param failure {Function}
+     * @returns {*}
+     */
+    function doFn(value, success, failure){
+        var obj = this;
+        var val;
+        // execute a function to get the value
+        // #?:NS.func.name()
+        if (REGEX.fnTest.test(value)) {
+
+            if (jsdebug) console.log('===== doFn =====');
+
+            val = value.replace(REGEX.fnTrim, '')
+                       .trim();
+
+            try {
+                // --- execute the function --- //
+                obj.result = lookupObjectValue(val);
+                if (obj.result === undef) {
+                    obj.result = val;
+                }
+                if (isFunction(obj.result)) {
+                    obj.result = obj.result.call(obj);
+                }
+                obj.status = 'success';
+                // call the [success] callback and return 'success/done' method for chaining
+                obj.done(success);
+                // callbacks.call(obj, success, ['success', 'done']);
+            }
+            catch(e) {
+                if (jsdebug) console.error(e);
+                obj.result = val;
+                obj.status = 'failure';
+                // call the [failure] callback and return 'failure/fail' method for chaining
+                obj.fail(failure);
+                // callbacks.call(obj, failure, ['failure', 'fail']);
+            }
+            // --- EVAL RETURN --- //
+            return obj;
+        }
+        return undef;
+    }
+
+    Parser.fn.doFn = doFn;
+
+
+
+    /**
      * Should we get the value using a js eval()?
      * @param value {*}
      * @param success {Function}
@@ -395,6 +456,9 @@ var XNAT = getObject(XNAT);
         // use eval() to get the value
         // !? XNAT.data.context.projectId.toLowerCase();
         if (REGEX.evalPrefix.test(value) || REGEX.evalTest.test(value)) {
+
+            if (jsdebug) console.log('===== doEval =====');
+
             val = value.replace(REGEX.evalPrefix, '')
                        .replace(REGEX.evalTrim, '')
                        .trim();
@@ -461,6 +525,7 @@ var XNAT = getObject(XNAT);
         return firstDefined(
             doLookup.apply(obj, args),
             doAjax.apply(obj, args),
+            doFn.apply(obj, args),
             doEval.apply(obj, args),
             obj // if not lookup, ajax, or eval...
         );
@@ -472,6 +537,7 @@ var XNAT = getObject(XNAT);
      * Main method - parses [value] string and defines lookup method based on syntax:
      * '??' - lookup value in global/namespaced variable
      * '$?' - lookup value via ajax/REST
+     * '#?' - Execute function by name
      * '!?' - Run js eval() on [value] string
      * @param [value] {String|*}
      * @returns {*}

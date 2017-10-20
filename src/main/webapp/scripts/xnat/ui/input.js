@@ -113,7 +113,7 @@ var XNAT = getObject(XNAT);
             // console.log(ajaxDataType);
             _value = '';
             return XNAT.xhr.get({
-                url: XNAT.url.restUrl(ajaxUrl),
+                url: XNAT.url.rootUrl(ajaxUrl),
                 dataType: ajaxDataType,
                 success: function(val, status, xhr){
                     // _value = xhr.responseText;
@@ -217,7 +217,7 @@ var XNAT = getObject(XNAT);
             }
             else {
                 config.data.validate = _validate.type;
-                config.datamessage = _validate.message || '';
+                config.data.message = _validate.message || '';
             }
             delete config.validate;
             delete config.validation;
@@ -383,7 +383,7 @@ var XNAT = getObject(XNAT);
     ];
     textTypes.forEach(function(type){
         input[type] = function(config){
-            config.size = config.size || 25;
+            config.size = config.size || 30;
             addClassName(config, type);
             return input('text', config);
         }
@@ -394,7 +394,7 @@ var XNAT = getObject(XNAT);
     ];
     numberTypes.forEach(function(type){
         input[type] = function(config){
-            config.size = config.size || 25;
+            config.size = config.size || 30;
             addClassName(config, type);
             return input('number', config);
         }
@@ -579,7 +579,7 @@ var XNAT = getObject(XNAT);
 
     input.username = function(config){
         config = extend(true, {}, config, config.element);
-        config.size = config.size || 25;
+        config.size = config.size || 30;
         config.autocomplete = 'off';
         addClassName(config, 'username');
         delete config.element;
@@ -590,7 +590,7 @@ var XNAT = getObject(XNAT);
     // TODO: HANDLE PASSWORD VALUES IN A SAFER WAY
     input.password = function(config){
         config = extend(true, {}, config, config.element);
-        config.size = config.size || 25;
+        config.size = config.size || 30;
         config.value = ''; // set initial value to empty string
         config.placeholder = '********';
         config.autocomplete = 'new-password';
@@ -603,11 +603,31 @@ var XNAT = getObject(XNAT);
 
     // checkboxes are special
     input.checkbox = function(config){
+
         config = extend(true, {}, config, config.element);
-        // config.onchange = function(){
-        //     this.value = this.checked || $(this).data('uncheckedValue') || '';
-        // };
-        return input('checkbox', config);
+
+        var chkbox = input('checkbox', config).element;
+        var NAME = chkbox.name || chkbox.title || chkbox.id;
+        var VALUES = config.values || config.options || 'true|false';
+        var proxyId = randomID('prx', false);
+
+        addClassName(chkbox, 'controller');
+
+        addDataAttrs(chkbox, {
+            name: NAME,
+            values: VALUES,
+            proxy: proxyId
+        });
+
+        var proxy = spawn('input.hidden.proxy', {
+            type: 'hidden',
+            name: NAME,
+            id: proxyId,
+            value: config.value || ''
+        });
+
+        return spawn('label', [chkbox, proxy])
+
     };
     otherTypes.push('checkbox');
 
@@ -625,7 +645,7 @@ var XNAT = getObject(XNAT);
         });
         chkbox.title = NAME || '';
         chkbox.name = '';
-        addClassName(chkbox, 'switchbox controller');
+        addClassName(chkbox, 'switchbox');
         var swboxParts = [
             chkbox,
             ['span.switchbox-outer', [['span.switchbox-inner']]],
@@ -636,7 +656,7 @@ var XNAT = getObject(XNAT);
         // return the 'outer' switchbox container
         return spawn(
             'label.switchbox',
-            { title: NAME ? NAME + '=' + VALUES : '' },
+            { title: NAME ? NAME + ': ' + VALUES : '' },
             swboxParts
         );
     };
@@ -828,3 +848,4 @@ var XNAT = getObject(XNAT);
     return XNAT.ui.input = input;
 
 }));
+

@@ -240,6 +240,7 @@ var XNAT = getObject(XNAT || {});
     panel.init = panel;
 
     function footerButton(text, type, disabled, classes){
+        if (!text) return [''];
         var button = {
             type: type || 'button',
             html: text || 'Submit'
@@ -290,12 +291,17 @@ var XNAT = getObject(XNAT || {});
 
         obj.load = (obj.load+'').trim();
 
-        // if 'load' starts with '#[' execute global (namespaced) function
-        var fnRegex = /^#\[(.*)]$/g;
-        var fnExe = fnRegex.test(obj.load) ? lookupObjectValue(obj.load.split(fnRegex)[1]) : null;
-        if (isFunction(fnExe)) {
+        // if 'load' starts with '#?' execute global (namespaced) function
+        var fnExe = XNAT.parse.REGEX.fnPrefix.test(obj.load) ? XNAT.parse(obj.load) : null;
+        if (fnExe && fnExe.done) {
             try {
-                return fnExe.call(_form, $form, obj);
+                fnExe.done(function(){
+                    var obj = this;
+                    if (isPlainObject(obj.result)) {
+                        $form.setValues(obj.result);
+                    }
+                });
+                return fnExe;
             }
             catch (e) {
                 if (jsdebug) console.error(e);
@@ -518,7 +524,15 @@ var XNAT = getObject(XNAT || {});
         // text for 'reset' button
         opts.reset = firstDefined(opts.reset, 'Discard Changes');
 
-        opts.action = (opts.action && !/^#/.test(opts.action)) ? XNAT.url.rootUrl(opts.action) : opts.action || '#!';
+        opts.action = (opts.action && /^[~/.]/.test(opts.action)) ? XNAT.url.rootUrl(opts.action) : opts.action || '#!';
+
+        if (opts.onsubmit) {
+            opts.element.onsubmit = opts.onsubmit;
+        }
+
+        if (opts.contentType) {
+            opts.element.enctype = opts.contentType;
+        }
 
         if ('params' in opts){
             if (isPlainObject(opts.params)) {
@@ -600,16 +614,23 @@ var XNAT = getObject(XNAT || {});
 
         // 'onload' and 'callback' are the same ('onload' takes priority)
         opts.onload = opts.callback =
-                opts.onload || opts.callback || callback || diddly;
+                opts.onload || opts.callback || callback;
+
+        if (isString(opts.onload)) {
+            opts.onload = lookupObjectValue(opts.onload);
+        }
+
+        opts.onload = isFunction(opts.onload) ? opts.onload : diddly;
 
 
         // custom event for reloading data (refresh)
         $formPanel.on('reload-data', function(){
             var _load = opts.refresh || opts.load || opts.url;
-            var $this = $(this);
-            $this.removeClass('ready error valid invalid');
-            $this.find('.valid, .invalid').removeClass('valid invalid');
-            $this.find('.ready').removeClass('ready');
+            var form$ = $(this);
+            form$.removeClass('ready dirty error valid invalid');
+            form$.find('.valid, .invalid').removeClass('valid invalid');
+            form$.find('.ready').removeClass('ready');
+            form$.find('.dirty').removeClass('dirty');
             loadData(this, {
                 load: _load,
                 reload: true, // force data reload (don't use stale cached data)
@@ -621,12 +642,14 @@ var XNAT = getObject(XNAT || {});
             });
         });
 
-        // click 'Discard Changes' button to reload data
-        $resetBtn.on('click', function(){
-            if (!/^(\/*#)/.test($formPanel.attr('action'))){
+        if (_resetBtn) {
+            // click 'Discard Changes' button to reload data
+            $resetBtn.on('click', function(){
+                // if (!/^(\/*#)/.test($formPanel.attr('action'))){
                 $formPanel.triggerHandler('reload-data');
-            }
-        });
+                // }
+            });
+        }
 
         // is this form part of a multiForm?
         multiform.parent = $formPanel.closest('form.multi-form');
@@ -658,9 +681,9 @@ var XNAT = getObject(XNAT || {});
             var formSubmit;
             var multiform = {};
 
-            // execute onsubmit handler for #[submitFunction()]
-            if (/^#\[/.test(formAction)) {
-                formAction = formAction.replace(/^(#\[)|(])$/g, '');
+            // execute onsubmit handler for "#?:submitFunction()"
+            if (/^#\?/.test(formAction)) {
+                formAction = formAction.replace(/^(#\?[:=\s]*)|(\(\))$/g, '');
                 formSubmit = lookupObjectValue(formAction);
                 if (isFunction(formSubmit)) {
                     return formSubmit.call(form0, $form, e);
@@ -779,13 +802,14 @@ var XNAT = getObject(XNAT || {});
                         loadData($form, obj);
                     }
                     $form.find(':input[data-validate]').removeClass('valid invalid');
+                    $form.find('.dirty').removeClass('dirty');
                     // fire callback function if specified
                     if (opts.success || opts.callback) {
                         callback = opts.success||opts.callback;
-                        if (typeof callback === 'string') {
-                            callback = eval(callback);
-                        }
                         try {
+                            if (typeof callback === 'string') {
+                                callback = eval(callback);
+                            }
                             callback.apply(this, arguments);
                         }
                         catch(e) {

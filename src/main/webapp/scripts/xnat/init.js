@@ -54,27 +54,109 @@ var XNAT = getObject(XNAT);
             e.preventDefault();
         });
 
+        // add 'dirty' class to changed input on focus
+        $(document).on('focus.check-input', 'input, textarea', function(){
+            console.log('focus');
+            var input$ = $(this);
+            var startVal = input$.val();
+            input$.off('blur.dirty-input');
+            input$.on('blur.dirty-input', function(){
+                console.log('blur');
+                var this$ = $(this);
+                if (this$.hasClass('dirty')) {
+                    return;
+                }
+                if (startVal !== this$.val()) {
+                    this$.addClass('dirty');
+                }
+
+            });
+        });
+
+        $(document).on('click.check-button', 'input[type="radio"], input[type="checkbox"]', function(){
+            console.log('changed');
+            $(this).addClass('dirty');
+        });
+
         // manhandle 'checked' attribute and property on radio buttons
         // applies to radio buttons with the same name in the same form
         $(document).on('click', 'input[type="radio"]', function(){
             var radio$ = $(this);
             // make sure we've got the custom 'checked' method
-            if (radio$.checked) {
+            if (radio$.checked && isFunction(radio$.checked)) {
                 radio$.closest('form').find('input[name="' + this.name + '"]').checked(false);
                 radio$.checked(true);
             }
         });
 
+        // <input type="checkbox" name="bogus" data-values="yes|no" data-proxy="id-of-proxy-input">
+        // ...or...
+        // <input type="checkbox" name="bogus" title="bogus=yes|no">
+        // ...or...
+        // <input type="checkbox" name="bogus" title="bogus: yes|no">
+        $(document).on('click', 'input.controller[type="checkbox"]', function(){
+
+            var ckbx$ = $(this);
+            var ckbx0 = this;
+            var NAME = (ckbx0.name || ckbx0.title.split(/[:=]/)[0] || ckbx$.data('name')).trim();
+            var values = ['true', 'false'];
+            var dataValues = ckbx$.data('values');
+
+            ckbx0.name = '';
+
+            // if the [title] attribute contains '=' and '|' it's probably the values
+            if (!dataValues && /.+[:=].+[|]/.test(ckbx0.title)) {
+                dataValues = (ckbx0.title.split(/[:=]/)[1] || '').trim();
+            }
+
+            if (dataValues) {
+                values = (dataValues+'').split('|');
+            }
+
+            var VALUE = ckbx0.checked ? (values[0]+'').trim() : (values[1]+'').trim();
+            ckbx0.value = VALUE;
+
+            var form$ = ckbx$.closest('form');
+
+            var proxyId = ckbx$.data('proxy');
+            var proxy$ = [];
+
+            // is a proxy defined in the input element?
+            if (proxyId) {
+                proxy$ = form$.find('#' + proxyId);
+                proxy$[0].name = NAME;
+            }
+            else {
+                // is there already a hidden input that tracks the value?
+                proxy$ = form$.find('input[type="hidden"][name="' + NAME + '"]');
+                proxyId = randomID('prx', false);
+                ckbx$.data('proxy', proxyId);
+            }
+
+            if (!proxy$.length) {
+                proxy$ = $.spawn('input.proxy|type=hidden');
+                ckbx$.after(proxy$);
+            }
+
+            proxy$[0].id = proxyId;
+            proxy$[0].value = VALUE;
+
+            // ckbx$.addClass('ready');
+
+        });
+
         // make sure switchboxes track values properly
         // encode the input name and values into the [title] attribute of the outer <label> element:
         // <label class="switchbox" title="myInput=checkedValue|uncheckedValue">
-        $(document).on('change', 'input.switchbox.controller', function(){
+        // ...or...
+        // <label class="switchbox" title="myInput: checkedValue|uncheckedValue">
+        $(document).on('change', 'input.switchbox', function(){
             var chkbox$ = $(this);
             var chkbox0 = chkbox$[0];
             var switch$ = chkbox$.closest('label.switchbox');
             var switch0 = switch$[0];
-            var NAME    = switch0.title.split('=')[0];
-            var VALUES  = (switch0.title.split('=')[1] || '').split('|') || ['true', 'false'];
+            var NAME    = switch0.title.split(/[:=]/)[0];
+            var VALUES  = (switch0.title.split(/[:=]/)[1] || '').split('|') || ['true', 'false'];
             var proxy$  = switch$.find('input.proxy');
             var proxy0  = proxy$[0];
             if (!proxy0) {
@@ -82,11 +164,12 @@ var XNAT = getObject(XNAT);
                 switch0.appendChild(proxy0);
             }
             proxy0.name = NAME;
-            proxy0.value = chkbox0.checked ? VALUES[0] : VALUES[1];
+            proxy0.value = chkbox0.checked ? (VALUES[0]+'').trim() : (VALUES[1]+'').trim();
             // set [name] attribute for the checkbox to an empty string
             if (chkbox0.name) {
                 chkbox0.name = '';
             }
+            chkbox0.value = proxy0.value
         });
 
         // add version to title attribute of XNAT logos

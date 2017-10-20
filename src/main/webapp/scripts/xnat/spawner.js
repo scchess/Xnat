@@ -537,18 +537,18 @@ var XNAT = getObject(XNAT);
             // returned 'ok' method only fires with 200 response
             // and returns with 'this' as Spawner instance
             ok: function(success, failure){
-                console.log('spawner.resolve().ok()');
+                if (jsdebug) console.log('spawner.resolve().ok()');
                 request.done(function(obj, txtStatus, xhr){
-                    var spawnerInstance = spawner.spawn(obj);
+                    var spawnerInit = spawner.spawn(obj);
                     if (xhr.status === 200) {
                         if (isFunction(success)){
-                            success.call(spawnerInstance, obj, txtStatus, xhr)
+                            success.call(spawnerInit, obj, txtStatus, xhr)
                         }
                     }
                     else {
                         // try something else if element isn't present
                         if (isFunction(failure)) {
-                            failure.call(spawnerInstance, obj, txtStatus, xhr)
+                            failure.call(spawnerInit, obj, txtStatus, xhr)
                         }
                     }
                 });
@@ -570,15 +570,17 @@ var XNAT = getObject(XNAT);
             always: request.always,
             spawn: spawnRender,
             render: function(container, callback){
-                if (isFunction(callback)) {
-                    try {
-                        resolve.ok(callback);
-                        // callback.call(resolve)
+                resolve.ok(function(obj){
+                    this.render(container);
+                    if (isFunction(callback)) {
+                        try {
+                            this.done(callback)
+                        }
+                        catch (e) {
+                            if (jsdebug) console.error(e);
+                        }
                     }
-                    catch (e) {
-                        if (jsdebug) console.error(e);
-                    }
-                }
+                });
                 return resolve;
             }
         };
