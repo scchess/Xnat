@@ -18,7 +18,7 @@ var XNAT = getObject(XNAT);
 
     var undef, projectSettings;
 
-    if (window.jsdebug) console.log('projectSettings.js');
+    if (jsdebug) console.log('projectSettings.js');
 
     XNAT.app = getObject(XNAT.app || {});
 
@@ -27,6 +27,7 @@ var XNAT = getObject(XNAT);
 
     XNAT.data = getObject(XNAT.data);
     XNAT.data.context = getObject(XNAT.data.context);
+    XNAT.data.project = getObject(XNAT.data.project);
 
     var projectId = XNAT.data.context.projectID;
     var projectLabel = XNAT.data.context.label;
@@ -244,6 +245,13 @@ var XNAT = getObject(XNAT);
         getSettings(
             projectAnonUrl('status', 'format=json'),
             function(data) {
+
+                if (jsdebug) {
+                    console.log('===================');
+                    console.log('PROJECT ANON SCRIPT');
+                    console.log('===================');
+                }
+
                 var result = getResultSetResult(data);
                 var status = result[0] && 'edit' in result[0] ? result[0].edit : false;
                 status = realValue(status);
@@ -276,37 +284,28 @@ var XNAT = getObject(XNAT);
         var activate = form$.find('#project-anon-enable').prop('checked');
         // set 'enabled' status
         submitSettings({
-            url: projectAnonUrl('status', 'activate=' + activate),
+            url:  projectAnonUrl('script', 'inbody=true&activate=true'),
+            data: form$.find('#project-anon-script').val(),
+            contentType: 'text/plain',
+            processData: false,
             success: function(){
-                // submit script content if 'active/enabled'
                 if (activate) {
-                    var scriptContentUrl = XNAT.url.csrfUrl(projectAnonUrl('script', 'inbody=true&activate=' + activate));
-                    XNAT.xhr.put({
-                        url: scriptContentUrl,
-                        data: form$.find('#project-anon-script').val(),
-                        contentType: 'text/plain',
-                        processData: false,
-                        success: function(){
-                            if (jsdebug) console.log('success: ' + scriptContentUrl);
-                            // if (activate) {
-                            XNAT.ui.banner.top(2000, 'Project anon script enabled and saved.', 'success');
-                            // }
-                            // else {
-                            //     XNAT.ui.banner.top(2000, 'Project anon script was saved and set as "disabled".', 'success');
-                            // }
-                        },
-                        failure: function(e){
-                            if (jsdebug) {
-                                console.error('error:');
-                                console.error(arguments);
-                            }
-                            XNAT.ui.dialog.message(false, ('An error occurred saving project anon script: ') + '<br><br>' + e);
-                        }
-                    })
+                    XNAT.ui.banner.top(2000, 'Project anon script saved and enabled.', 'success');
                 }
                 else {
-                    XNAT.ui.banner.top(2000, 'Project anon script disabled (and not saved).', 'success');
+                    submitSettings({
+                        url: XNAT.url.csrfUrl(projectAnonUrl('status', 'activate=false')),
+                        success: 'Project anon script saved and disabled.',
+                        error: 'An error occurred setting project anon script status.'
+                    });
                 }
+            },
+            failure: function(e){
+                if (jsdebug) {
+                    console.error('error:');
+                    console.error(arguments);
+                }
+                XNAT.ui.dialog.message(false, ('An error occurred saving project anon script: ') + '<br><br>' + e);
             },
             error: 'An error occurred setting project anon script.'
         });
@@ -338,7 +337,7 @@ var XNAT = getObject(XNAT);
                 var contents = result[0] && 'contents' in result[0] ? result[0].contents : '[]';
                 var settings = JSON.parse(contents);
                 enabled$.checked(settings.enabled);
-                mode$.val(settings.mode).change();
+                mode$.val(settings.mode||'!').change();
                 filter$.val(settings.list);
             },
             'An error occurred getting series import filter.'
@@ -402,10 +401,10 @@ var XNAT = getObject(XNAT);
             // [form$, 'separatePETMR', 'system'],
             function(data) {
                 var result = data+'' || 'system';
-                menu$.changeVal(result);
+                menu$.val(result).change();
             },
             function(){
-                menu$.changeVal('system');
+                menu$.val('system').change();
             }
         );
     };
@@ -421,7 +420,7 @@ var XNAT = getObject(XNAT);
         }
         else {
             submitSettings({
-                url: XNAT.url.csrfUrl(dicomConfigUrl('inbody=true')),
+                url: (dicomConfigUrl('inbody=true')),
                 data: menu$.val(),
                 processData: false,
                 contentType: 'text/plain',
@@ -526,27 +525,47 @@ var XNAT = getObject(XNAT);
 
     projectSettings.init = function(){
 
-        console.log('projectSettings.init()');
+        if (jsdebug) {
+            console.log('======================');
+            console.log('projectSettings.init()');
+            console.log('======================');
+        }
 
         getProjectId();
 
-        // projectSettings.getQuarantineCode();
-        // projectSettings.getPrearhchiveCode();
-        projectSettings.getProjectAnonScript();
-        projectSettings.getSeriesImportFilter();
-        projectSettings.getDicomConfig();
-        projectSettings.getPetTracers();
-        // etc...
 
-        var scanTypeMappingRadios = $$('?scan_type_mapping');
-        // set initial value of the scan type mapping radio buttons
-        scanTypeMappingRadios.filter('[value="' + XNAT.data.project.scanTypeMapping + '"]').checked(true);
-        // set initial value of the scan type mapping radio buttons
-        $(document).off('click.scan-type-mapping').on('click.scan-type-mapping', '[name="scan_type_mapping"]', function(){
-            XNAT.data.project.scanTypeMapping = this.value;
+        // XNAT.spawner.resolve('xnat:projectSettings/tabs').ok(function(){
+        //     this.render('#project-settings-tabs-container')
+        // });
+
+        var spawnerResolve = XNAT.spawner.resolve('xnat:projectSettings/tabs');
+
+        spawnerResolve.render('#project-settings-tabs-container', function(){
+            console.log('hi there')
+            //XNAT.tab.activate(XNAT.tab.active, XNAT.tabs.container);
         });
 
+        // // projectSettings.getQuarantineCode();
+        // // projectSettings.getPrearhchiveCode();
+        // projectSettings.getProjectAnonScript();
+        // projectSettings.getSeriesImportFilter();
+        // projectSettings.getDicomConfig();
+        // projectSettings.getPetTracers();
+        // // etc...
+        //
+        // var scanTypeMappingRadios = $$('?scan_type_mapping');
+        // // set initial value of the scan type mapping radio buttons
+        // scanTypeMappingRadios.filter('[value="' + XNAT.data.project.scanTypeMapping + '"]').checked(true);
+        // // set initial value of the scan type mapping radio buttons
+        // $(document).off('click.scan-type-mapping').on('click.scan-type-mapping', '[name="scan_type_mapping"]', function(){
+        //     XNAT.data.project.scanTypeMapping = this.value;
+        // });
+
     };
+
+
+    // INITIALIZE!!!!!
+    projectSettings.init();
 
 
     // this script has loaded

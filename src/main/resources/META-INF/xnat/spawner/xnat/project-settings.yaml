@@ -1,11 +1,30 @@
 # project settings tabs
 
 root:
+    tag: div
+    contents:
+        ${container}
+        ${projectSettingsJS}
+
+container:
+    tag: "div#project-settings-tabs-container"
+
+# this JS will spawn the 'tabs' element
+projectSettingsJS:
+    tag: script
+    src: "/scripts/xnat/app/projectSettings.js"
+
+projectSettingsInit:
+    tag: script
+    content: >
+        XNAT.app.projectSettings.init()
+
+
+tabs:
     kind: tabs
     groups:
         projectAdmin: Project Administration
     contents:
-        ${projectSettingsJS}
         ${quarantine}
         ${prearchive}
         ${projectAnon}
@@ -14,7 +33,6 @@ root:
         ${dicomPETMR}
         ${notifications}
         ${scanType}
-        ${projectSettingsInit}
 
 # define tabs
 
@@ -96,11 +114,11 @@ quarantineSettings:
     kind: panel.form
     id: quarantine-settings
     label: Define Quarantine Settings
-    load: "/data/projects/{{XNAT.data.context.project}}/quarantine_code > [[quarantine]]"
     reload: true
+    load: "$? /data/projects/{{XNAT.data.context.project}}/quarantine_code > [[quarantine]]"
     action: "/data/projects/{{XNAT.data.context.project}}/quarantine_code/[[quarantine]]?XNAT_CSRF={{csrfToken}}"
-    method: put
     contentType: text/plain
+    method: PUT
     contents:
         quarantineRadios:
             kind: input.radioGroup
@@ -122,12 +140,12 @@ prearchiveSettings:
     kind: panel.form
     id: prearchive-settings
     label: Define Prearchive Settings
-    load: "/data/projects/{{XNAT.data.context.project}}/prearchive_code > [[prearchive]]"
+    load: "$? /data/projects/{{XNAT.data.context.project}}/prearchive_code > [[prearchive]]"
     reload: true
     action: "/data/projects/{{XNAT.data.context.project}}/prearchive_code/[[prearchive]]?XNAT_CSRF={{csrfToken}}"
-    actionx: "#[XNAT.app.projectSettings.setPrearchiveCode]"
-    method: put
+    actionDisabled: "#?:XNAT.app.projectSettings.setPrearchiveCode()"
     contentType: text/plain
+    method: PUT
     contents:
         prearchiveRadios:
             kind: input.radioGroup
@@ -160,7 +178,11 @@ dicomConfig:
     kind: panel.form
     id: dicom-separate-petmr
     label: DICOM Configuration
-    action: "#[XNAT.app.projectSettings.setDicomConfig]"
+    loadDisabled: "$? /data/projects/{{XNAT.data.context.project}}/config/separatePETMR/config > [[separatePETMR]]"
+    load: "#?:XNAT.app.projectSettings.getDicomConfig()"
+    action: "#?:XNAT.app.projectSettings.setDicomConfig()"
+    contentType: "text/plain"
+    method: PUT
     contents:
         separatePETMR:
             kind: panel.select.single
@@ -181,8 +203,11 @@ scanTypeMapping:
     kind: panel.form
     id: scan-type-mapping
     label: Define Scan Type Mapping
+    reset: ""
+    load: "/data/projects/{{XNAT.data.context.project}}/config/project/scanTypeMapping/config > [[scan_type_mapping]]"
     action: "/data/projects/{{XNAT.data.context.project}}/scan_type_mapping/[[scan_type_mapping]]?XNAT_CSRF={{csrfToken}}"
-    method: put
+    contentType: "text/plain"
+    method: PUT
     contents:
         scan_type_mapping:
             kind: input.radioGroup
@@ -204,7 +229,9 @@ PETTracersForm:
     kind: panel.form
     id: pet-tracers-form
     label: PET Tracers
-    action: "#[XNAT.app.projectSettings.setPetTracers]"
+    load: "#?:XNAT.app.projectSettings.getPetTracers()"
+    action: "#?:XNAT.app.projectSettings.setPetTracers()"
+    method: PUT
     contents:
         enableTracers:
             kind: panel.input.switchbox
@@ -237,13 +264,14 @@ notificationsConfig:
     kind: panel.form
     id: notifications-config
     label: Notifications Configuration
-    load: "/data/projects/{{XNAT.data.context.project}}/resources/notifications/files/archival.lst > [[notif_list]]"
+    loadNot: "#?:XNAT.app.projectSettings.getNotificationsList()"
+    load: "~/data/projects/{{XNAT.data.context.project}}/resources/notifications/files/archival.lst > [[notif_list]]"
     reload: true
-    actionUrlDisabled: "/data/projects/{{XNAT.data.context.project}}/resources/notifications/files/archival.lst < [[notif_list]]"
-    action: "#[XNAT.app.projectSettings.setNotificationsList]"
-    contentTypeDisabled: "text/plain"
-    methodDisabled: PUT
-    paramsDisabled:
+    action: "~/data/projects/{{XNAT.data.context.project}}/resources/notifications/files/archival.lst < [[notif_list]]"
+    actionNot: "#?:XNAT.app.projectSettings.setNotificationsList()"
+    contentType: "text/plain"
+    method: PUT
+    params:
         - inbody=true
         - overwrite=true
         - content=NOTIFY_ARCHIVAL
@@ -276,7 +304,10 @@ projectAnonForm:
     kind: panel.form
     id: project-anon-form
     label: Project Anonymization Script
-    action: "#[XNAT.app.projectSettings.setProjectAnonScript]"
+    load: "#?:XNAT.app.projectSettings.getProjectAnonScript()"
+    action: "#?:XNAT.app.projectSettings.setProjectAnonScript()"
+    contentType: text/plain
+    method: PUT
     contents:
         enableScript:
             kind: panel.switchbox
@@ -308,7 +339,10 @@ seriesImportForm:
     kind: panel.form
     id: series-import-form
     label: Series Import Filters
-    action: "#[XNAT.app.projectSettings.setSeriesImportFilter]"
+    load: "#?:XNAT.app.projectSettings.getSeriesImportFilter()"
+    action: "#?:XNAT.app.projectSettings.setSeriesImportFilter()"
+    contentType: text/plain
+    method: PUT
     contents:
         about:
             tag: p
@@ -328,10 +362,11 @@ seriesImportForm:
             offText: Filter Disabled
         filterMode:
             kind: panel.select.single
-            label: Mode
+            label: Filter Mode
             name: mode
             id: filter-mode
             options:
+                "!": Select...
                 whitelist: Whitelist
                 blacklist: Blacklist
                 modalityMap: Modality Map
@@ -366,19 +401,6 @@ projectResourceSettings:
     contents:
         projectResourcSettingsTemplate:
             template: 'id=project-resource-settings-template'
-
-
-
-# projectSettings.js file
-projectSettingsJS:
-    tag: "script|src=/scripts/xnat/app/projectSettings.js"
-
-
-projectSettingsInit:
-    tag: script
-    content: >
-        XNAT.app.projectSettings.init()
-
 
 
 # DEMO TAB

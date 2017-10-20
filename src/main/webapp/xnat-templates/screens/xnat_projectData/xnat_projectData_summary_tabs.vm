@@ -1,6 +1,7 @@
 <!-- BEGIN xnat-templates/screens/xnat_projectData/xnat_projectData_summary_tabs.vm -->
-#set($isProjectAdmin=false)
-#if($data.getSession().getAttribute("userHelper").isOwner($project.getId()) || $turbineUtils.isSiteAdmin($user))
+#set($projectId = $project.getId())
+#set($isProjectAdmin = false)
+#if($data.getSession().getAttribute("userHelper").isOwner($projectId) || $turbineUtils.isSiteAdmin($user))
     #set($isProjectAdmin=true)
 #end
 <div id="project_summary_module" style="display:none">
@@ -9,12 +10,15 @@
 ##            <script src="$content.getURI('/scripts/xnat/app/projectSettings.js')"></script>
             <span id="project-settings-btn-container" class="hidden pull-right"></span>
             #set ($scanTypeMapping = $project.getUseScanTypeMapping())
-            #set ($projectSettingsUri = "/page/project/settings/content.jsp?id=$project.getId()")
+            #set ($projectSettingsUri = "/page/project/settings/content.jsp?id=$projectId")
             <script>
                 (function(){
 
                     XNAT.data = getObject(XNAT.data);
                     XNAT.data.project = getObject(XNAT.data.project);
+
+                    XNAT.app = getObject(XNAT.app);
+                    XNAT.app.projectSettings = getObject(XNAT.app.projectSettings);
 
                     // set this for use in spawned panel
                     XNAT.data.project.scanTypeMapping = '$!scanTypeMapping';
@@ -36,7 +40,7 @@
                                     maxBtn: true,
                                     esc: false,
                                     enter: false,
-                                    title: 'Project Settings for $project.getId()',
+                                    title: 'Project Settings for $projectId',
                                     content: html,
                                     buttons: [
                                         {
@@ -57,7 +61,10 @@
                         var projectSettingsBtn$ = $.spawn('button#project-settings-btn.btn.btn-hover', {
                             title: "Open Project Settings",
                             style: { marginTop: '2px' },
-                            data: { dialog: '@!$content.getURI($projectSettingsUri)' },
+//                            data: {
+##                                dialog: '@$content.getURI($projectSettingsUri)',
+##                                dialogOpts: 'width:90%;height:90%;maxBtn:true;title:Project Settings for $projectId'
+//                            },
                             on: {
                                 click: function(e){
                                     e.preventDefault();
@@ -90,7 +97,7 @@
         #end
         <ul class="yui-nav">
             <li class="selected"><a href="#tab1"><em>Details</em></a></li>
-            #set($canReadSubjects=$data.getSession().getAttribute("userHelper").canRead("xnat:subjectData/project","$project.getId()"))
+            #set($canReadSubjects=$data.getSession().getAttribute("userHelper").canRead("xnat:subjectData/project","$projectId"))
             #if($isProjectAdmin)
                 <li><a href="#tab3"><em>Access</em></a></li>
                 <li class="project-manage-tab"><a href="#othermgmt"><em>Manage</em></a></li>
@@ -103,18 +110,18 @@
         </ul>
         <div class="yui-content">
             <div id="tab1" class="pad10">
-                <p>#parse($turbineUtils.getTemplateName("_summary_details","xnat:projectData",$project.getId()))</p>
+                <p>#parse($turbineUtils.getTemplateName("_summary_details","xnat:projectData",$projectId))</p>
             </div>
 
-            #if($data.getSession().getAttribute("userHelper").isOwner($project.getId()) || $turbineUtils.isSiteAdmin($user))
+            #if($data.getSession().getAttribute("userHelper").isOwner($projectId) || $turbineUtils.isSiteAdmin($user))
                     <div id="tab3" class="pad10">
-                        <p>#parse($turbineUtils.getTemplateName("_summary_management","xnat:projectData",$project.getId()))</p>
+                        <p>#parse($turbineUtils.getTemplateName("_summary_management","xnat:projectData",$projectId))</p>
                     </div>
                     <div id="othermgmt" class="pad10 project-manage-tab-content">
-                        <p>#parse($turbineUtils.getTemplateName("_summary_manage","xnat:projectData",$project.getId()))</p>
+                        <p>#parse($turbineUtils.getTemplateName("_summary_manage","xnat:projectData",$projectId))</p>
                     </div>
                     <div id="tab4">
-                        <p>#parse($turbineUtils.getTemplateName("_summary_pipeline","xnat:projectData",$project.getId()))</p>
+                        <p>#parse($turbineUtils.getTemplateName("_summary_pipeline","xnat:projectData",$projectId))</p>
                     </div>
             #end
             #foreach($tab in $tabs)
@@ -138,7 +145,7 @@
         window.summaryTabView = new YAHOO.widget.TabView('projectSummary');
         var oButton1 = new YAHOO.widget.Button("button1");
         var oButton2 = new YAHOO.widget.Button("button2");
-        #if($data.getSession().getAttribute("userHelper").isOwner($project.getId()) || $turbineUtils.isSiteAdmin($user))
+        #if($data.getSession().getAttribute("userHelper").isOwner($projectId) || $turbineUtils.isSiteAdmin($user))
             var oButton3 = new YAHOO.widget.Button("button3");
             var oButton4 = new YAHOO.widget.Button("button4");
             var oButton5 = new YAHOO.widget.Button("button5");

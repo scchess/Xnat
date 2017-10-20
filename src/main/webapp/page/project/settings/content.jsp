@@ -1,12 +1,34 @@
 <%@ page contentType="text/html" pageEncoding="UTF-8" trimDirectiveWhitespaces="true" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="pg" tagdir="/WEB-INF/tags/page" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 
 <pg:init/>
 <pg:jsvars/>
 
 <c:url var="SITE_ROOT" value=""/>
 
+<c:set var="projectId" value="${param.id}"/>
+<%--<c:set var="projectOwnerRole" value="${projectId}_owner"/>--%>
+
+<c:catch var="roleError">
+    <sec:authorize access="hasAuthority('${projectId}_owner')">
+        <c:set var="userRole" value="projectOwner"/>
+    </sec:authorize>
+</c:catch>
+
+<c:if test="${not empty roleError}">
+    <small>There was an eror: ${roleError}</small>
+</c:if>
+
+<c:if test="${userRole != 'projectOwner'}">
+    <div class="error">Not authorized.</div>
+</c:if>
+
+<c:if test="${userRole == 'projectOwner'}">
+<%--<c:if test="${pageContext.request.isUserInRole('guest')}">--%>
+    <%--<p>This will be displayed only if the user has the role "guest".</p>--%>
+<%--</c:if>--%>
 <%-- get certain siteConfig settings to determine display of project settings tabs --%>
 <script>
 
@@ -23,6 +45,8 @@
 <style type="text/css">
     #project-settings-header { margin-bottom: 20px; }
 </style>
+
+<%--<script src="${SITE_ROOT}/scripts/xnat/app/projectSettings.js"></script>--%>
 
 <div id="page-wrapper">
     <div class="pad">
@@ -101,28 +125,26 @@
                         // render standard XNAT project settings tabs
                         getProjectSettings().ok(function(obj){
                             this.render(
-                                XNAT.tabs.container//,
-                                //XNAT.app.projectSettings.init
-                            );
-                            this.done(function(){
-                                // render default XNAT project settings tabs
-                                XNAT.tab.activate(XNAT.tab.active, projectSettingsTabs);
-                                // then render plugins' project settings tabs... FOR PLUGINS
-                                XNAT.app.pluginSettings.showTabs = true;
-                                XNAT.app.pluginSettings.hasProjectSettingsTabs = false; // reset every time
-                                XNAT.app.pluginSettings.projectSettingsTabs = projectSettingsTabs;
-                                XNAT.app.pluginSettings.projectSettings(projectSettingsTabs, function(data){
-                                    if (jsdebug) {
-                                        console.log(data);
-                                        console.log(arguments);
-                                    }
-                                    //XNAT.tab.activate(XNAT.tab.active, projectSettingsTabs);
-                                });
+                                XNAT.tabs.container,
+                                function(){
+                                    // render default XNAT project settings tabs
+                                    XNAT.tab.activate(XNAT.tab.active, projectSettingsTabs);
+                                    // then render plugins' project settings tabs... FOR PLUGINS
+                                    XNAT.app.pluginSettings.showTabs = true;
+                                    XNAT.app.pluginSettings.hasProjectSettingsTabs = false; // reset every time
+                                    XNAT.app.pluginSettings.projectSettingsTabs = projectSettingsTabs;
+                                    XNAT.app.pluginSettings.projectSettings(projectSettingsTabs, function(data){
+                                        if (jsdebug) {
+                                            console.log(data);
+                                            console.log(arguments);
+                                        }
+                                        //XNAT.tab.activate(XNAT.tab.active, projectSettingsTabs);
+                                    });
 
-                                // populate values of form panels
+                                    // populate values of form panels
 //                                XNAT.app.projectSettings.init();
 
-                            });
+                                });
                         });
                     },
                     failure: function(){
@@ -138,3 +160,4 @@
 
     </div>
 </div>
+</c:if>
