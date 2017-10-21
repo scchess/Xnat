@@ -282,32 +282,38 @@ var XNAT = getObject(XNAT);
         if (e && e.preventDefault) e.preventDefault();
         var form$ = (form !== undef) ? $$(form) : $$('#project-anon-form');
         var activate = form$.find('#project-anon-enable').prop('checked');
-        // set 'enabled' status
+        // set 'activate=true' so we can save the script content
         submitSettings({
-            url:  projectAnonUrl('script', 'inbody=true&activate=true'),
-            data: form$.find('#project-anon-script').val(),
-            contentType: 'text/plain',
-            processData: false,
+            url: projectAnonUrl('status', 'activate=true'),
             success: function(){
-                if (activate) {
-                    XNAT.ui.banner.top(2000, 'Project anon script saved and enabled.', 'success');
-                }
-                else {
-                    submitSettings({
-                        url: XNAT.url.csrfUrl(projectAnonUrl('status', 'activate=false')),
-                        success: 'Project anon script saved and disabled.',
-                        error: 'An error occurred setting project anon script status.'
-                    });
-                }
+                submitSettings({
+                    url:  projectAnonUrl('script', 'inbody=true'),
+                    data: form$.find('#project-anon-script').val(),
+                    contentType: 'text/plain',
+                    processData: false,
+                    success: function(){
+                        if (activate) {
+                            XNAT.ui.banner.top(2000, 'Project anon script saved and enabled.', 'success');
+                        }
+                        else {
+                            // set 'activate=false' if script is to be disabled
+                            submitSettings({
+                                url: (projectAnonUrl('status', 'activate=false')),
+                                success: 'Project anon script disabled. Script content saved.',
+                                error: 'An error occurred setting project anon script status.'
+                            });
+                        }
+                    },
+                    failure: function(e){
+                        if (jsdebug) {
+                            console.error('error:');
+                            console.error(arguments);
+                        }
+                        XNAT.ui.dialog.message(false, ('An error occurred saving project anon script: ') + '<br><br>' + e);
+                    }
+                });
             },
-            failure: function(e){
-                if (jsdebug) {
-                    console.error('error:');
-                    console.error(arguments);
-                }
-                XNAT.ui.dialog.message(false, ('An error occurred saving project anon script: ') + '<br><br>' + e);
-            },
-            error: 'An error occurred setting project anon script.'
+            error: 'An error occurred setting project anon script status.'
         });
     };
     ////////////////////////////////////////////////////////////////////////////////
@@ -538,19 +544,19 @@ var XNAT = getObject(XNAT);
         //     this.render('#project-settings-tabs-container')
         // });
 
-        var spawnerResolve = XNAT.spawner.resolve('xnat:projectSettings/tabs');
-
-        spawnerResolve.render('#project-settings-tabs-container', function(){
-            console.log('hi there')
-            //XNAT.tab.activate(XNAT.tab.active, XNAT.tabs.container);
-        });
+        // var spawnerResolve = XNAT.spawner.resolve('xnat:projectSettings/tabs');
+        //
+        // spawnerResolve.render('#project-settings-tabs-container', function(){
+        //     console.log('hi there')
+        //     //XNAT.tab.activate(XNAT.tab.active, XNAT.tabs.container);
+        // });
 
         // // projectSettings.getQuarantineCode();
         // // projectSettings.getPrearhchiveCode();
-        // projectSettings.getProjectAnonScript();
-        // projectSettings.getSeriesImportFilter();
-        // projectSettings.getDicomConfig();
-        // projectSettings.getPetTracers();
+        projectSettings.getProjectAnonScript();
+        projectSettings.getSeriesImportFilter();
+        projectSettings.getDicomConfig();
+        projectSettings.getPetTracers();
         // // etc...
         //
         // var scanTypeMappingRadios = $$('?scan_type_mapping');

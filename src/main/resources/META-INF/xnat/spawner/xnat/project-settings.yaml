@@ -1,30 +1,11 @@
 # project settings tabs
 
 root:
-    tag: div
-    contents:
-        ${container}
-        ${projectSettingsJS}
-
-container:
-    tag: "div#project-settings-tabs-container"
-
-# this JS will spawn the 'tabs' element
-projectSettingsJS:
-    tag: script
-    src: "/scripts/xnat/app/projectSettings.js"
-
-projectSettingsInit:
-    tag: script
-    content: >
-        XNAT.app.projectSettings.init()
-
-
-tabs:
     kind: tabs
     groups:
         projectAdmin: Project Administration
     contents:
+        ${projectSettingsJS}
         ${quarantine}
         ${prearchive}
         ${projectAnon}
@@ -33,6 +14,7 @@ tabs:
         ${dicomPETMR}
         ${notifications}
         ${scanType}
+        ${projectSettingsInit}
 
 # define tabs
 
@@ -401,6 +383,19 @@ projectResourceSettings:
     contents:
         projectResourcSettingsTemplate:
             template: 'id=project-resource-settings-template'
+
+
+
+# projectSettings.js file
+projectSettingsJS:
+    tag: "script|src=/scripts/xnat/app/projectSettings.js"
+
+
+projectSettingsInit:
+    tag: script
+    content: >
+        XNAT.app.projectSettings.init()
+
 
 
 # DEMO TAB

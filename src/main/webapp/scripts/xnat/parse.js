@@ -36,7 +36,8 @@ var XNAT = getObject(XNAT);
 
     // $? = do REST call and use returned value
     // value: '$? /data/stuff/thing'
-    REGEX.ajaxPrefix = /^(\$\?|~\/|\/)[:=\s]*/;
+    // value: '~/data/stuff/thing'  // ALWAYS reload data
+    REGEX.ajaxPrefix = /^(\$\?[:=]?\s*|~\/|\/)/;
 
     // $: = specify expected data type for ajax request
     // value: '$? /data/stuff/thing $:json'
@@ -45,7 +46,7 @@ var XNAT = getObject(XNAT);
     // ?? = lookup value from variable in global scope
     // (optionally use colons instead of dots for object path)
     // value: '?? :NAMESPACE:var:name'
-    REGEX.lookupPrefix = /^\?\?[:=\s]*/;
+    REGEX.lookupPrefix = /^\?\?[:=]?\s*/;
 
     // {{ NAMESPACE:var:name }} - get value from global variable
     REGEX.lookupTest = /^{{.+}}$/;
@@ -54,15 +55,15 @@ var XNAT = getObject(XNAT);
 
     // #? = execute function by name
     // value: "#? NS.func.name()"
-    REGEX.fnPrefix = /^#\?[:=\s]*/;
+    REGEX.fnPrefix = /^#\?[:=]?\s*/;
 
     REGEX.fnTest = /^#\?.+(\(\))*$/;
-    REGEX.fnTrim = /^(#\?[:=\s]*)|(\(\))$/g;
-    REGEX.fnReplace = /^#\?[:=\s]*(.+)\s*\(\)$/;
+    REGEX.fnTrim = /^(#\?[:=]?\s*)|(\(\))$/g;
+    REGEX.fnReplace = /^#\?[:=]?\s*(.+)\s*\(\)$/;
 
     // !? = use result of JS eval() from the supplied string
     // value: "!? (function(){ return $('#thing').val() })()"
-    REGEX.evalPrefix = /^!\?[:=\s]*/;
+    REGEX.evalPrefix = /^!\?[:=]?\s*/;
 
     // (( evalString )) - return result of eval() using enclosed string
     REGEX.evalTest = /^\(\(.+\)\)$/;
@@ -70,7 +71,8 @@ var XNAT = getObject(XNAT);
     REGEX.evalReplace = /\(\(\s*(.+)\s*\)\)/;
 
     // special syntax to get/set form input values
-    // value: '$? /data/thing | :ResultSet:Result:0 > [[yerInput]]'
+    // value: '$? /data/thing $:text > [[yerInput]]'
+    // value: '$? /data/stuff | :ResultSet:Result:0 > [[yerInput]]'
     REGEX.setInputValue = />\s*\[\[(.+)]]/;
     REGEX.getInputValue = /<\s*\[\[(.+)]]/;
     REGEX.inputValueTest = /[><]+\s*\[\[.+]]/;
@@ -88,6 +90,7 @@ var XNAT = getObject(XNAT);
      * @returns {Boolean}
      */
     function parseable(value){
+        if (!value) return false;
         var VAL = (value + '').trim();
         // a 'parseable' string MUST start with
         // one of these: ??  !?  #?  $?  ~/  {{  ((
@@ -156,7 +159,7 @@ var XNAT = getObject(XNAT);
      */
     Parser.fn.parseable = function(it){
         this.input = it || this.input;
-        return parseable(it);
+        return this.input ? parseable(this.input) : false;
     };
 
 
@@ -187,6 +190,7 @@ var XNAT = getObject(XNAT);
         doCallback.call(this, fn, 'always');
         return this;
     };
+    Parser.fn.complete = Parser.fn.always;
 
 
 
@@ -299,7 +303,8 @@ var XNAT = getObject(XNAT);
         var obj = this;
         // lookup value using XHR?
         // $? /path/to/data
-        // $? /path/to/stuff | $.:ResultSet:Result:0
+        // $? /path/to/stuff | :ResultSet:Result:0
+        // $? /path/to/stuff | $.ResultSet.Result[0]
         // $? /path/to/other $:xml
         if (REGEX.ajaxPrefix.test(val)) {
 
@@ -322,6 +327,7 @@ var XNAT = getObject(XNAT);
                 if (REGEX.useXPath.test(obj.path)) {
                     obj.lookupMethod = function(data, path){
                         // return jsel(data).selectAll(path);
+                        // JSON.search is from DefiantJS, NOT a native method
                         return JSON.search.call(JSON, data, path);
                     };
                 }
