@@ -216,7 +216,7 @@ var XNAT = getObject(XNAT || {});
 
         // add an id to the outer panel element if present
         if (opts.id || opts.element.id) {
-            _panel.id = (opts.id || opts.element.id) + '-panel';
+            _panel.id = (opts.id || opts.element.id);
         }
 
         return {
@@ -528,10 +528,6 @@ var XNAT = getObject(XNAT || {});
 
         if (opts.onsubmit) {
             opts.element.onsubmit = opts.onsubmit;
-        }
-
-        if (opts.contentType) {
-            opts.element.enctype = opts.contentType;
         }
 
         if ('params' in opts){
@@ -1001,7 +997,7 @@ var XNAT = getObject(XNAT || {});
 
         // add an id to the outer panel element if present
         if (opts.id || opts.element.id) {
-            multiForm.id = opts.id || (opts.element.id + '-panel');
+            multiForm.id = opts.id || (opts.element.id);
         }
 
         return {

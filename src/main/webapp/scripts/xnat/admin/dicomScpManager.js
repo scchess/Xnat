@@ -168,7 +168,7 @@ var XNAT = getObject(XNAT || {});
             okLabel: 'Save',
             okAction: function(obj){
                 // the form panel is 'dicomScpEditorTemplate' in site-admin-element.yaml
-                var $form = obj.$modal.find('#dicom-scp-editor-panel');
+                var $form = obj.$modal.find('#dicom-scp-editor');
                 var $title = $form.find('#scp-title');
                 var $port = $form.find('#scp-port');
                 console.log(item.id);
