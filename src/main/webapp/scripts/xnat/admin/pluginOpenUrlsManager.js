@@ -70,9 +70,9 @@ $(function(){
 			};
 			urlPanel.urlPanel["footer"] = false;
 		}
-		XNAT.spawner.spawn(urlPanel).render($("#plugin-open-urls-config-panel"));
-		$("#plugin-open-urls-config-panel").css("border","none");
-		$("#plugin-open-urls-config-panel").children(".panel-body").css("display","none");
+		XNAT.spawner.spawn(urlPanel).render($("#plugin-open-urls-config"));
+		$("#plugin-open-urls-config").css("border","none");
+		$("#plugin-open-urls-config").children(".panel-body").css("display","none");
 
 	}
 

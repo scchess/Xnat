@@ -864,6 +864,7 @@ notifications:
 themeManagement:
     kind: panel
     name: themeManagement
+    id: theme-management-panel
     label: Theme Management
     footer: false
     contents:

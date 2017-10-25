@@ -74,8 +74,9 @@
     //
     var inputTags = inputTypes.map(function(type){
         return 'input|' + type;
-    });
-
+    }).concat(inputTypes.map(function(type){
+        return 'input:' + type;
+    }));
 
     // can the value be reasonably used as a string?
     function stringable(val){
@@ -146,6 +147,7 @@
 
     function appendChildren(el, children, fn){
         [].concat(children).forEach(function(child){
+            if (!child) return;
             // each 'child' can be an array of
             // spawn arrays...
             if (Array.isArray(child)){
@@ -161,6 +163,8 @@
                     el.appendChild(child.jquery ? child[0] : child);
                 }
                 catch (e) {
+                    console.error(e);
+                    console.log(child);
                     // try appending with jQuery
                     // if native .appendChild() fails
                     if (window.jQuery) {
