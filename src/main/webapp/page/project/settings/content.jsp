@@ -2,6 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="pg" tagdir="/WEB-INF/tags/page" %>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <pg:init/>
 <pg:jsvars/>
@@ -12,20 +13,47 @@
 <%--<c:set var="projectOwnerRole" value="${projectId}_owner"/>--%>
 
 <c:catch var="roleError">
-    <sec:authorize access="hasAuthority('${projectId}_owner')">
-        <c:set var="userRole" value="projectOwner"/>
-    </sec:authorize>
+
+    <c:set var="projectOwner" value="${projectId}_owner"/>
+
+    <%-- site admin gets a free pass --%>
+    <c:if test="${sessionScope.isAdmin}">
+        <c:set var="userRole" value="projectAdmin"/>
+    </c:if>
+
+    <%-- test for 'real' project ownership --%>
+    <c:if test="${empty userRole}">
+        <sec:authorize access="hasAuthority('${projectOwner}')">
+            <c:set var="userRole" value="projectAdmin"/>
+        </sec:authorize>
+    </c:if>
+
+    <%-- test for existence of '*_owner' in list of groups for logged in user --%>
+    <c:if test="${empty userRole}">
+        <c:import url="/xapi/users/${sessionScope.username}/groups" var="userGroups"/>
+        <%-- add quotes to *_owner group name --%>
+        <c:set var="ownerGroup" value='"${projectOwner}"'/>
+        <c:if test="${fn:contains(userGroups, ownerGroup)}">
+            <!-- new project owner -->
+            <script>
+                console.log('new project owner');
+                console.log('${ownerGroup}');
+            </script>
+            <c:set var="userRole" value="projectAdmin"/>
+        </c:if>
+    </c:if>
+
 </c:catch>
 
 <c:if test="${not empty roleError}">
     <small>There was an eror: ${roleError}</small>
 </c:if>
 
-<c:if test="${userRole != 'projectOwner'}">
+<c:if test="${userRole != 'projectAdmin'}">
     <div class="error">Not authorized.</div>
 </c:if>
 
-<c:if test="${userRole == 'projectOwner'}">
+<c:if test="${userRole == 'projectAdmin'}">
 <%--<c:if test="${pageContext.request.isUserInRole('guest')}">--%>
     <%--<p>This will be displayed only if the user has the role "guest".</p>--%>
 <%--</c:if>--%>
