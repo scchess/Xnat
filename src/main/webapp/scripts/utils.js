@@ -388,7 +388,7 @@ jQuery.fn.only = function(eventName, selectorOrCallback, callback){
 
     function modifiedCallback(e, fn){
         e.preventDefault();
-        e.stopImmediatePropagation();
+        // e.stopImmediatePropagation();
         return fn.call(this, e);
     }
 
@@ -412,7 +412,7 @@ jQuery.fn.only = function(eventName, selectorOrCallback, callback){
 
 // create new case-insensitive :contains selector
 // usage - jq('.this_selector:containsNC("hello")').click(function() { ... });
-jQuery.extend(jQuery.expr[":"], {
+jQuery.extend((jQuery.expr.pseudos || jQuery.expr)[":"], {
     "containsNC": function (elem, i, match, array) {
         return (elem.textContent || elem.innerText || "").toLowerCase().indexOf((match[3] || "").toLowerCase()) >= 0;
     }
@@ -529,15 +529,28 @@ jQuery.loadScript = function (url, arg1, arg2) {
 // $('#element').changeVal('foo');
 // sets '#element' to 'foo' then triggers
 // 'onchange' event if it's different than before
-$.fn.changeVal = function(){
-    var prev;
-    if ( arguments.length > 0 ){
-        prev = this.val();
+$.fn.changeVal = function(newVal){
+
+    // if (jsdebug) console.log('$.fn.changeVal');
+
+    if (this.length && typeof newVal !== 'undefined') {
+
+        var elem = this[0];
+        var prev = '';
+
+        if (/select/i.test(elem.tagName)) {
+            prev = elem.options[elem.options.selectedIndex].value;
+        }
+        else {
+            prev = this.val();
+        }
+
+        if (prev+'' !== newVal+'') {
+            this.val(newVal).trigger('change');
+            if (jsdebug) console.log('value changed');
+        }
     }
-    var result = $.fn.val.apply(this, arguments).val();
-    if ( arguments.length > 0 && prev !== result ){
-        this.trigger('change');
-    }
+
     return this;
 };
 
@@ -613,12 +626,16 @@ $.fn.drags = function (opt) {
     var $el = (!opt.handle) ? this : this.find(opt.handle);
 
     $el.css('cursor', opt.cursor).on('mousedown', function (e) {
-        e.preventDefault(); // disable selection
 
-        var $drag =
-            (!opt.handle) ?
-                $(this).addClass('draggable') :
-                $(this).addClass('active-handle').parent().addClass('draggable');
+        var $drag = $(this);
+
+        if (!opt.handle) {
+            $drag.addClass('draggable');
+        }
+        else {
+            $drag.addClass('active-handle');
+            $drag.parent().addClass('draggable');
+        }
 
         var z_idx = $drag.css('z-index')-0,
             drg_h = $drag.outerHeight(),
@@ -626,14 +643,18 @@ $.fn.drags = function (opt) {
             pos_y = $drag.offset().top + drg_h - e.pageY,
             pos_x = $drag.offset().left + drg_w - e.pageX;
 
-        $drag.parents().on('mousemove', function (e) {
-            $(this).find('.draggable').css({ 'right': 'auto', 'bottom': 'auto' }).offset({
+        $(document.body).off('mousemove.drags').on('mousemove.drags', function (e) {
+            var $dragged = $(this).find('.draggable');
+            $dragged.css({ 'right': 'auto', 'bottom': 'auto' }).offset({
                 top: e.pageY + pos_y - drg_h,
                 left: e.pageX + pos_x - drg_w
-            }).on('mouseup', function () {
+            });
+            $dragged.on('mouseup', function () {
                 $(this).removeClass('draggable')/*.css('z-index', z_idx)*/;
             });
         });
+
+        e.preventDefault(); // disable selection
 
     });
 
@@ -933,44 +954,94 @@ function sortElements( _parent, _child ){
 
 // force a jQuery object and allow use of
 // non-standard id names with special prefix:
-// $$('@#weird:id/that.XNAT.will[create]').addClass('cray-cray');
+// $$('id=weird:id/that.XNAT.will[create]').addClass('cray-cray');
 function $$( el, id_prefix ){
-    // can't decide on a prefix for selection by id
-    // use ONE of these:
-    // id= | id: | @id= | @# | @= | @: | @ | #= | #: | #/
-    var ALL_PREFIX = /^!\*/,  // $$('!*div.foo') --> return raw 'div.foo' elements as an array
-        RAW_ID     = /^!#/,   // $$('!#foo')     --> return (one) raw element with id 'foo'
-        NAME_RAW   = /^!\?/,  // $$('!?foo')     --> return raw elements with [name="foo"]
-        NAME_$     = /^\?/,   // $$('?foo')      --> return wrapped elements with [name="foo"]
-        RAW_PREFIX = /^!/,    // $$('!div.foo')  --> return FIRST raw 'div.foo' element
-        ID_PREFIX  = /^(id=|id:|@id=|@#|@=|@:|@|#=|#:|#\/)/;
+    // use ONE of these to get element by id:
+    // id= | id: | @id= | #= | #: | #/
+    var QUERY      = /^!/,             // $$('!div.foo')  --> return FIRST raw 'div.foo' element
+        QUERY_ALL  = /^!\*/,           // $$('!*div.foo') --> return raw 'div.foo' element collection
+        BY_NAME    = /^!*\?/,          // $$('!?foo')     --> return raw elements with [name="foo"]
+        // NAME$      = /^\?/,            // $$('?foo')      --> return wrapped elements with [name="foo"]
+        TAGNAME    = /^!*~/,           // $$('!~div')     --> return all <DIV> elements
+        // TAG$       = /^~/,             // $$('~div')      --> return wrapped <DIV> elements
+        ATTR       = /^(!*@)/,         // $$('@disabled') --> return all elements with [disabled] attribute
+        CLASSNAME  = /^(!\.+|\.\.)/,   // $$('!.foo bar') --> return all elements with [class="foo bar"]
+        // CLASS$     = /^\.\./,          // $$('..foo.bar') --> return wrapped elements with [class="foo bar"]
+        // BY_ID      = /^!#/,            // $$('!#foo')     --> return (one) raw element with id 'foo'
+        BY_ID      = id_prefix || /^!*(id=|id:|@id=|#=|#:|#\/)/;
+
+    var SPECIAL = /^((!*[*?@~])|!\.|\.\.)/;
+    var selector = '';
+    var use$ = true;
+    var selected = null;
+
     if (!el || el.jquery){
         return el;
     }
-    if (typeof el == 'string'){
-        if (el.search(ALL_PREFIX) === 0){
-            return document.querySelectorAll(el.replace(ALL_PREFIX, ''));
+
+    if ( typeof el === 'string' && (SPECIAL.test(el) || BY_ID.test(el)) ){
+
+        selector = el.trim();
+
+        if (QUERY_ALL.test(selector)) {
+            return document.querySelectorAll(selector.replace(QUERY_ALL, ''));
         }
+
+        // get raw or jQuery-wrapped element?
+        if (selector.charAt(0) === '!') {
+            // strip '!' prefix
+            selector = selector.slice(1);
+            use$ = false;
+        }
+
         // pass empty string or null as the second argument
         // to get the bare element by id (no jQuery)
-        if (id_prefix === '' || id_prefix === null || el.search(RAW_ID) === 0){
-            return document.getElementById(el.replace(RAW_ID,''));
+        if (id_prefix === '' || id_prefix === null || selector.search(BY_ID) === 0){
+            selector = selector.replace(BY_ID, '').trim();
+            selected = document.getElementById(selector);
         }
-        if (el.search(NAME_RAW) === 0){
-            return document.getElementsByName(el.replace(NAME_RAW, ''));
+        // getElementById
+        else if (selector.search(BY_ID) === 0){
+            selector = selector.replace(BY_ID, '').trim();
+            selected = document.getElementById(selector)
         }
-        if (el.search(NAME_$) === 0){
-            return $(document.getElementsByName(el.replace(NAME_$, '')));
+        // getElementsByName
+        else if (BY_NAME.test(selector)){
+            selector = selector.replace(BY_NAME, '').trim();
+            selected = document.getElementsByName(selector);
         }
-        if (el.search(RAW_PREFIX) === 0){
-            return document.querySelector(el.replace(RAW_PREFIX,''));
+        // getElementsByTagName
+        else if (TAGNAME.test(selector)){
+            selector = selector.replace(TAGNAME, '').trim();
+            selected = document.getElementsByTagName(selector);
         }
-        id_prefix = id_prefix || ID_PREFIX;
-        if (el.search(id_prefix) === 0){
-            return $(document.getElementById(el.replace(id_prefix,'')));
+        // getElementsByClassName
+        else if (CLASSNAME.test(selector)){
+            selector = selector.replace(CLASSNAME, '').replace(/\s*\.\s*/, ' ').trim();
+            selected = document.getElementsByClassName(selector);
         }
+        // querySelector
+        else if (QUERY.test(selector)){
+            selector = selector.replace(QUERY,'').trim();
+            selected = document.querySelector(selector);
+        }
+        // querySelectorAll using attribute name/value
+        else if (ATTR.test(selector)) {
+            selector = '[' + selector.replace(ATTR, '').trim() + ']';
+            selected = document.querySelectorAll(selector);
+        }
+        // querySelectorAll -- last resort
+        else {
+            selected = document.querySelectorAll(selector);
+        }
+
+        // return jQuery-wrapped or raw element/collection
+        return use$ ? $(selected) : selected;
+
     }
+
     return $(el);
+
 }
 
 

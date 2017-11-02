@@ -800,7 +800,7 @@ ${bodyTop}
 
     <script>
 
-        XNAT.app.customPage.container = $$('id=view-page');
+        XNAT.app.customPage.container = $$('#view-page');
 
         var body$ = $(document.body);
 

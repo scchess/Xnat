@@ -1376,3 +1376,27 @@ function waitForIt(interval, test, callback){
     }, interval || 10);
     return waiting;
 }
+
+// wait for element to show up in the DOM
+// then execute callback
+function waitForElement(interval, selector, callback){
+    var counter = 0;
+    var $element;
+    waitForIt(interval, function(){
+        if (++counter > 1000) {
+            return true;
+        }
+        if (jsdebug) {
+            console.log('waiting for element...')
+            console.log(selector)
+        }
+        return ($element = $$(selector)).length
+    }, function(){
+        if (counter > 1000) {
+            console.warn("Can't find element: " + selector);
+        }
+        else {
+            callback.call($element[0], $element);
+        }
+    })
+}

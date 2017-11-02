@@ -73,7 +73,7 @@ window.xmodal = getObject(window.xmodal);
     dialog.updateUIDs = function(){
         var uids = [];
         var openDialogs = [];
-        dialog.topUID = '';
+        // dialog.topUID = '';
         dialog.uids.forEach(function(uid){
             if (!dialog.dialogs[uid]) return;
             if (uids.indexOf(uid) > -1) return;
@@ -84,12 +84,12 @@ window.xmodal = getObject(window.xmodal);
                 openDialogs.push(uid);
                 // redefine topUID each time...
                 // ...the last one will 'stick'
-                dialog.topUID = uid;
+                // dialog.topUID = uid;
             }
         });
-        if (dialog.dialogs[dialog.topUID]) {
-            dialog.dialogs[dialog.topUID].toTop();
-        }
+        // if (dialog.dialogs[dialog.topUID]) {
+        //     dialog.dialogs[dialog.topUID].toTop();
+        // }
         dialog.uids = uids;
         dialog.openDialogs = openDialogs;
     };
@@ -319,13 +319,13 @@ window.xmodal = getObject(window.xmodal);
             this.dialog$ = $.spawn('div.xnat-dialog', {
                 id: this.id || this.uid, // use given id as-is or use uid-dialog
                 attr: { tabindex: '0' },
-                style: this.dialogStyle,
-                on: {
-                    mousedown: function(){
-                        // only bring non-modal dialogs to top onclick
-                        _this.toTop(false);
-                    }
-                }
+                // on: {
+                //     mousedown: function(){
+                //         // only bring non-modal dialogs to top onclick
+                //         _this.toTop(false);
+                //     }
+                // },
+                style: this.dialogStyle
             });
             this.$modal = this.__modal = this.dialog$;
 
@@ -334,6 +334,10 @@ window.xmodal = getObject(window.xmodal);
                 // header (title) bar
                 this.header$ =
                     $.spawn('div.xnat-dialog-header.title');
+
+                this.header$.on('click', function(){
+                    _this.toTop(false)
+                });
 
                 // set title: false to render just a 'handle'
                 if (this.title !== false) {
@@ -496,6 +500,10 @@ window.xmodal = getObject(window.xmodal);
                 this.footer$ = $.spawn('div.footer.xnat-dialog-footer', {
                     style: { height: this.footerHeightPx }
                 }).append(this.footerInner$);
+
+                this.footer$.on('click', function(){
+                    _this.toTop(false)
+                });
 
             }
             else {
@@ -751,6 +759,7 @@ window.xmodal = getObject(window.xmodal);
         }
 
         this.setHeight();
+        this.toTop();
 
         addKeyHandler();
 
@@ -1396,7 +1405,7 @@ window.xmodal = getObject(window.xmodal);
 
         config.beforeShow = function(obj){
             config.content$.load(config.url, function(){
-                obj.setHeight(config.content$.height() + 100)
+                obj.setHeight(config.height || (config.content$.height() + 100))
             });
         };
 
@@ -1417,7 +1426,14 @@ window.xmodal = getObject(window.xmodal);
             if (dialogOpts) {
                 config = parseOptions(dialogOpts);
             }
+            config.url = this$.data('dialog').slice(1);
+            dialog.load(config)
         });
+
+        // body$.on('mousedown', 'div.xnat-dialog', function(e){
+        //     dialog.dialogs[this.id].toTop(false);
+        // });
+
         dialog.loadingbar = dialog.loadingBar = dialog.loading().hide();
     });
 
