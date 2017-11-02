@@ -25,7 +25,7 @@ var XNAT = getObject(XNAT);
     }
 }(function(){
 
-    var undefined, textTypes,
+    var undef, textTypes,
         numberTypes, otherTypes,
         $ = jQuery || null, // check and localize
         input_, input;
@@ -72,130 +72,130 @@ var XNAT = getObject(XNAT);
         return $el;
     }
 
-    // set value of a SINGLE element
-    function setValue(input, value){
-
-        var $input = $$(input);
-        var inputs = $input.toArray();
-        var _input = $input[0];
-        var _value = firstDefined(value, $input.val() || '');
-
-        _value = strReplace(_value);
-
-        // don't set values of inputs with EXISTING
-        // values that start with "@?"
-        // -- those get parsed on submission
-        if (stringable(_value) && /^(@\?)/.test(_value+'')) {
-            return;
-        }
-
-        // lookup a value if it starts with '??'
-        // tolerate '??=' or '??:' syntax
-        var lookupPrefix = /^\?\?[:=\s]*/;
-        if (_value && lookupPrefix.test(_value+'')) {
-            _value = _value.replace(lookupPrefix, '').trim();
-            _value = lookupObjectValue(window, _value);
-            inputs.forEach(function(_input){
-                // $(_input).changeVal(_value);
-                changeValue(_input, _value)
-            });
-        }
-
-        // try to get value from XHR
-        // $? /path/to/json/data $:json
-        // $? /path/to/text/data $:text
-        var ajaxPrefix = /^\$\?[:=\s]*/;
-        var ajaxUrl = '';
-        var ajaxDataType = '';
-        if (ajaxPrefix.test(_value)) {
-            ajaxUrl = _value.replace(ajaxPrefix, '').split('$:')[0].trim();
-            ajaxDataType = (_value.split('$:')[1] || 'text').trim();
-            // console.log(ajaxDataType);
-            _value = '';
-            return XNAT.xhr.get({
-                url: XNAT.url.rootUrl(ajaxUrl),
-                dataType: ajaxDataType,
-                success: function(val, status, xhr){
-                    // _value = xhr.responseText;
-                    _value = val;
-                    // format JSON
-                    if (/json/i.test(ajaxDataType)) {
-                        if (typeof val === 'string') {
-                            val = JSON.parse(val);
-                        }
-                        _value = isArray(val) ? val.join(', ') : JSON.stringify(val, null, 2);
-                    }
-                    // $input.val('');
-                    // console.log(_input);
-                    inputs.forEach(function(_input){
-                        changeValue(_input, _value)
-                    })
-                },
-                error: function(){
-                    console.error(arguments[0]);
-                    console.error(arguments[1]);
-                    console.error(arguments[2]);
-                }
-            });
-        }
-
-        // get value with js eval
-        // !? XNAT.data.context.projectId.toLowerCase();
-        var evalPrefix = /^!\?[:=\s]*/;
-        var evalString = '';
-        if (evalPrefix.test(_value)) {
-            evalString = _value.replace(evalPrefix, '').trim();
-            _value = eval(evalString);
-            inputs.forEach(function(_input){
-                // $input.changeVal(_value);
-                changeValue(_input, _value)
-            });
-            // setValue(_input, eval('(' + evalString + ')'));
-        }
-
-        if (Array.isArray(_value)) {
-            _value = _value.join(', ');
-            $input.addClass('array-list')
-        }
-        else {
-            _value = stringable(_value) ? _value+'' : JSON.stringify(_value);
-        }
-
-        // _value = realValue((_value+'').replace(/^("|')?|("|')?$/g, '').trim());
-
-        if (/checkbox/i.test(_input.type)) {
-            // allow values other than 'true' or 'false'
-            _input.checked = (_input.value && _value && isEqual(_input.value, _value)) ? true : _value;
-            if (_input.value === '') {
-                _input.value = _value;
-            }
-            // changeValue($input, _value);
-        }
-        else if (/radio/i.test(_input.type)) {
-            _input.checked = isEqual(_input.value, _value);
-            if (_input.checked) {
-                $input.trigger('change');
-            }
-        }
-        else {
-            // console.log('changeValue');
-            changeValue($input, _value);
-        }
-
-        // add value to [data-value] attribute
-        // (except for textareas - that could get ugly)
-        if (!/textarea/i.test(_input.tagName) && !/password/i.test(_input.type)){
-            if (isArray(_value) || stringable(_value)) {
-                $input.dataAttr('value', _value);
-            }
-        }
-
-        // console.log('_value');
-        // console.log(_value);
-
-        return _value;
-
-    }
+    // // set value of a SINGLE element
+    // function setValueX(input, value){
+    //
+    //     var $input = $$(input);
+    //     var inputs = $input.toArray();
+    //     var _input = $input[0];
+    //     var _value = firstDefined(value, $input.val() || '');
+    //
+    //     _value = strReplace(_value);
+    //
+    //     // don't set values of inputs with EXISTING
+    //     // values that start with "@?"
+    //     // -- those get parsed on submission
+    //     if (stringable(_value) && /^(@\?)/.test(_value+'')) {
+    //         return;
+    //     }
+    //
+    //     // lookup a value if it starts with '??'
+    //     // tolerate '??=' or '??:' syntax
+    //     var lookupPrefix = /^\?\?[:=\s]*/;
+    //     if (_value && lookupPrefix.test(_value+'')) {
+    //         _value = _value.replace(lookupPrefix, '').trim();
+    //         _value = lookupObjectValue(window, _value);
+    //         inputs.forEach(function(_input){
+    //             // $(_input).changeVal(_value);
+    //             changeValue(_input, _value)
+    //         });
+    //     }
+    //
+    //     // try to get value from XHR
+    //     // $? /path/to/json/data $:json
+    //     // $? /path/to/text/data $:text
+    //     var ajaxPrefix = /^\$\?[:=\s]*/;
+    //     var ajaxUrl = '';
+    //     var ajaxDataType = '';
+    //     if (ajaxPrefix.test(_value)) {
+    //         ajaxUrl = _value.replace(ajaxPrefix, '').split('$:')[0].trim();
+    //         ajaxDataType = (_value.split('$:')[1] || 'text').trim();
+    //         // console.log(ajaxDataType);
+    //         _value = '';
+    //         return XNAT.xhr.get({
+    //             url: XNAT.url.rootUrl(ajaxUrl),
+    //             dataType: ajaxDataType,
+    //             success: function(val, status, xhr){
+    //                 // _value = xhr.responseText;
+    //                 _value = val;
+    //                 // format JSON
+    //                 if (/json/i.test(ajaxDataType)) {
+    //                     if (typeof val === 'string') {
+    //                         val = JSON.parse(val);
+    //                     }
+    //                     _value = isArray(val) ? val.join(', ') : JSON.stringify(val, null, 2);
+    //                 }
+    //                 // $input.val('');
+    //                 // console.log(_input);
+    //                 inputs.forEach(function(_input){
+    //                     changeValue(_input, _value)
+    //                 })
+    //             },
+    //             error: function(){
+    //                 console.error(arguments[0]);
+    //                 console.error(arguments[1]);
+    //                 console.error(arguments[2]);
+    //             }
+    //         });
+    //     }
+    //
+    //     // get value with js eval
+    //     // !? XNAT.data.context.projectId.toLowerCase();
+    //     var evalPrefix = /^!\?[:=\s]*/;
+    //     var evalString = '';
+    //     if (evalPrefix.test(_value)) {
+    //         evalString = _value.replace(evalPrefix, '').trim();
+    //         _value = eval(evalString);
+    //         inputs.forEach(function(_input){
+    //             // $input.changeVal(_value);
+    //             changeValue(_input, _value)
+    //         });
+    //         // setValue(_input, eval('(' + evalString + ')'));
+    //     }
+    //
+    //     if (Array.isArray(_value)) {
+    //         _value = _value.join(', ');
+    //         $input.addClass('array-list')
+    //     }
+    //     else {
+    //         _value = stringable(_value) ? _value+'' : JSON.stringify(_value);
+    //     }
+    //
+    //     // _value = realValue((_value+'').replace(/^("|')?|("|')?$/g, '').trim());
+    //
+    //     if (/checkbox/i.test(_input.type)) {
+    //         // allow values other than 'true' or 'false'
+    //         _input.checked = (_input.value && _value && isEqual(_input.value, _value)) ? true : _value;
+    //         if (_input.value === '') {
+    //             _input.value = _value;
+    //         }
+    //         // changeValue($input, _value);
+    //     }
+    //     else if (/radio/i.test(_input.type)) {
+    //         _input.checked = isEqual(_input.value, _value);
+    //         if (_input.checked) {
+    //             $input.trigger('change');
+    //         }
+    //     }
+    //     else {
+    //         // console.log('changeValue');
+    //         changeValue($input, _value);
+    //     }
+    //
+    //     // add value to [data-value] attribute
+    //     // (except for textareas - that could get ugly)
+    //     if (!/textarea/i.test(_input.tagName) && !/password/i.test(_input.type)){
+    //         if (isArray(_value) || stringable(_value)) {
+    //             $input.dataAttr('value', _value);
+    //         }
+    //     }
+    //
+    //     // console.log('_value');
+    //     // console.log(_value);
+    //
+    //     return _value;
+    //
+    // }
 
 
     // set value(s) of specified input(s)
@@ -277,11 +277,9 @@ var XNAT = getObject(XNAT);
         }
 
         // value should at least be an empty string
-        config.value = config.value || '';
+        config.value = firstDefined(config.value, '') + '';
 
         _input = spawn('input', config);
-
-        setValue(_input, config.value);
 
         if (labelText) {
             if (/left/i.test(_layout)) {
@@ -303,8 +301,13 @@ var XNAT = getObject(XNAT);
             _label.appendChild(descText);
         }
 
+        // should setting the value be a separate action???
+        if (config.value !== '' && config.value !== undef) {
+            XNAT.form.setValue(_input, config.value);
+        }
+
         // // copy value to [data-*] attribute for non-password inputs
-        config.data.value = (!/password/i.test(config.type)) ? config.value : '!';
+        // config.data.value = (!/password/i.test(config.type)) ? config.value : '!';
         //
         // // lookup a value if it starts with '??'
         // // tolerate '??=' or '??:' syntax
@@ -316,7 +319,7 @@ var XNAT = getObject(XNAT);
         //
         // // lookup a value from a namespaced object
         // // if no value is given
-        // if (config.value === undefined && config.data.lookup) {
+        // if (config.value === undef && config.data.lookup) {
         //     config.value = lookupObjectValue(window, config.data.lookup)
         // }
         //
@@ -605,17 +608,20 @@ var XNAT = getObject(XNAT);
     input.checkbox = function(config){
 
         config = extend(true, {}, config, config.element);
+        config.kind = 'input.checkbox';
 
         var chkbox = input('checkbox', config).element;
         var NAME = chkbox.name || chkbox.title || chkbox.id;
-        var VALUES = config.values || config.options || 'true|false';
+        var VALUES = (config.values || config.options || 'true|false').split('|');
         var proxyId = randomID('prx', false);
+
+
 
         addClassName(chkbox, 'controller');
 
         addDataAttrs(chkbox, {
             name: NAME,
-            values: VALUES,
+            values: VALUES.join('|'),
             proxy: proxyId
         });
 
@@ -626,7 +632,21 @@ var XNAT = getObject(XNAT);
             value: config.value || ''
         });
 
-        return spawn('label', [chkbox, proxy])
+        var spawned = spawn('label', [chkbox, proxy]);
+
+        return {
+            spawned: spawned,
+            element: spawned,
+            get: function(){
+                return spawned
+            },
+            render: function(container){
+                $$(container).append(spawned);
+                return spawned;
+            },
+            checkbox: chkbox,
+            proxy: proxy
+        }
 
     };
     otherTypes.push('checkbox');
@@ -635,9 +655,12 @@ var XNAT = getObject(XNAT);
     input.switchbox = function(config, ckbx){
         config = cloneObject(config);
         config.kind = 'input.switchbox';
+
         var chkbox = ckbx || input('checkbox', config).element;
+
         var NAME = chkbox.name || chkbox.title || chkbox.id;
         var VALUES = config.values || config.options || 'true|false';
+
         var proxy = spawn('input.hidden.proxy', {
             type: 'hidden',
             name: NAME,
@@ -645,14 +668,17 @@ var XNAT = getObject(XNAT);
         });
         chkbox.title = NAME || '';
         chkbox.name = '';
-        addClassName(chkbox, 'switchbox');
+
+        addClassName(chkbox, 'switchbox controller');
+
         var swboxParts = [
             chkbox,
             ['span.switchbox-outer', [['span.switchbox-inner']]],
             ['span.switchbox-on', config.onText||''],
             ['span.switchbox-off', config.offText||''],
             proxy
-        ];
+        ]; //
+
         // return the 'outer' switchbox container
         return spawn(
             'label.switchbox',
@@ -797,7 +823,7 @@ var XNAT = getObject(XNAT);
 
         var textarea = spawn('textarea', opts.element);
 
-        input.setValue(textarea, _val);
+        XNAT.form.setValue(textarea, _val);
 
         return {
             element: textarea,

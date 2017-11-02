@@ -59,6 +59,11 @@ var XNAT = getObject(XNAT);
      */
     function setValue(input, value){
 
+        // don't bother if there's no value
+        if (value === undef) {
+            return;
+        }
+
         var input$ = $$(input);
         var input0 = input$[0];
         var inputTag = input0.tagName;
@@ -69,6 +74,7 @@ var XNAT = getObject(XNAT);
 
         // skip buttons (?)
         if (isButton(input0)) {
+            ////////// RETURN //////////
             return val;
         }
 
@@ -81,6 +87,7 @@ var XNAT = getObject(XNAT);
                 val = value[inputName];
             }
             else {
+                ////////// RETURN //////////
                 // RETURN IF THIS IS NOT THE ELEMENT WE'RE LOOKING FOR
                 return [inputName, val];
             }
@@ -91,31 +98,34 @@ var XNAT = getObject(XNAT);
 
 
         // recursively parse values?
-        var parseVal = XNAT.parse(val);
-        if (parseVal.parseable()) {
+        if (XNAT.parse.parseable(val)) {
             // --- RECURSIVE PARSE RETURN --- //
-            parseVal.success(function(result){
+            XNAT.parse(val).success(function(result){
                 setValue(input$, result);
             });
+            ////////// RETURN //////////
             return [inputName, val];
         }
-
 
         var valString = val !== undef ? (val+'') : '';
         var inputValueString = (inputValue+'');
 
         // add value to [data-value] attribute
-        // (except for textareas - that could get ugly)
-        if (!/textarea/i.test(input0.tagName) && !/password|radio/i.test(input0.type)){
-            // if (isArray(value) || stringable(value)) {
-                input$.dataAttr('value', valString);
-            // }
+        // (except for password fields, radio buttons, and textarea elements)
+        if (!/textarea/i.test(inputTag) && !/password|radio/i.test(inputType)){
+            input$.dataAttr('value', valString);
         }
 
         // set checkboxes and radio buttons to 'checked' if value === inputValue
         if (/checkbox/i.test(inputType)) {
-            input0.checked = (inputValue && val && inputValueString === valString) || !!val;
-            if (input0.value === '') input0.value = val+'';
+            if (/true|false|1|0/i.test(val)) {
+                input0.checked = !!realValue(val);
+                input0.value = val;
+            }
+            else {
+                input0.checked = (inputValue && val && inputValueString === valString) || !!val;
+                if (input0.value === '') input0.value = val+'';
+            }
         }
         else if (/radio/i.test(inputType)){
             input0.checked = inputValueString === valString;
@@ -146,6 +156,36 @@ var XNAT = getObject(XNAT);
     }
 
 
+    function parseInputValue(input$, val, count){
+        count = count || 0;
+        if (count > 100) {
+            console.warn('parseInputValue() called too many times (> 100)');
+            debugger;
+        }
+        if (XNAT.parse.parseable(val)) {
+            XNAT.parse(val).success(function(result){
+                // if val === result, return since nothing was parsed
+                if (val === result) return;
+                if (++count > 100) {
+                    console.warn('XNAT.parse().success() called too many times (> 100)');
+                    debugger;
+                }
+                var obj = this;
+                if (jsdebug) console.log('setValues > parsed');
+                if (obj.inputName) {
+                    if (jsdebug) console.log(obj.inputName);
+                    input$ = input$.filter('[name="' + obj.inputName + '"]');
+                }
+                parseInputValue(input$, result, count++);
+            });
+        }
+        else {
+            input$.each(function(i, input){
+                setValue(input, val);
+            });
+        }
+    }
+
 
     /**
      * Set values for inputs/form(s) with [values]
@@ -154,12 +194,12 @@ var XNAT = getObject(XNAT);
      */
     function setValues(inputs, values){
 
-        console.log('========== setValues ==========');
+        if (jsdebug) console.log('========== setValues ==========');
 
         var inputs$ = $$(inputs);
-        var valObj = null;  // values obj
-        var obj = {};  // output obj
-        var tmp = {};  // temp obj for non-parseable values
+        // var valObj = null;  // values obj
+        // var obj = {};  // output obj
+        // var tmp = {};  // temp obj for non-parseable values
         var form$, form0;
 
         // if [inputs] is a form, gather all inputs from the form
@@ -169,13 +209,27 @@ var XNAT = getObject(XNAT);
             inputs$ = form$.find(':input');
         }
         else {
-            form$ = inputs$.closest('form');
+            form$ = inputs$.first().closest('form');
             form0 = form$[0];
         }
 
-        if (isPlainObject(values)) { valObj = values }
-
-
+        // map object values to inputs with name matching [key]
+        if (isPlainObject(values)) {
+            inputs$.not(':button, :submit, :reset').each(function(i, input){
+                var input$ = $(input);
+                var name = input.name || input.title || input.id;
+                if (name in values) {
+                    parseInputValue(input$, values[name]);
+                }
+                // else {
+                //     parseInputValue(input$, values);
+                // }
+            });
+            // return;
+        }
+        else {
+            parseInputValue(inputs$, values)
+        }
 
 
 
@@ -185,33 +239,6 @@ var XNAT = getObject(XNAT);
 
 
 
-        function parseInputValue(input$, val){
-            if (XNAT.parse.parseable(val)) {
-                XNAT.parse(val).done(function(result){
-                    var obj = this;
-                    console.log('setValues > parsed');
-                    if (obj.inputName) {
-                        console.log(obj.inputName);
-                        input$ = input$.filter('[name="' + obj.inputName + '"]');
-                    }
-                    parseInputValue(input$, result);
-                });
-            }
-            else {
-                setValue(input$, val);
-            }
-        }
-
-        inputs$.not('button').each(function(i, input){
-            var input$ = $(input);
-            var name = input.name || input.title || input.id;
-            if (valObj && name in valObj) {
-                parseInputValue(input$, valObj[name]);
-            }
-            else {
-                parseInputValue(input$, values);
-            }
-        });
 
 
         // // check values for further parseability
@@ -482,16 +509,6 @@ var XNAT = getObject(XNAT);
     Form.fn.setValues = function(obj){
         setValues(this.get$(), obj);
         return this;
-        // if (isPlainObject(obj)) {
-        //     forOwn(obj, function(key, val){
-        //         this.setValue(this.formElements[key], val);
-        //     })
-        // }
-        // else {
-        //     // or...
-        //     // lookup namespaced global var value
-        //     // or do AJAX request for data
-        // }
     };
 
 

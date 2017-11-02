@@ -26,7 +26,7 @@ var XNAT = getObject(XNAT);
     // ??  !?  #?  $?  ~/  {{  ((
     REGEX.parseable = /^(\?\?|!\?|#\?|\$\?|~\/|{{|\(\()/;
 
-    // search for a value at a specific object path location
+    // search for a value at a specific object path location in returned data object
     // value: '$? /data/stuff/thing | :ResultSet:Result:0:contents'   // use lookupObjectValue()
     // value: '$? /data/stuff/thing | /ResultSet/Result/[1]/contents' // use XPath syntax (DefiantJS)
     // value: '$? /data/stuff/thing | $.ResultSet.Result[0]contents'  // use JSONpath syntax
@@ -37,7 +37,7 @@ var XNAT = getObject(XNAT);
     // $? = do REST call and use returned value
     // value: '$? /data/stuff/thing'
     // value: '~/data/stuff/thing'  // ALWAYS reload data
-    REGEX.ajaxPrefix = /^(\$\?[:=]?\s*|~\/|\/)/;
+    REGEX.ajaxPrefix = /^(\$\?[:=]?\s*\/*|~\/|\/)/;
 
     // $: = specify expected data type for ajax request
     // value: '$? /data/stuff/thing $:json'
@@ -52,6 +52,11 @@ var XNAT = getObject(XNAT);
     REGEX.lookupTest = /^{{.+}}$/;
     REGEX.lookupTrim = /^{{\s*|\s*}}$/g;
     REGEX.lookupReplace = /{{\s*(.+)\s*}}/;
+
+    // [[ propertyName ]] - property name to use in returned data object
+    REGEX.useNameTest = /^\[\[.+]]$/;
+    REGEX.useNameTrim = /^\[\[\s*|\s*]]$/g;
+    REGEX.useNameReplace = /\[\[\s*(.+)\s*]]/;
 
     // #? = execute function by name
     // value: "#? NS.func.name()"
@@ -302,6 +307,7 @@ var XNAT = getObject(XNAT);
 
         var obj = this;
         // lookup value using XHR?
+        // ~/path/to/data
         // $? /path/to/data
         // $? /path/to/stuff | :ResultSet:Result:0
         // $? /path/to/stuff | $.ResultSet.Result[0]
@@ -345,8 +351,8 @@ var XNAT = getObject(XNAT);
 
             // do XHR
             obj.request = XNAT.xhr.get({
-                url: XNAT.url.rootUrl(obj.url),
-                dataType: obj.dataType//,
+                url: XNAT.url.rootUrl(obj.url)//,
+                //dataType: obj.dataType//,
                 // success: function(data){
                 //     obj.result = obj.path ? obj.lookupMethod(data, obj.path) : data;
                 //     obj.status = 'success';
@@ -357,6 +363,10 @@ var XNAT = getObject(XNAT);
                 //     obj.status = 'failure';
                 //     obj.fail(failure, arguments);
                 // }
+            });
+
+            obj.request.always(function(){
+                if (jsdebug) console.log(arguments)
             });
 
             var doneCallback = obj.done || obj.success;
@@ -419,12 +429,12 @@ var XNAT = getObject(XNAT);
 
             try {
                 // --- execute the function --- //
-                obj.result = lookupObjectValue(val);
-                if (obj.result === undef) {
+                obj.func = lookupObjectValue(val);
+                if (obj.func === undef) {
                     obj.result = val;
                 }
-                if (isFunction(obj.result)) {
-                    obj.result = obj.result.call(obj);
+                if (isFunction(obj.func)) {
+                    obj.result = obj.func.call(obj);
                 }
                 obj.status = 'success';
                 // call the [success] callback and return 'success/done' method for chaining
@@ -480,7 +490,7 @@ var XNAT = getObject(XNAT);
                 // callbacks.call(obj, success, ['success', 'done']);
             }
             catch(e) {
-                if (window.jsdebug) console.error(e);
+                if (jsdebug) console.error(e);
                 obj.result = val;
                 obj.status = 'failure';
                 // call the [failure] callback and return 'failure/fail' method for chaining
@@ -527,7 +537,7 @@ var XNAT = getObject(XNAT);
         // all retrieval methods use the same arguments
         var args = [obj.value, success, failure];
 
-        // return the first non-falsey result, or [obj]
+        // return the first result, or [obj]
         return firstDefined(
             doLookup.apply(obj, args),
             doAjax.apply(obj, args),

@@ -232,7 +232,7 @@ var XNAT = getObject(XNAT);
         var hasValue = isDefined(opts.value);
 
         if (hasValue){
-            XNAT.ui.input.setValue($element, opts.value);
+            XNAT.form.setValue($element, opts.value);
         }
 
         // // look up a namespaced object value if the value starts with '??'

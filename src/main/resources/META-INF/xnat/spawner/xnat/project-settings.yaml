@@ -97,8 +97,8 @@ quarantineSettings:
     id: quarantine-settings
     label: Define Quarantine Settings
     reload: true
-    load: "$? /data/projects/{{XNAT.data.context.project}}/quarantine_code > [[quarantine]]"
-    action: "/data/projects/{{XNAT.data.context.project}}/quarantine_code/[[quarantine]]?XNAT_CSRF={{csrfToken}}"
+    load: "~/data/projects/{{XNAT.data.context.project}}/quarantine_code > [[quarantine]]"
+    action: "~/data/projects/{{XNAT.data.context.project}}/quarantine_code/[[quarantine]]?XNAT_CSRF={{csrfToken}}"
     contentType: text/plain
     method: PUT
     contents:
@@ -122,10 +122,9 @@ prearchiveSettings:
     kind: panel.form
     id: prearchive-settings
     label: Define Prearchive Settings
-    load: "$? /data/projects/{{XNAT.data.context.project}}/prearchive_code > [[prearchive]]"
     reload: true
-    action: "/data/projects/{{XNAT.data.context.project}}/prearchive_code/[[prearchive]]?XNAT_CSRF={{csrfToken}}"
-    actionDisabled: "#?:XNAT.app.projectSettings.setPrearchiveCode()"
+    load: "~/data/projects/{{XNAT.data.context.project}}/prearchive_code > [[prearchive]]"
+    action: "~/data/projects/{{XNAT.data.context.project}}/prearchive_code/[[prearchive]]?XNAT_CSRF={{csrfToken}}"
     contentType: text/plain
     method: PUT
     contents:
@@ -156,15 +155,17 @@ prearchiveSettings:
                         All image data will be placed into the archive automatically and will overwrite existing files.
                         Data which doesn't match a pre-existing project will be placed in an 'Unassigned' project.
 
+
 dicomConfig:
     kind: panel.form
     id: dicom-separate-petmr
     label: DICOM Configuration
-    loadDisabled: "$? /data/projects/{{XNAT.data.context.project}}/config/separatePETMR/config > [[separatePETMR]]"
+    reload: true
+    _load: "~/data/projects/{{XNAT.data.context.project}}/config/separatePETMR/config > [[separatePETMR]]"
     load: "#?:XNAT.app.projectSettings.getDicomConfig()"
     action: "#?:XNAT.app.projectSettings.setDicomConfig()"
-    contentType: "text/plain"
-    method: PUT
+    _contentType: "text/plain"
+    _method: PUT
     contents:
         separatePETMR:
             kind: panel.select.single
@@ -186,8 +187,8 @@ scanTypeMapping:
     id: scan-type-mapping
     label: Define Scan Type Mapping
     reset: ""
-    load: "/data/projects/{{XNAT.data.context.project}}/config/project/scanTypeMapping/config > [[scan_type_mapping]]"
-    action: "/data/projects/{{XNAT.data.context.project}}/scan_type_mapping/[[scan_type_mapping]]?XNAT_CSRF={{csrfToken}}"
+    load: "~/data/projects/{{XNAT.data.context.project}}/config/project/scanTypeMapping?contents=true > [[scan_type_mapping]]"
+    action: "~/data/projects/{{XNAT.data.context.project}}/scan_type_mapping/[[scan_type_mapping]]?XNAT_CSRF={{csrfToken}}"
     contentType: "text/plain"
     method: PUT
     contents:
@@ -206,6 +207,7 @@ scanTypeMapping:
                     value: "false"
                     description: >
                         Incoming scans will have their type attribute set to be identical to their series description.
+
 
 PETTracersForm:
     kind: panel.form
@@ -246,14 +248,14 @@ notificationsConfig:
     kind: panel.form
     id: notifications-config
     label: Notifications Configuration
-    loadNot: "#?:XNAT.app.projectSettings.getNotificationsList()"
-    load: "~/data/projects/{{XNAT.data.context.project}}/resources/notifications/files/archival.lst > [[notif_list]]"
     reload: true
-    action: "~/data/projects/{{XNAT.data.context.project}}/resources/notifications/files/archival.lst < [[notif_list]]"
-    actionNot: "#?:XNAT.app.projectSettings.setNotificationsList()"
-    contentType: "text/plain"
-    method: PUT
-    params:
+    _load: "#?:XNAT.app.projectSettings.getNotificationsList()"
+    load: "~/data/projects/{{XNAT.data.context.project}}/resources/notifications/files/archival.lst > [[notif_list]]"
+    action: "#?:XNAT.app.projectSettings.setNotificationsList()"
+    _action: "~/data/projects/{{XNAT.data.context.project}}/resources/notifications/files/archival.lst < [[notif_list]]"
+    _contentType: "text/plain"
+    _method: PUT
+    _params:
         - inbody=true
         - overwrite=true
         - content=NOTIFY_ARCHIVAL
@@ -264,7 +266,7 @@ notificationsConfig:
             id: notification-email-list
             name: notif_list
             label: Email Addresses
-            validation:
+            _validation:
                 type: emails allow-empty
                 message: "Please enter properly formatted email addresses."
             description: >
@@ -288,8 +290,8 @@ projectAnonForm:
     label: Project Anonymization Script
     load: "#?:XNAT.app.projectSettings.getProjectAnonScript()"
     action: "#?:XNAT.app.projectSettings.setProjectAnonScript()"
-    contentType: text/plain
-    method: PUT
+    _contentType: text/plain
+    _method: PUT
     contents:
         enableScript:
             kind: panel.switchbox
@@ -323,8 +325,8 @@ seriesImportForm:
     label: Series Import Filters
     load: "#?:XNAT.app.projectSettings.getSeriesImportFilter()"
     action: "#?:XNAT.app.projectSettings.setSeriesImportFilter()"
-    contentType: text/plain
-    method: PUT
+    _contentType: text/plain
+    _method: PUT
     contents:
         about:
             tag: p
@@ -388,12 +390,14 @@ projectResourceSettings:
 
 # projectSettings.js file
 projectSettingsJS:
-    tag: "script|src=/scripts/xnat/app/projectSettings.js"
+    _tag: "script|src=/scripts/xnat/app/projectSettings.js"
+    tag: script
 
 
 projectSettingsInit:
     tag: script
-    content: >
+    _content: ""
+    _content: >
         XNAT.app.projectSettings.init()
 
 

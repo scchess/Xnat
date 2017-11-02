@@ -18,12 +18,17 @@ var XNAT = getObject(XNAT);
 
     var undef, projectSettings;
 
-    if (jsdebug) console.log('projectSettings.js');
-
     XNAT.app = getObject(XNAT.app || {});
 
     XNAT.app.projectSettings = projectSettings =
         getObject(XNAT.app.projectSettings || XNAT.projectSettings || {});
+
+    if (projectSettings.loaded) {
+        console.log('projectSettings.js already loaded');
+        return;
+    }
+
+    if (jsdebug) console.log('projectSettings.js');
 
     XNAT.data = getObject(XNAT.data);
     XNAT.data.context = getObject(XNAT.data.context);
@@ -238,82 +243,93 @@ var XNAT = getObject(XNAT);
     }
 
     projectSettings.getProjectAnonScript = function getProjectAnonScript(form){
-        var form$ = (form !== undef) ? $$(form) : $$('#project-anon-form');
-        var enabled$ = form$.find('#project-anon-enable');
-        var script$ = form$.find('#project-anon-script');
-        // 'enabled' checkbox
-        getSettings(
-            projectAnonUrl('status', 'format=json'),
-            function(data) {
+        waitForElement(1, (form || '#project-anon-form'), function(form$){
 
-                if (jsdebug) {
-                    console.log('===================');
-                    console.log('PROJECT ANON SCRIPT');
-                    console.log('===================');
-                }
+            // make sure the 'enabled' checkbox is present
+            waitForElement(1, form$.find('#project-anon-enable'), function(enabled$){
+                // 'enabled' checkbox
+                getSettings(
+                    projectAnonUrl('status', 'format=json'),
+                    function(data) {
 
-                var result = getResultSetResult(data);
-                var status = result[0] && 'edit' in result[0] ? result[0].edit : false;
-                status = realValue(status);
-                enabled$.checked(status);
-                // do we want to disable/enable script editing
-                // based on 'enabled' status?
-                // enabled$.on('click', function(){
-                //     script$.enabled(enabled$[0].checked);
-                // });
-                // script$.enabled(status);
-            },
-            'An error occurred getting anon script status.'
-        );
-        // script content
-        getSettings(
-            projectAnonUrl('script', 'format=json'),
-            function(data) {
-                var result = getResultSetResult(data);
-                var script = result[0] && 'script' in result[0] ? result[0].script : '';
-                script$.val(script);
-            },
-            'An error occurred getting anon script content.'
-        );
+                        if (jsdebug) {
+                            console.log('===================');
+                            console.log('PROJECT ANON SCRIPT');
+                            console.log('===================');
+                        }
 
+                        var result = getResultSetResult(data);
+                        var status = result[0] && 'edit' in result[0] ? result[0].edit : false;
+                        status = realValue(status);
+                        enabled$.checked(status);
+                        // do we want to disable/enable script editing
+                        // based on 'enabled' status?
+                        // enabled$.on('click', function(){
+                        //     script$.enabled(enabled$[0].checked);
+                        // });
+                        // script$.enabled(status);
+                    },
+                    'An error occurred getting anon script status.'
+                );
+            });
+
+            // make sure the script textarea is present
+            waitForElement(1, form$.find('#project-anon-script'), function(script$){
+                // script content
+                getSettings(
+                    projectAnonUrl('script', 'format=json'),
+                    function(data) {
+                        var result = getResultSetResult(data);
+                        var script = result[0] && 'script' in result[0] ? result[0].script : '';
+                        script$.val(script);
+                    },
+                    'An error occurred getting anon script content.'
+                );
+            });
+
+        });
     };
 
     projectSettings.setProjectAnonScript = function setProjectAnonScript(form, e){
+
         if (e && e.preventDefault) e.preventDefault();
-        var form$ = (form !== undef) ? $$(form) : $$('#project-anon-form');
-        var activate = form$.find('#project-anon-enable').prop('checked');
-        // set 'activate=true' so we can save the script content
-        submitSettings({
-            url: projectAnonUrl('status', 'activate=true'),
-            success: function(){
-                submitSettings({
-                    url:  projectAnonUrl('script', 'inbody=true'),
-                    data: form$.find('#project-anon-script').val(),
-                    contentType: 'text/plain',
-                    processData: false,
-                    success: function(){
-                        if (activate) {
-                            XNAT.ui.banner.top(2000, 'Project anon script saved and enabled.', 'success');
+
+        waitForElement(1, (form || '#project-anon-form'), function(form$){
+
+            var activate = form$.find('#project-anon-enable').prop('checked');
+            // set 'activate=true' so we can save the script content
+            submitSettings({
+                url: projectAnonUrl('status', 'activate=true'),
+                success: function(){
+                    submitSettings({
+                        url:  projectAnonUrl('script', 'inbody=true'),
+                        data: form$.find('#project-anon-script').val(),
+                        contentType: 'text/plain',
+                        processData: false,
+                        success: function(){
+                            if (activate) {
+                                XNAT.ui.banner.top(2000, 'Project anon script saved and enabled.', 'success');
+                            }
+                            else {
+                                // set 'activate=false' if script is to be disabled
+                                submitSettings({
+                                    url: (projectAnonUrl('status', 'activate=false')),
+                                    success: 'Project anon script disabled. Script content saved.',
+                                    error: 'An error occurred setting project anon script status.'
+                                });
+                            }
+                        },
+                        failure: function(e){
+                            if (jsdebug) {
+                                console.error('error:');
+                                console.error(arguments);
+                            }
+                            XNAT.ui.dialog.message(false, ('An error occurred saving project anon script: ') + '<br><br>' + e);
                         }
-                        else {
-                            // set 'activate=false' if script is to be disabled
-                            submitSettings({
-                                url: (projectAnonUrl('status', 'activate=false')),
-                                success: 'Project anon script disabled. Script content saved.',
-                                error: 'An error occurred setting project anon script status.'
-                            });
-                        }
-                    },
-                    failure: function(e){
-                        if (jsdebug) {
-                            console.error('error:');
-                            console.error(arguments);
-                        }
-                        XNAT.ui.dialog.message(false, ('An error occurred saving project anon script: ') + '<br><br>' + e);
-                    }
-                });
-            },
-            error: 'An error occurred setting project anon script status.'
+                    });
+                },
+                error: 'An error occurred setting project anon script status.'
+            });
         });
     };
     ////////////////////////////////////////////////////////////////////////////////
@@ -332,57 +348,69 @@ var XNAT = getObject(XNAT);
     }
 
     projectSettings.getSeriesImportFilter = function getSeriesImportFilter(form){
-        var form$ = (form !== undef) ? $$(form) : $$('#series-import-form');
-        var enabled$ = form$.find('#series-import-enable');
-        var mode$ = form$.find('#filter-mode');
-        var filter$ = form$.find('#series-import-filter');
-        getSettings(
-            seriesImportUrl(),
-            function(data) {
-                var result = getResultSetResult(data);
-                var contents = result[0] && 'contents' in result[0] ? result[0].contents : '[]';
-                var settings = JSON.parse(contents);
-                enabled$.checked(settings.enabled);
-                mode$.val(settings.mode||'!').change();
-                filter$.val(settings.list);
-            },
-            'An error occurred getting series import filter.'
-        );
+        waitForElement(1, (form || '#series-import-form'), function(form$){
+            var enabled$ = form$.find('#series-import-enable');
+            var mode$ = form$.find('#filter-mode');
+            var filter$ = form$.find('#series-import-filter');
+            mode$.on('change', function(e){
+                console.log('series import filter changed')
+            });
+            getSettings(
+                seriesImportUrl(),
+                function(data) {
+                    var result = getResultSetResult(data);
+                    var contents = result[0] && 'contents' in result[0] ? result[0].contents : '[]';
+                    var settings = JSON.parse(contents);
+                    enabled$.checked(settings.enabled);
+                    mode$.changeVal(settings.mode||'!');
+                    filter$.val(settings.list);
+                },
+                'An error occurred getting series import filter.'
+            );
+        });
     };
 
     // probably will not use this since the form submits JSON
     projectSettings.setSeriesImportFilter = function setSeriesImportFilter(form, e){
+
         if (e && e.preventDefault) e.preventDefault();
-        var form$ = (form !== undef) ? $$(form) : $$('#series-import-form');
-        var enabled$ = form$.find('#series-import-enable');
-        var enabled = enabled$[0].checked;
-        var params = ['status=enabled', 'inbody=true'];
-        // var mode$ = form$.find('#filter-mode');
-        // var filter$ = form$.find('#series-import-filter');
-        var seriesImportSubmitUrl = XNAT.url.csrfUrl(seriesImportUrl(params));
-        var seriesImportData = form2js(form$[0]);
-        XNAT.xhr.put({
-            url: seriesImportSubmitUrl,
-            data: JSON.stringify(seriesImportData),
-            contentType: 'text/plain',
-            processData: false,
-            success: function(){
-                if (jsdebug) console.log('success: ' + seriesImportSubmitUrl);
-                if (enabled) {
-                    XNAT.ui.banner.top(2000, 'Series import filter saved.', 'success');
+
+        waitForElement(1, (form || '#series-import-form'), function(form$){
+            var enabled$ = form$.find('#series-import-enable');
+            var enabled = enabled$[0].checked;
+            var params = ['status=enabled', 'inbody=true'];
+            // var mode$ = form$.find('#filter-mode');
+            // var filter$ = form$.find('#series-import-filter');
+            var seriesImportSubmitUrl = XNAT.url.csrfUrl(seriesImportUrl(params));
+            var seriesImportData = form2js(form$[0]);
+            XNAT.xhr.put({
+                url: seriesImportSubmitUrl,
+                data: JSON.stringify(seriesImportData),
+                contentType: 'text/plain',
+                processData: false,
+                success: function(){
+                    if (jsdebug) console.log('success: ' + seriesImportSubmitUrl);
+                    if (enabled) {
+                        XNAT.ui.banner.top(2000, 'Series import filter saved.', 'success');
+                    }
+                    else {
+                        // do another request to disable filter, if 'enabled' is unchecked
+                        submitSettings({
+                            url: seriesImportUrl(['status=disabled']),
+                            success: 'Series import filter disabled, content saved.',
+                            error: 'An error occurred saving series import filter.'
+                        })
+                    }
+                },
+                failure: function(e){
+                    if (jsdebug) {
+                        console.error('error:');
+                        console.error(arguments);
+                    }
+                    XNAT.ui.dialog.message(false, ('An error occurred saving series import filter: ') + '<br><br>' + e);
                 }
-                else {
-                    XNAT.ui.banner.top(2000, 'Series import filter disabled.', 'success');
-                }
-            },
-            failure: function(e){
-                if (jsdebug) {
-                    console.error('error:');
-                    console.error(arguments);
-                }
-                XNAT.ui.dialog.message(false, ('An error occurred saving series import filter: ') + '<br><br>' + e);
-            }
-        })
+            });
+        });
     };
     ////////////////////////////////////////////////////////////////////////////////
 
@@ -399,41 +427,45 @@ var XNAT = getObject(XNAT);
     }
 
     projectSettings.getDicomConfig = function getDicomConfig(form){
-        var form$ = (form !== undef) ? $$(form) : $$('#dicom-separate-petmr');
-        var menu$ = form$.find('#dicom-petmr-menu');
-        getSettings(
-            dicomConfigUrl('contents=true'),
-            // [<form>, 'inputName', 'fallbackValue']
-            // [form$, 'separatePETMR', 'system'],
-            function(data) {
-                var result = data+'' || 'system';
-                menu$.val(result).change();
-            },
-            function(){
-                menu$.val('system').change();
-            }
-        );
+        waitForElement(1, (form || '#dicom-separate-petmr'), function(form$){
+            var menu$ = form$.find('#dicom-petmr-menu');
+            getSettings(
+                dicomConfigUrl('contents=true'),
+                // [<form>, 'inputName', 'fallbackValue']
+                // [form$, 'separatePETMR', 'system'],
+                function(data) {
+                    var result = data+'' || 'system';
+                    menu$.val(result).change();
+                },
+                function(){
+                    menu$.val('system').change();
+                }
+            );
+        });
     };
 
     projectSettings.setDicomConfig = function setDicomConfig(form, e){
+
         if (e && e.preventDefault) e.preventDefault();
-        var form$ = (form !== undef) ? $$(form) : $$('#dicom-separate-petmr');
-        var menu$ = form$.find('#dicom-petmr-menu');
-        var val = menu$.val();
-        // do DELETE if set to 'system' (dumb)
-        if (/system/i.test(val)) {
-            XNAT.xhr['delete'](XNAT.url.csrfUrl(dicomConfigUrl()))
-        }
-        else {
-            submitSettings({
-                url: (dicomConfigUrl('inbody=true')),
-                data: menu$.val(),
-                processData: false,
-                contentType: 'text/plain',
-                success: 'Project DICOM PET/MR handling preferences saved.',
-                error: 'An error occurred setting project DICOM PET/MR handling.'
-            });
-        }
+
+        waitForElement(1, (form || '#dicom-separate-petmr'), function(form$){
+            var menu$ = form$.find('#dicom-petmr-menu');
+            var val = menu$.val();
+            // do DELETE if set to 'system' (dumb)
+            if (/system/i.test(val)) {
+                XNAT.xhr['delete'](XNAT.url.csrfUrl(dicomConfigUrl()))
+            }
+            else {
+                submitSettings({
+                    url: (dicomConfigUrl('inbody=true')),
+                    data: menu$.val(),
+                    processData: false,
+                    contentType: 'text/plain',
+                    success: 'Project DICOM PET/MR handling preferences saved.',
+                    error: 'An error occurred setting project DICOM PET/MR handling.'
+                });
+            }
+        });
     };
     ////////////////////////////////////////////////////////////////////////////////
 
@@ -450,37 +482,51 @@ var XNAT = getObject(XNAT);
     }
 
     projectSettings.getPetTracers = function getPetTracers(form){
-        var form$ = (form !== undef) ? $$(form) : $$('#pet-tracers-form');
-        var enabled$ = form$.find('#enable-pet-tracers');
-        var contents$ = form$.find('#pet-tracer-contents');
-        getSettings(
-            petTracersUrl('format=json'),
-            function(data) {
-                var result = getResultSetResult(data);
-                var status = result[0] && 'status' in result[0] ? result[0].status : 'disabled';
-                var contents = result[0] && 'contents' in result[0] ? result[0].contents : '';
-                enabled$.checked(/enabled/i.test(status)).val(status);
-                contents$.val(contents);
-            },
-            'An error occurred getting PET tracers.'
-        );
+        waitForElement(1, (form || '#pet-tracers-form'), function(form$){
+            var enabled$ = form$.find('#enable-pet-tracers');
+            var contents$ = form$.find('#pet-tracer-contents');
+            getSettings(
+                petTracersUrl('format=json'),
+                function(data) {
+                    var result = getResultSetResult(data);
+                    var status = result[0] && 'status' in result[0] ? result[0].status : 'disabled';
+                    var contents = result[0] && 'contents' in result[0] ? result[0].contents : '';
+                    enabled$.checked(/enabled/i.test(status)).val(status);
+                    contents$.val(contents);
+                },
+                'An error occurred getting PET tracers.'
+            );
+        });
     };
 
     projectSettings.setPetTracers = function setPetTracers(form, e){
+
         if (e && e.preventDefault) e.preventDefault();
-        var form$ = (form !== undef) ? $$(form) : $$('#pet-tracers-form');
-        var enabled$ = form$.find('#enable-pet-tracers');
-        var contents$ = form$.find('#pet-tracer-contents');
-        // set 'enabled' status
-        var isEnabled = enabled$[0].checked;
-        var URL = isEnabled ? petTracersUrl('status=enabled&inbody=true') : petTracersUrl('status=disabled');
-        submitSettings({
-            url: URL,
-            data: isEnabled ? contents$.val() : '',
-            contentType: 'text/plain',
-            processData: false,
-            success: isEnabled ? 'PET tracers saved.' : 'PET tracers disabled.',
-            error: 'An error occurred setting PET tracers.'
+
+        waitForElement(1, (form || '#pet-tracers-form'), function(form$){
+            var enabled$ = form$.find('#enable-pet-tracers');
+            var contents$ = form$.find('#pet-tracer-contents');
+            // set 'enabled' status
+            var isEnabled = enabled$[0].checked;
+            submitSettings({
+                url: petTracersUrl('status=enabled&inbody=true'),
+                data: contents$.val(),
+                contentType: 'text/plain',
+                processData: false,
+                success: function(){
+                    if (isEnabled) {
+                        XNAT.ui.banner.top(2000, 'PET tracers saved and enabled.', 'success');
+                    }
+                    else {
+                        submitSettings({
+                            url: petTracersUrl('status=disabled'),
+                            success: 'PET tracers disabled, list saved.',
+                            error: 'An error occurred setting PET tracers.'
+                        })
+                    }
+                },
+                error: 'An error occurred setting PET tracers.'
+            });
         });
     };
     ////////////////////////////////////////////////////////////////////////////////
@@ -494,7 +540,9 @@ var XNAT = getObject(XNAT);
     ////////////////////////////////////////////////////////////////////////////////
 
     projectSettings.setNotificationsList = function setNotificationList(form, e){
+
         if (e && e.preventDefault) e.preventDefault();
+
         var URL = '/data/projects/' + projectId + '/resources/notifications/files/archival.lst';
         var form$ = (form !== undef) ? $$(form) : $$('#notifications-config');
         var list$ = form$.find('#notification-email-list');
@@ -551,12 +599,12 @@ var XNAT = getObject(XNAT);
         //     //XNAT.tab.activate(XNAT.tab.active, XNAT.tabs.container);
         // });
 
-        // // projectSettings.getQuarantineCode();
-        // // projectSettings.getPrearhchiveCode();
-        projectSettings.getProjectAnonScript();
-        projectSettings.getSeriesImportFilter();
-        projectSettings.getDicomConfig();
-        projectSettings.getPetTracers();
+        // projectSettings.getQuarantineCode();
+        // projectSettings.getPrearhchiveCode();
+        // projectSettings.getProjectAnonScript();
+        // projectSettings.getSeriesImportFilter();
+        // projectSettings.getDicomConfig();
+        // projectSettings.getPetTracers();
         // // etc...
         //
         // var scanTypeMappingRadios = $$('?scan_type_mapping');
@@ -571,8 +619,7 @@ var XNAT = getObject(XNAT);
 
 
     // INITIALIZE!!!!!
-    projectSettings.init();
-
+    // projectSettings.init();
 
     // this script has loaded
     projectSettings.loaded = true;
