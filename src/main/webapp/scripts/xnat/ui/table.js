@@ -768,7 +768,8 @@ var XNAT = getObject(XNAT);
                     // });
                     // console.log(rowStuff);
                     $dataRows.addClass(filterClass).filter(function(){
-                        return $(this).find('td.'+ name + ':containsNC(' + val + ')').length
+                        return $(this).find('td.' + name).containsNC(val).length
+                        // return $(this).find('td.'+ name + ':containsNC(' + val + ')').length
                     }).removeClass(filterClass);
                 }
 

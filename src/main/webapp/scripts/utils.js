@@ -418,6 +418,18 @@ jQuery.extend((jQuery.expr.pseudos || jQuery.expr)[":"], {
     }
 });
 
+
+jQuery.fn.containsNC = function(str, selector){
+    if (!str) return this;
+    if (selector) {
+        this.filter(selector);
+    }
+    return this.filter(function(){
+        return (this.textContent || this.innerText || '').toLowerCase().indexOf(str.toLowerCase()) > -1
+    })
+};
+
+
 jQuery.loadScript = function (url, arg1, arg2) {
     var cache = false, callback = null;
     //arg1 and arg2 can be interchangable
@@ -530,27 +542,14 @@ jQuery.loadScript = function (url, arg1, arg2) {
 // sets '#element' to 'foo' then triggers
 // 'onchange' event if it's different than before
 $.fn.changeVal = function(newVal){
-
     // if (jsdebug) console.log('$.fn.changeVal');
-
     if (this.length && typeof newVal !== 'undefined') {
-
-        var elem = this[0];
-        var prev = '';
-
-        if (/select/i.test(elem.tagName)) {
-            prev = elem.options[elem.options.selectedIndex].value;
-        }
-        else {
-            prev = this.val();
-        }
-
-        if (prev+'' !== newVal+'') {
+        var prev = this.val();
+        if (prev + '' !== newVal + '') {
             this.val(newVal).trigger('change');
             if (jsdebug) console.log('value changed');
         }
     }
-
     return this;
 };
 
