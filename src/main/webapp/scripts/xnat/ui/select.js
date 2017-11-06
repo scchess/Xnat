@@ -80,7 +80,6 @@ var XNAT = getObject(XNAT);
         var frag = document.createDocumentFragment(),
             $menu, menu, label;
 
-        console.log('select.menu');
 
         config = cloneObject(config);
 

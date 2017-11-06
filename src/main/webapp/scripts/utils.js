@@ -421,11 +421,12 @@ jQuery.extend((jQuery.expr.pseudos || jQuery.expr)[":"], {
 
 jQuery.fn.containsNC = function(str, selector){
     if (!str) return this;
+    var el$ = this;
     if (selector) {
-        this.filter(selector);
+        el$ = this.filter(selector);
     }
-    return this.filter(function(){
-        return (this.textContent || this.innerText || '').toLowerCase().indexOf(str.toLowerCase()) > -1
+    return el$.filter(function(){
+        return (this.textContent || this.innerText || '').toLowerCase().indexOf(str.toLowerCase()) > -1;
     })
 };
 

@@ -319,12 +319,12 @@ window.xmodal = getObject(window.xmodal);
             this.dialog$ = $.spawn('div.xnat-dialog', {
                 id: this.id || this.uid, // use given id as-is or use uid-dialog
                 attr: { tabindex: '0' },
-                // on: {
-                //     mousedown: function(){
-                //         // only bring non-modal dialogs to top onclick
-                //         _this.toTop(false);
-                //     }
-                // },
+                on: {
+                    mousedown: function(){
+                        // only bring non-modal dialogs to top onclick
+                        _this.toTop(false);
+                    }
+                },
                 style: this.dialogStyle
             });
             this.$modal = this.__modal = this.dialog$;
@@ -336,7 +336,7 @@ window.xmodal = getObject(window.xmodal);
                     $.spawn('div.xnat-dialog-header.title');
 
                 this.header$.on('click', function(){
-                    _this.toTop(false)
+                    // _this.toTop(false)
                 });
 
                 // set title: false to render just a 'handle'
@@ -502,7 +502,7 @@ window.xmodal = getObject(window.xmodal);
                 }).append(this.footerInner$);
 
                 this.footer$.on('click', function(){
-                    _this.toTop(false)
+                    // _this.toTop(false)
                 });
 
             }
@@ -632,7 +632,7 @@ window.xmodal = getObject(window.xmodal);
     // focus on the dialog with optional callback
     Dialog.fn.setFocus = function(callback){
 
-        this.dialog$.focus();
+        // this.dialog$.focus();
 
         if (isFunction(this.onFocus)) {
             this.onFocusResult = this.onFocus.call(this);

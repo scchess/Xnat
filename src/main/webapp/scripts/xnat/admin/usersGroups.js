@@ -182,7 +182,7 @@ var XNAT = getObject(XNAT);
     // RETURNS A DOM ELEMENT
     usersGroups.userSwitchElement = function(username, type, status){
         return XNAT.ui.input.switchbox({
-            value: realValue(status),
+            value: firstDefined(status, '') + '',
             element: {
                 name: type,
                 className: 'user-' + type,
@@ -667,6 +667,8 @@ var XNAT = getObject(XNAT);
         }
 
         var username = data.username || '*';
+        var userVerified = data.verified || 'false';
+        var userEnabled = data.enabled || 'false';
 
         var form = {
             kind: 'panel.form',
@@ -725,20 +727,24 @@ var XNAT = getObject(XNAT);
                 verified: {
                     kind: 'panel.input.switchbox',
                     label: 'Verified',
-                    value: data.verified !== undefined ? data.verified + '' : '',
+                    // options: 'true|false',
+                    value: userVerified,
                     element: {
                         //disabled: !!_load,
-                        title: username + ':verified'//,
+                        checked: !/false/i.test(userVerified)//,
+                        //title: username + ':verified'//,
                         //on: { click: _load ? setVerified : diddly }
                     }
                 },
                 enabled: {
                     kind: 'panel.input.switchbox',
                     label: 'Enabled',
-                    value: data.enabled !== undefined ? data.enabled + '' : '',
+                    // options: 'true|false',
+                    value: userEnabled,
                     element: {
                         //disabled: !!_load,
-                        title: username + ':enabled'//,
+                        checked: !/false/i.test(userEnabled)//,
+                        //title: username + ':enabled'//,
                         //on: { click: _load ? setEnabled : diddly }
                     }
                 }
