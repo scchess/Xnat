@@ -710,9 +710,9 @@ jQuery.fn.sortElements = (function(){
             var sortElement = getSortable.call(this),
                 parentNode = sortElement.parentNode,
 
-            // Since the element itself will change position, we have
-            // to have some way of storing it's original position in
-            // the DOM. The easiest way is to have a 'flag' node:
+                // Since the element itself will change position, we have
+                // to have some way of storing it's original position in
+                // the DOM. The easiest way is to have a 'flag' node:
                 nextSibling = parentNode.insertBefore(
                     document.createTextNode(''),
                     sortElement.nextSibling
@@ -801,17 +801,17 @@ function sortTableToo($tbody, col, reverse){
         window.setTimeout(function(){
             // chunk rows into groups of 200
             var trChunks = chunkArray(trs, 200);
-                forEach(trChunks, function(chunk, i){
-                    window.setTimeout(function(){
-                        // $tbody.append(chunk);
-                        forEach(chunk, function(row){
-                            _tbody.appendChild(row);
-                        });
-                    }, 0);
-                });
+            forEach(trChunks, function(chunk, i){
                 window.setTimeout(function(){
-                    loader.fadeOut(100);
+                    // $tbody.append(chunk);
+                    forEach(chunk, function(row){
+                        _tbody.appendChild(row);
+                    });
                 }, 0);
+            });
+            window.setTimeout(function(){
+                loader.fadeOut(100);
+            }, 0);
             endTime = (Date.now() - startTime);
             console.log(endTime);
 

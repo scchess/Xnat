@@ -785,6 +785,8 @@ var XNAT = getObject(XNAT);
         if (opts.id) opts.element.id = opts.id;
         if (opts.name) opts.element.name = opts.name;
 
+        opts.element.title = opts.element.title || opts.title || opts.label;
+
         var val1 = opts.element.value;
         var val2 = opts.value;
         var _val = firstDefined(val1, val2, '');

@@ -941,6 +941,9 @@ var XNAT = getObject(XNAT);
         else if (type !== false) {
             if (this.element$.dataAttr('validate')) {
                 types = this.element$.dataAttr('validate').split(/\s+/);
+                if (types.indexOf('allow-empty') > -1) {
+                    this.allowEmpty = true;
+                }
                 $.each(types, function(idx, item){
                     // stop if validation has already failed
                     if (!self.validated) {

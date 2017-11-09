@@ -97,15 +97,19 @@ var XNAT = getObject(XNAT);
 
             // spawn the item?
             if (prop.show !== undef) {
-                show = realValue(strReplace(prop.show));
+                show = strReplace(prop.show);
                 if (show === prop.show) {
-                    show = lookupObjectValue(prop.show);
+                    XNAT.parse(prop.show).success(function(result){
+                        show = result;
+                    });
                 }
             }
             if (prop.hide !== undef) {
-                hide = realValue(strReplace(prop.hide));
+                hide = strReplace(prop.hide);
                 if (hide === prop.hide) {
-                    hide = lookupObjectValue(prop.hide);
+                    XNAT.parse(prop.hide).success(function(result){
+                        hide = result;
+                    });
                 }
                 show = !hide;
             }

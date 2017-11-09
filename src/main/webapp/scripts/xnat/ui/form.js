@@ -100,7 +100,7 @@ var XNAT = getObject(XNAT);
         // recursively parse values?
         if (XNAT.parse.parseable(val)) {
             // --- RECURSIVE PARSE RETURN --- //
-            XNAT.parse(val).success(function(result){
+            XNAT.parse(val).done(function(result){
                 setValue(input$, result);
             });
             ////////// RETURN //////////
@@ -129,7 +129,7 @@ var XNAT = getObject(XNAT);
         }
         else if (/radio/i.test(inputType)){
             input0.checked = inputValueString === valString;
-            if (input0.checked) input$.trigger('change');
+            //if (input0.checked) input$.trigger('change');
         }
         else if (/select/i.test(inputTag) && input0.multiple) {
             // if (stringable(val)) {
@@ -163,11 +163,11 @@ var XNAT = getObject(XNAT);
             debugger;
         }
         if (XNAT.parse.parseable(val)) {
-            XNAT.parse(val).success(function(result){
+            XNAT.parse(val).done(function(result){
                 // if val === result, return since nothing was parsed
                 if (val === result) return;
                 if (++count > 100) {
-                    console.warn('XNAT.parse().success() called too many times (> 100)');
+                    console.warn('XNAT.parse().done() called too many times (> 100)');
                     debugger;
                 }
                 var obj = this;
@@ -191,10 +191,21 @@ var XNAT = getObject(XNAT);
      * Set values for inputs/form(s) with [values]
      * @param inputs {HTMLFormElement|Array}
      * @param values {Object|String} - data object or 'parseable' string
+     * @param [count] {Number} - hack to prevent infinite recursion
      */
-    function setValues(inputs, values){
+    function setValues(inputs, values, count){
 
-        if (jsdebug) console.log('========== setValues ==========');
+        count = count || 1;
+
+        if (jsdebug) {
+            console.log('========== setValues ==========');
+            console.log(count);
+        }
+
+        if (count > 300) {
+            console.warn('The setValues() function has been called more than 300 times. There is probably something wrong.');
+            return;
+        }
 
         var inputs$ = $$(inputs);
         // var valObj = null;  // values obj
@@ -206,37 +217,44 @@ var XNAT = getObject(XNAT);
         if (/form/i.test(inputs$[0].tagName)) {
             form$ = inputs$;
             form0 = form$[0];
-            inputs$ = form$.find(':input');
         }
         else {
             form$ = inputs$.first().closest('form');
             form0 = form$[0];
         }
 
-        // map object values to inputs with name matching [key]
+        // no form? don't bother.
+        if (!form0) return;
+
+
         if (isPlainObject(values)) {
-            inputs$.not(':button, :submit, :reset').each(function(i, input){
-                var input$ = $(input);
-                var name = input.name || input.title || input.id;
-                if (name in values) {
-                    parseInputValue(input$, values[name]);
-                }
-                // else {
-                //     parseInputValue(input$, values);
-                // }
-            });
-            // return;
+            try {
+                // use js2form() for easier setting of array values to multiple inputs
+                js2form(form0, values);
+            }
+            catch (e) {
+                if (jsdebug) console.error(e);
+            }
         }
         else {
-            parseInputValue(inputs$, values)
+            if (XNAT.parse.parseable(values)) {
+                XNAT.parse(values).done(function(result){
+                    if (result === values) return;
+                    setValues(form$, result, ++count)
+                });
+            }
+            else {
+                inputs$ = form$.find(':input').not(':button, :submit, :reset');
+                inputs$.each(function(i, input){
+                    setValue(input, values);
+                });
+            }
         }
 
 
 
 
         // TODO: ELMININATE REDUNDANT REST CALLS!!!
-
-
 
 
 
