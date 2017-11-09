@@ -1536,7 +1536,13 @@ var XNAT = getObject(XNAT);
                                                 $dataRows.addClass(FILTERCLASS).filter(function(){
                                                     var timestamp = this.querySelector('input.last-login.timestamp');
                                                     var lastLogin = +(timestamp.value);
-                                                    return selectedValue === lastLogin-1 || selectedValue > (currentTime - lastLogin);
+                                                    if (selectedValue === -1) {
+                                                        // special handling for users that have never logged in
+                                                        return lastLogin === 0;
+                                                    }
+                                                    else {
+                                                        return selectedValue === lastLogin-1 || selectedValue > (currentTime - lastLogin);
+                                                    }
                                                 }).removeClass(FILTERCLASS);
                                             }
                                         }
