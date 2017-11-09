@@ -6,19 +6,17 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * Created by davidmaffitt on 7/9/17.
+ * Interface to keep the underlying DICOM library from leaking.
  */
 public interface DicomObjectI {
 
-    String getStudyInstanceUID();
-
-    String getSeriesInstanceUID();
-
-    String getSOPInstanceUID();
+//    String getStudyInstanceUID();
+//
+//    String getSeriesInstanceUID();
+//
+//    String getSOPInstanceUID();
 
     void write(OutputStream os) throws IOException;
-
-    String getMessage();
 
     InputStream getInputStream() throws IOException;
 

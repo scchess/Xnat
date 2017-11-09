@@ -25,7 +25,7 @@ public class MultipartDicomMessageConverter extends AbstractHttpMessageConverter
     private final static Map<String, String> DICOM_XML_TYPE = createMediaTypes();
     private static Map<String, String> createMediaTypes() {
         Map<String, String> aMap = new HashMap<>();
-        aMap.put("type", "applicationdicom+xml");
+        aMap.put("type", "\"application/dicom+xml\"");
         return Collections.unmodifiableMap(aMap);
     }
     private final static MediaType MULTIPART_MIXED = new MediaType("multipart", "mixed");
@@ -122,7 +122,7 @@ public class MultipartDicomMessageConverter extends AbstractHttpMessageConverter
     public static void main(String[] args) {
         MediaType type = MultipartDicomMessageConverter.MULTIPART_RELATED;
         Map<String,String> map = new HashMap<>();
-        map.put("type", "applicationdicom+xml");
+        map.put("type", "\"application/dicom+xml\"");
         MediaType type2 = new MediaType("multipart", "related", map);
         System.out.println(type);
 

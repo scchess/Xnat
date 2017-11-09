@@ -29,17 +29,14 @@ public class DicomObjectChe2 implements DicomObjectI {
         _dicomObject = dis.readDicomObject();
     }
 
-    @Override
     public String getStudyInstanceUID() {
         return null;
     }
 
-    @Override
     public String getSeriesInstanceUID() {
         return null;
     }
 
-    @Override
     public String getSOPInstanceUID() {
         return null;
     }
@@ -50,7 +47,6 @@ public class DicomObjectChe2 implements DicomObjectI {
         dos.writeDicomFile( _dicomObject);
     }
 
-    @Override
     public String getMessage() {
         return "Hey oh!";
     }

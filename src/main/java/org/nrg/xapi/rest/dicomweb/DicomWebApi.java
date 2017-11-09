@@ -64,7 +64,7 @@ public class DicomWebApi extends AbstractXapiProjectRestController {
             @ApiResponse(code = 204, message = "The specified subject was found but had no associated experiments."),
             @ApiResponse(code = 403, message = "Insufficient permissions to perform the request."),
             @ApiResponse(code = 500, message = "An unexpected error occurred.")})
-    @XapiRequestMapping(value = "studies", produces = {"application/dicom+json","multipart/related;type=\"applicationdicom+xml\""}, method = RequestMethod.GET, restrictTo = Read)
+    @XapiRequestMapping(value = "studies", produces = {"application/dicom+json","multipart/related;type=\"application/dicom+xml\""}, method = RequestMethod.GET, restrictTo = Read)
     @ResponseBody
     public ResponseEntity<List<QIDOResponse>> doSearchForStudies( @RequestParam final Map<String,String> allRequestParams) throws NrgServiceException, NoContentException {
         Set<String> paramNames = allRequestParams.keySet();
@@ -84,6 +84,28 @@ public class DicomWebApi extends AbstractXapiProjectRestController {
         }
 
         return new ResponseEntity<List<QIDOResponse>>(qidoResponses, HttpStatus.OK );
+    }
+
+
+    @ApiOperation(value = "WADO-RS Retrieve Instance.", response = QIDOResponse.class)
+    @ApiResponses({@ApiResponse(code = 200, message = "Successfully performed WADO-RS retrieve instance."),
+            @ApiResponse(code = 403, message = "Insufficient permissions to perform the request."),
+            @ApiResponse(code = 500, message = "An unexpected error occurred.")})
+    @XapiRequestMapping(value = "studies/{studyInstanceUID}/series/{seriesInstanceUID}/instances/{sopInstanceUID}", produces = {"multipart/related;type=\"application/dicom\""}, method = RequestMethod.GET, restrictTo = Read)
+    @ResponseBody
+    public ResponseEntity<DicomObjectI> doRetrieveInstance( @PathVariable("studyInstanceUID") String studyInstanceUID,
+                                                                  @PathVariable("seriesInstanceUID") String seriesInstanceUID,
+                                                                  @PathVariable("sopInstanceUID") String sopInstanceUID) throws NrgServiceException, NoContentException {
+        UserI user = getSessionUser();
+
+        DicomObjectI instance = null;
+        try {
+            instance = _searchEngine.retrieveInstance( studyInstanceUID, seriesInstanceUID, sopInstanceUID, user);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return new ResponseEntity<>(instance, HttpStatus.OK );
     }
 
 

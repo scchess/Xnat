@@ -136,5 +136,10 @@ public class JdbcSearchEngine implements SearchEngineI {
 
         return qidoResponses;
     }
+
+    @Override
+    public DicomObjectI retrieveInstance(String studyInstanceUID, String seriesInstanceUID, String sopInstanceUID, UserI user) {
+        return null;
+    }
 }
 
