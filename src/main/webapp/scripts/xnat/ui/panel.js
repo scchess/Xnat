@@ -640,10 +640,10 @@ var XNAT = getObject(XNAT || {});
 
         if (_resetBtn) {
             // click 'Discard Changes' button to reload data
-            $resetBtn.on('click', function(){
-                // if (!/^(\/*#)/.test($formPanel.attr('action'))){
+            $resetBtn.on('click', function(e){
+                // don't fire default 'reset' event (causes flash of empty inputs)
+                e.preventDefault();
                 $formPanel.triggerHandler('reload-data');
-                // }
             });
         }
 
