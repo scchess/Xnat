@@ -53,12 +53,12 @@ var XNAT = getObject(XNAT);
     // {{ NAMESPACE:var:name }} - get value from global variable
     REGEX.lookupTest = /^{{.+}}$/;
     REGEX.lookupTrim = /^{{\s*|\s*}}$/g;
-    REGEX.lookupReplace = /{{\s*(.+)\s*}}/;
+    // REGEX.lookupReplace = /{{\s*(.+)\s*}}/;
 
     // [[ propertyName ]] - property name to use in returned data object
     REGEX.useNameTest = /^\[\[.+]]$/;
     REGEX.useNameTrim = /^\[\[\s*|\s*]]$/g;
-    REGEX.useNameReplace = /\[\[\s*(.+)\s*]]/;
+    // REGEX.useNameReplace = /\[\[\s*(.+)\s*]]/;
 
     // #? = execute function by name
     // value: "#? NS.func.name()"
@@ -66,16 +66,17 @@ var XNAT = getObject(XNAT);
 
     REGEX.fnTest = /^#\?.+(\(\))*$/;
     REGEX.fnTrim = /^(#\?[:=]?\s*)|(\(\))$/g;
-    REGEX.fnReplace = /^#\?[:=]?\s*(.+)\s*\(\)$/;
+    // REGEX.fnReplace = /^#\?[:=]?\s*(.+)\s*\(\)$/;
 
     // !? = use result of JS eval() from the supplied string
     // value: "!? (function(){ return $('#thing').val() })()"
     REGEX.evalPrefix = /^!\?[:=]?\s*/;
 
     // (( evalString )) - return result of eval() using enclosed string
-    REGEX.evalTest = /^\(\(.+\)\)$/;
-    REGEX.evalTrim = /^(\(\()|(\)\))$/g;
-    REGEX.evalReplace = /\(\(\s*(.+)\s*\)\)/;
+    // {( evalString )} - return result of eval() using enclosed string
+    REGEX.evalTest = /^[{(]?[(].+[)][)}]?$/;
+    REGEX.evalTrim = /^([{(]?[(])|([)][)}]?)$/g;
+    // REGEX.evalReplace = /[{(]?[(]\s*(.+)\s*[)][)}]?/;
 
     // special syntax to get/set form input values
     // value: '$? /data/thing $:text > [[yerInput]]'
@@ -102,35 +103,6 @@ var XNAT = getObject(XNAT);
         // a 'parseable' string MUST start with
         // one of these: ??  !?  #?  $?  ~/  {{  ((
         return REGEX.parseable.test(VAL);
-    }
-
-
-
-    /**
-     * Configure multiple callback functions
-     * @param fns {Function|Array} - callback function or array of functions
-     * @param methods {Array} - array of strings for method names
-     */
-    function callbacks(fns, methods){
-        var obj = this;
-        // call the [success] callback from the main function
-        [].concat(fns).forEach(function(fn){
-            if (typeof fn === 'function') {
-                // obj.result = obj.value;
-                fn.call(obj, obj.result);
-            }
-        });
-        // define methods to return for chaining
-        [].concat(methods).forEach(function(method){
-            obj[method] = function(callback){
-                if (typeof callback === 'function') {
-                    // obj.result = obj.value;
-                    callback.call(obj, obj.result);
-                }
-                return obj;
-            };
-        });
-        return obj;
     }
 
 
@@ -270,7 +242,6 @@ var XNAT = getObject(XNAT);
                 if (obj.result && obj.path) {
                     // optionally use XPath syntax
                     if (REGEX.useXPath.test(obj.path)) {
-                        // obj.result = jsel(data).selectAll(path);
                         obj.result = JSON.search.call(JSON, obj.result, obj.path);
                     }
                     // or JSONPath syntax
@@ -344,7 +315,6 @@ var XNAT = getObject(XNAT);
                 // optionally use XPath syntax
                 if (REGEX.useXPath.test(obj.path)) {
                     obj.lookupValue = function(data, path){
-                        // return jsel(data).selectAll(path);
                         // JSON.search is from DefiantJS, NOT a native method
                         return JSON.search.call(JSON, data, path);
                     };
@@ -374,18 +344,7 @@ var XNAT = getObject(XNAT);
 
             // do XHR
             obj.request = XNAT.xhr.get({
-                url: obj.url//,
-                //dataType: obj.dataType//,
-                // success: function(data){
-                //     obj.result = obj.path ? obj.lookupValue(data, obj.path) : data;
-                //     obj.status = 'success';
-                //     obj.done(success);
-                // },
-                // error: function(statusText){
-                //     obj.result = statusText;
-                //     obj.status = 'failure';
-                //     obj.fail(failure, arguments);
-                // }
+                url: obj.url
             });
 
             obj.request.always(function(){
@@ -439,8 +398,9 @@ var XNAT = getObject(XNAT);
     function doFn(value, success, failure){
         var obj = this;
         var val;
-        // execute a function to get the value
+        // execute a function by name to get the value
         // #?:NS.func.name()
+        // #?:NS.func.name   --  with or without trailing ()
         if (REGEX.fnTest.test(value)) {
 
             if (jsdebug) console.log('===== doFn =====');
@@ -460,7 +420,6 @@ var XNAT = getObject(XNAT);
                 obj.status = 'success';
                 // call the [success] callback and return 'success/done' method for chaining
                 obj.done(success);
-                // callbacks.call(obj, success, ['success', 'done']);
             }
             catch(e) {
                 if (jsdebug) console.error(e);
@@ -468,7 +427,6 @@ var XNAT = getObject(XNAT);
                 obj.status = 'failure';
                 // call the [failure] callback and return 'failure/fail' method for chaining
                 obj.fail(failure);
-                // callbacks.call(obj, failure, ['failure', 'fail']);
             }
             // --- EVAL RETURN --- //
             return obj;
@@ -492,6 +450,7 @@ var XNAT = getObject(XNAT);
         var val;
         // use eval() to get the value
         // !? XNAT.data.context.projectId.toLowerCase();
+        // (( XNAT.data.context.projectId.toLowerCase(); ))
         if (REGEX.evalPrefix.test(value) || REGEX.evalTest.test(value)) {
 
             if (jsdebug) console.log('===== doEval =====');
@@ -508,7 +467,6 @@ var XNAT = getObject(XNAT);
                 obj.status = 'success';
                 // call the [success] callback and return 'success/done' method for chaining
                 obj.done(success);
-                // callbacks.call(obj, success, ['success', 'done']);
             }
             catch(e) {
                 if (jsdebug) console.error(e);
@@ -516,7 +474,6 @@ var XNAT = getObject(XNAT);
                 obj.status = 'failure';
                 // call the [failure] callback and return 'failure/fail' method for chaining
                 obj.fail(failure);
-                // callbacks.call(obj, failure, ['failure', 'fail']);
             }
             // --- EVAL RETURN --- //
             return obj;

@@ -582,7 +582,7 @@ $.fn.hidden = function(bool, speed){
     }
     else {
         method = speed ? 'fadeIn' : 'show';
-        this.removeClass('hidden')[method](speed);
+        this.removeClass('hidden invisible')[method](speed);
     }
     return this;
 };

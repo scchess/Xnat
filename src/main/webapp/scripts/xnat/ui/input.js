@@ -302,8 +302,15 @@ var XNAT = getObject(XNAT);
         }
 
         // should setting the value be a separate action???
-        if (config.value !== '' && config.value !== undef) {
-            XNAT.form.setValue(_input, config.value);
+        // ...probably...
+        // if (config.value !== '' && config.value !== undef) {
+        //     XNAT.form.setValue(_input, config.value);
+        // }
+
+        function setInputValue(){
+            if (config.value !== '' && config.value !== undef) {
+                XNAT.form.setValue(_input, config.value);
+            }
         }
 
         // // copy value to [data-*] attribute for non-password inputs
@@ -348,11 +355,16 @@ var XNAT = getObject(XNAT);
         return {
             element: _input,
             spawned: _label,
+            load: function(){
+                setInputValue()
+            },
             get: function(){
+                setInputValue();
                 return _label;
             },
             render: function(container){
                 $$(container).append(_label);
+                setInputValue();
             }
         }
     };
@@ -608,29 +620,31 @@ var XNAT = getObject(XNAT);
     input.checkbox = function(config){
 
         config = extend(true, {}, config, config.element);
-        config.kind = 'input.checkbox';
+        config.kind = config.kind || 'input.checkbox';
 
         var chkbox = input('checkbox', config).element;
+
         var NAME = chkbox.name || chkbox.title || chkbox.id;
-        var VALUES = (config.values || config.options || 'true|false').split('|');
+        var VALUES = (config.values || config.options || 'true|false');
         var proxyId = randomID('prx', false);
-
-
 
         addClassName(chkbox, 'controller');
 
         addDataAttrs(chkbox, {
             name: NAME,
-            values: VALUES.join('|'),
-            proxy: proxyId
+            values: VALUES//,
+            // proxy: proxyId
         });
 
-        var proxy = spawn('input.hidden.proxy', {
-            type: 'hidden',
-            name: NAME,
-            id: proxyId,
-            value: config.value || ''
-        });
+        // var proxy = spawn('input.hidden.proxy', {
+        //     type: 'hidden',
+        //     name: NAME,
+        //     id: proxyId,
+        //     value: config.value || ''
+        // });
+
+        // skip the proxy
+        var proxy = '';
 
         var spawned = spawn('label', [chkbox, proxy]);
 
@@ -652,39 +666,53 @@ var XNAT = getObject(XNAT);
     otherTypes.push('checkbox');
 
     // allow use of an existing checkbox as a second argument
-    input.switchbox = function(config, ckbx){
+    input.switchbox = function(config){
+
         config = cloneObject(config);
         config.kind = 'input.switchbox';
 
-        var chkbox = ckbx || input('checkbox', config).element;
+        // use XNAT.ui.input.checkbox() for consistency (?)
+        var CKBX = input.checkbox(config);
+
+        var chkbox = CKBX.checkbox;
 
         var NAME = chkbox.name || chkbox.title || chkbox.id;
         var VALUES = config.values || config.options || 'true|false';
 
-        var proxy = spawn('input.hidden.proxy', {
-            type: 'hidden',
-            name: NAME,
-            value: config.value || ''
-        });
-        chkbox.title = NAME || '';
-        chkbox.name = '';
+        chkbox.title = chkbox.title || (NAME || '') + ': ' + VALUES;
+        // chkbox.name = '';
 
-        addClassName(chkbox, 'switchbox controller');
+        addClassName(chkbox, 'switchbox');
+
+        var proxy = CKBX.proxy;
 
         var swboxParts = [
             chkbox,
+            // proxy,
             ['span.switchbox-outer', [['span.switchbox-inner']]],
             ['span.switchbox-on', config.onText||''],
             ['span.switchbox-off', config.offText||''],
-            proxy
-        ]; //
+            ''
+        ];
 
-        // return the 'outer' switchbox container
-        return spawn(
-            'label.switchbox',
-            { title: NAME ? NAME + ': ' + VALUES : '' },
-            swboxParts
-        );
+        var SWBX = spawn('label.switchbox', {
+            title: NAME ? NAME + ': ' + VALUES : ''
+        }, swboxParts);
+
+        return {
+            spawned: SWBX,
+            element: SWBX,
+            get: function(){
+                return SWBX
+            },
+            render: function(container){
+                $$(container).append(SWBX);
+                return SWBX;
+            },
+            checkbox: chkbox,
+            proxy: proxy
+        }
+
     };
     otherTypes.push('switchbox');
 
@@ -744,7 +772,7 @@ var XNAT = getObject(XNAT);
 
         if (jsdebug) console.log('/////  SET RADIO GROUP VALUE  /////');
 
-        XNAT.form.setValues(radios, tmp);
+        // XNAT.form.setValues(radios, tmp);
 
         return {
             element: radioGroupContainer,
@@ -791,15 +819,6 @@ var XNAT = getObject(XNAT);
         var val2 = opts.value;
         var _val = firstDefined(val1, val2, '');
 
-        // opts.element.value = firstDefined(val1, val2, '');
-
-        // opts.element.html = firstDefined(
-        //     opts.element.html+'',
-        //     opts.element.value+'',
-        //     opts.text+'',
-        //     opts.html+'',
-        //     '');
-
         if (opts.code || opts.codeLanguage) {
             opts.code = opts.code || opts.codeLanguage;
             addDataObjects(opts.element, {
@@ -807,8 +826,9 @@ var XNAT = getObject(XNAT);
                 codeLanguage: opts.codeLanguage || opts.code
             });
             addClassName(opts.element, 'code mono');
-            opts.element.title = 'Double-click to open in code editor.';
             // open code editor on double-click
+            // (actually don't - it's annoying)
+            // opts.element.title = 'Double-click to open in code editor.';
             // opts.element.ondblclick = function(){
             //     var panelTextarea = XNAT.app.codeEditor.init(this, { language: opts.code || 'html' });
             //     panelTextarea.openEditor();

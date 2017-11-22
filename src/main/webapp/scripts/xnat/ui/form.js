@@ -46,7 +46,7 @@ var XNAT = getObject(XNAT);
 
     function isButton(el){
         return '' ||
-            /button/i.test(el.tagName) ||
+            /button/i.test(el.nodeName) ||
             /button|submit|reset/i.test(el.type);
     }
 
@@ -66,6 +66,10 @@ var XNAT = getObject(XNAT);
 
         var input$ = $$(input);
         var input0 = input$[0];
+
+        // return if nothing to work with
+        if (!input0 || !input0.tagName) return;
+
         var inputTag = input0.tagName;
         var inputType = input0.type;
         var inputName = input0.name || input0.title || input0.id;
@@ -156,11 +160,14 @@ var XNAT = getObject(XNAT);
     }
 
 
-    function parseInputValue(input$, val, count){
+    function parseInputValue(input, val, count){
         count = count || 0;
         if (count > 100) {
             console.warn('parseInputValue() called too many times (> 100)');
             debugger;
+        }
+        if (input.jquery) {
+            input = input[0];
         }
         if (XNAT.parse.parseable(val)) {
             XNAT.parse(val).done(function(result){
@@ -174,16 +181,38 @@ var XNAT = getObject(XNAT);
                 if (jsdebug) console.log('setValues > parsed');
                 if (obj.inputName) {
                     if (jsdebug) console.log(obj.inputName);
-                    input$ = input$.filter('[name="' + obj.inputName + '"]');
+                    input = input.form[obj.inputName];
+                    // input$ = input$.filter('[name="' + obj.inputName + '"]');
                 }
-                parseInputValue(input$, result, count++);
+                parseInputValue(input, result, count++);
             });
         }
         else {
-            input$.each(function(i, input){
-                setValue(input, val);
+            // js2form(input.form, val);
+            forEach([].concat(input), function(inputi, i){
+                setValue(inputi, val);
             });
         }
+    }
+
+
+    function setFieldValues(inputs, data){
+        // create data object to use for js2form()
+        var obj = {};
+        forEach(inputs, function(input, i){
+            var name =
+                    input.name ||
+                    input.title.split(':')[0].trim() ||
+                    input.getAttribute['data-name'] ||
+                    input.id;
+            if (name) {
+                obj[name] = (isPlainObject(data)) ? data[name] || '' : data;
+                parseInputValue(input, obj);
+                // setValue(input, data[name]);
+            }
+        });
+        if (jsdebug) console.log(obj);
+        return obj;
     }
 
 
@@ -208,19 +237,21 @@ var XNAT = getObject(XNAT);
         }
 
         var inputs$ = $$(inputs);
+        var inputs_ = inputs;
         // var valObj = null;  // values obj
         // var obj = {};  // output obj
         // var tmp = {};  // temp obj for non-parseable values
         var form$, form0;
 
         // if [inputs] is a form, gather all inputs from the form
-        if (/form/i.test(inputs$[0].tagName)) {
+        if (/form/i.test(inputs$[0].nodeName)) {
             form$ = inputs$;
             form0 = form$[0];
+            inputs_ = form0.elements;
         }
         else {
-            form$ = inputs$.first().closest('form');
-            form0 = form$[0];
+            form0 = inputs_[0].form;
+            // form$ = $(form0);
         }
 
         // no form? don't bother.
@@ -230,7 +261,8 @@ var XNAT = getObject(XNAT);
         if (isPlainObject(values)) {
             try {
                 // use js2form() for easier setting of array values to multiple inputs
-                js2form(form0, values);
+                // js2form(form0, values, '.', null, 'data-name');
+                setFieldValues(inputs_, values);
             }
             catch (e) {
                 if (jsdebug) console.error(e);
@@ -240,70 +272,13 @@ var XNAT = getObject(XNAT);
             if (XNAT.parse.parseable(values)) {
                 XNAT.parse(values).done(function(result){
                     if (result === values) return;
-                    setValues(form$, result, ++count)
+                    setValues(form0, result, ++count)
                 });
             }
             else {
-                inputs$ = form$.find(':input').not(':button, :submit, :reset');
-                inputs$.each(function(i, input){
-                    setValue(input, values);
-                });
+                setFieldValues(inputs_, values);
             }
         }
-
-
-
-
-        // TODO: ELMININATE REDUNDANT REST CALLS!!!
-
-
-
-
-        // // check values for further parseability
-        // forOwn(valObj, function(name, val){
-        //     if (XNAT.parse.parseable(val)) {
-        //         XNAT.parse(val).done(function(result){
-        //             var _tmp = {};
-        //             _tmp[name] = result;
-        //             setValues(inputs$, _tmp);
-        //         });
-        //     }
-        //     else {
-        //         tmp[name] = val;
-        //     }
-        // });
-        //
-        // js2form(form0, tmp);
-
-        // inputs$.each(function(idx, input){
-        //     var inputName = input.name || input.title || input.id;
-        //     setValue(input, values[inputName]);
-        // });
-        // forOwn(values, function(name, VAL){
-        //     setValue(inputs$.find('[name="' + name + '"]'), VAL);
-        //     obj[name] = VAL;
-        // });
-
-
-
-        // XNAT.parse(values).done(function(result){
-        //     setValues(inputs$, result);
-        //     // inputs$.each(function(idx, input){
-        //     //     // var name = input.name || input.title || input.id;
-        //     //     // if (values){
-        //     //     //     if (name in values) {
-        //     //     //         setValue(input, values[name]);
-        //     //     //     }
-        //     //     // }
-        //     //     // else {
-        //     //     // parseValue(value, function(result){
-        //     //         setValue(input, result)
-        //     //     // });
-        //     //     // }
-        //     // });
-        // });
-
-
     }
 
 
@@ -382,6 +357,26 @@ var XNAT = getObject(XNAT);
      */
     Form.fn.get$ = function(){
         return (this.form$ = this.form$ || $$(this.form))
+    };
+
+
+
+    /**
+     * Render the form into [container] with optional [callback]
+     * @param container
+     * @param [callback]
+     * @returns {Form}
+     */
+    Form.fn.render = function(container, callback){
+        if (container) {
+            this.container$ = $$(container);
+            this.container = this.container$[0];
+            this.container$.append(this.form);
+            if (typeof callback === 'function') {
+                callback.call(this, this.form);
+            }
+        }
+        return this;
     };
 
 
@@ -521,11 +516,33 @@ var XNAT = getObject(XNAT);
 
     /**
      * Set values for all selected inputs
-     * @param obj
+     * @param data {String|Object} - 'parseable' string or data object/string
      * @returns {Form}
      */
-    Form.fn.setValues = function(obj){
-        setValues(this.get$(), obj);
+    Form.fn.setValues = function(data){
+        setValues(this.get$(), data);
+        return this;
+    };
+
+
+
+    /**
+     * Spawn [contents] into the form
+     * @param contents {String|Array|Element} - spawn() argument(s)
+     * @param [data] {String|Object} - 'parseable' string or data object/string
+     * @returns {Form}
+     */
+    Form.fn.append = function(contents, data) {
+        var spawned;
+        if (contents) {
+            spawned = spawn.apply(null, [].concat(contents));
+            this.form.appendChild(spawned);
+            if (data) {
+                // should we only set the value(s) for the NEW contents?
+                setValues(spawned, data);
+                // this.setValues(data);
+            }
+        }
         return this;
     };
 
@@ -588,3 +605,4 @@ var XNAT = getObject(XNAT);
     return XNAT.ui.form = XNAT.form = form;
 
 }));
+

@@ -33,7 +33,7 @@ var XNAT = getObject(XNAT || {});
             count: 0,
             errors: 0
         },
-        undefined;
+        undef, undefined;
 
 
     XNAT.ui =
@@ -261,7 +261,7 @@ var XNAT = getObject(XNAT || {});
 
     // populate the data fields if this panel is in the 'active' tab
     // (only getting values for the active tab should cut down on requests)
-    function loadData(form, obj){
+    function loadDataNot(form, obj){
 
         obj = cloneObject(obj);
 
@@ -511,20 +511,31 @@ var XNAT = getObject(XNAT || {});
             opts.processData = opts.processData || false;
         }
 
-        // data-* attributes to add to panel
-        addDataObjects(opts, {
+        var dataObj = {
             panel: toDashed(opts.name),
             method: (opts.method || 'POST').toLowerCase(),
-            load: opts.load || opts.action,
-            payload: opts.payload || ''
-        });
+            load: opts.load || opts.action
+        };
+
+        if (opts.payload) {
+            dataObj.payload = opts.payload;
+        }
+
+        // data-* attributes to add to panel
+        addDataObjects(opts, dataObj);
 
         // text for 'submit' button
         opts.submit = firstDefined(opts.submit, 'Save');
         // text for 'reset' button
         opts.reset = firstDefined(opts.reset, 'Discard Changes');
 
-        opts.action = (opts.action && /^[~/.]/.test(opts.action)) ? XNAT.url.rootUrl(opts.action) : opts.action || '#!';
+        if (opts.action !== undef) {
+            opts.action = opts.action.replace(XNAT.parse.REGEX.ajaxPrefix, '/');
+            opts.action = (opts.action && /^[*~/.]/.test(opts.action)) ? XNAT.url.rootUrl(opts.action) : opts.action || '#!';
+        }
+        else {
+            opts.action = '#!'
+        }
 
         if (opts.onsubmit) {
             opts.element.onsubmit = opts.onsubmit;
@@ -604,9 +615,10 @@ var XNAT = getObject(XNAT || {});
         // set form element values from an object map
         // HANDLED BY $('form').setValues({name:'value'}) now
 
-        if (opts.load) {
-            loadData(_formPanel, opts)
-        }
+        // if (opts.load) {
+        //     // loadData(_formPanel, opts)
+        //     XNAT.form.setValues($formPanel, opts.load)
+        // }
 
         // 'onload' and 'callback' are the same ('onload' takes priority)
         opts.onload = opts.callback =
@@ -618,24 +630,31 @@ var XNAT = getObject(XNAT || {});
 
         opts.onload = isFunction(opts.onload) ? opts.onload : diddly;
 
-
         // custom event for reloading data (refresh)
         $formPanel.on('reload-data', function(){
-            var _load = opts.refresh || opts.load || opts.url;
+
             var form$ = $(this);
+            var loadUrl = opts.refresh || opts.load || opts.url || form$.data('load') || form$.attr('action');
+
             form$.removeClass('ready dirty error valid invalid');
             form$.find('.valid, .invalid').removeClass('valid invalid');
             form$.find('.ready').removeClass('ready');
             form$.find('.dirty').removeClass('dirty');
-            loadData(this, {
-                load: _load,
-                reload: true, // force data reload (don't use stale cached data)
-                onload: function(){
-                    // fire an 'onload' callback, if specified
-                    opts.onload.apply(_formPanel, arguments);
-                    // setDisabled([$saveBtn, $resetBtn], true);
-                }
-            });
+
+            // prepending '*/' will force fresh data to be loaded from the server
+            loadUrl = loadUrl.replace(XNAT.parse.REGEX.ajaxPrefix, '*/');
+
+            XNAT.form.setValues(form$, loadUrl);
+
+            // loadData(this, {
+            //     load: _load,
+            //     reload: true, // force data reload (don't use stale cached data)
+            //     onload: function(){
+            //         // fire an 'onload' callback, if specified
+            //         opts.onload.apply(_formPanel, arguments);
+            //         // setDisabled([$saveBtn, $resetBtn], true);
+            //     }
+            // });
         });
 
         if (_resetBtn) {
@@ -670,18 +689,63 @@ var XNAT = getObject(XNAT || {});
 
         $formPanel.on('submit-data', function(e){
 
-            var $form = $(this).removeClass('error');
+            var $form = $(this).removeClass('error invalid');
             var form0 = $form[0];
             var silent = $form.hasClass('silent');
             var formAction = $form.attr('action');
             var formSubmit;
             var multiform = {};
 
+            $form.dataAttr('errors', 0);
+
+            function validateForm(){
+                var errors = [],
+                    errorCount = 0,
+                    valid = true;
+
+                // validate inputs before moving on
+                $form.find(':input[data-validate]').not('.ignore').each(function(){
+                    valid = XNAT.validate(this);
+                    if (!valid.check()) {
+                        errorCount++;
+                        errors.push({
+                            field: this.title||this.name||this.id||this.tagName,
+                            message: $(this).data('message') || ''
+                        });
+                    }
+                });
+
+                $form.dataAttr('errors', errorCount);
+
+                if (errorCount) {
+                    $form.addClass('error');
+                    if (!silent) {
+                        errors = errors.map(function(error){
+                            return '' +
+                                '<li>' +
+                                '<b>' + error.field + (error.message ? ':</b><br>' + error.message : '</b>') +
+                                '</li>'
+                        });
+                        XNAT.dialog.message({
+                            title: 'Validation Error',
+                            content: '' +
+                            '<p>Please correct the following fields and re-submit the form:</p>' +
+                            '<ul>' + errors.join('') + '</ul>' +
+                            '<br>',
+                            // height: 300,
+                            width: 500
+                        });
+                    }
+                    return false;
+                }
+                return true;
+            }
+
             // execute onsubmit handler for "#?:submitFunction()"
             if (/^#\?/.test(formAction)) {
                 formAction = formAction.replace(/^(#\?[:=\s]*)|(\(\))$/g, '');
                 formSubmit = lookupObjectValue(formAction);
-                if (isFunction(formSubmit)) {
+                if (validateForm() && isFunction(formSubmit)) {
                     return formSubmit.call(form0, $form, e);
                 }
                 else {
@@ -693,8 +757,6 @@ var XNAT = getObject(XNAT || {});
             if (/^#/.test(formAction)) {
                 return false;
             }
-
-            //$form.dataAttr('errors', 0);
 
             // only open loading dialog for standard (non-multi) submit
             if (!multiform.count){
@@ -736,67 +798,26 @@ var XNAT = getObject(XNAT || {});
             }
 
             var ajaxConfig = {
-                //method: opts.method,
                 method: $form.data('method') || opts.method || 'POST',
                 processData: firstDefined(opts.processData||undefined, true),
                 url: urlParams($form),
                 validate: function(){
-
-                    var errors = [],
-                        errorCount = 0,
-                        valid = true;
-
-                    // validate inputs before moving on
-                    $form.find(':input[data-validate]').not('.ignore').each(function(){
-                        valid = XNAT.validate(this);
-                        if (!valid.check()) {
-                            errorCount++;
-                            errors.push({
-                                field: this.title||this.name||this.id||this.tagName,
-                                message: $(this).data('message') || ''
-                            });
-                        }
-                    });
-
-                    $form.dataAttr('errorCount', errorCount);
-
-                    if (errorCount) {
-                        $form.addClass('error');
-                        if (!silent) {
-                            errors = errors.map(function(error){
-                                return '' +
-                                    '<li>' +
-                                    '<b>' + error.field + (error.message ? ':</b> ' + error.message : '</b>') +
-                                    '</li>'
-                            });
-                            xmodal.message({
-                                title: 'Validation Error',
-                                content: '' +
-                                '<p>Please correct the following fields and re-submit the form:</p>' +
-                                '<ul>' + errors.join('') + '</ul>' +
-                                '',
-                                width: 500,
-                                height: 300
-                            });
-                        }
-                        return false;
-                    }
-
-                    return true;
-
+                    return validateForm();
                 },
                 success: function(){
-                    var obj = {}, callback,
-                        _load = opts.refresh || opts.url || opts.load;
+                    var obj = {}, callback;
                     // actually, NEVER use returned data...
                     // ALWAYS reload from the server
                     // (prepending '$?' assures that)
-                    obj.load = _load;
+                    obj.load = opts.refresh || opts.url || opts.load;
                     obj.reload = true; // force reload after submission
                     if (!silent){
                         XNAT.ui.banner.top(2000, 'Data saved successfully.', 'success');
-                        loadData($form, obj);
+                        $form.triggerHandler('reload-data');
+                        // XNAT.form.setValues($form, obj);
+                        // loadData($form, obj);
                     }
+                    $form.removeClass('error invalid').dataAttr('errors', 0);
                     $form.find(':input[data-validate]').removeClass('valid invalid');
                     $form.find('.dirty').removeClass('dirty');
                     // fire callback function if specified
@@ -860,13 +881,19 @@ var XNAT = getObject(XNAT || {});
             }
         });
 
+        function loadValues(){
+            var loadUrl = (opts.load || opts.url || '').replace(XNAT.parse.REGEX.ajaxPrefix, '$?/');
+            try {
+                XNAT.form.setValues($formPanel, loadUrl);
+            }
+            catch (e) {
+                console.error(e);
+            }
+        }
+
         // this object is returned to the XNAT.spawner() method
         return {
-            load: function(){
-                if (!opts.load) {
-                    loadData(_formPanel, opts)
-                }
-            },
+            load: loadValues,
             // setValues: setValues,
             target: _target,
             element: _formPanel,
@@ -1243,7 +1270,7 @@ var XNAT = getObject(XNAT || {});
 
     panel.input.switchbox = panel.switchbox = function panelInputSwitchbox(opts){
         opts = cloneObject(opts);
-        var switchbox = XNAT.ui.input.switchbox(opts);
+        var switchbox = XNAT.ui.input.switchbox(opts).get();
         // opts.type = 'checkbox';
         // opts.kind = 'switchbox';
         addClassName(opts, 'panel-switchbox switchbox');

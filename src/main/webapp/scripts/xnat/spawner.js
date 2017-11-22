@@ -72,7 +72,7 @@ var XNAT = getObject(XNAT);
 
     // ==================================================
     // MAIN FUNCTION
-    spawner.spawn = spawner.init = function spawnerInit(obj){
+    spawner.spawn = spawner.init = function spawneri(obj){
 
         var frag  = document.createDocumentFragment(),
             $frag = $(frag),
@@ -94,6 +94,11 @@ var XNAT = getObject(XNAT);
         forOwn(obj, function(item, prop){
 
             var show, hide, kind, element, method, spawnedElement, $spawnedElement, _spwnd;
+
+            // accept 'kind' or 'type' property name
+            // but 'kind' will take priority
+            // with a fallback to a generic div
+            kind = prop.kind || prop.type || null;
 
             // spawn the item?
             if (prop.show !== undef) {
@@ -120,6 +125,19 @@ var XNAT = getObject(XNAT);
 
 
             try {
+
+                if (kind === 'page' || prop.page) {
+                    if (prop.url || prop.href || prop.page) {
+                        prop.url = XNAT.url.parse(prop.url || prop.href || prop.page);
+                        if (prop.container) {
+                            return $$(prop.container).load(prop.url)
+                        }
+                        else {
+                            return $frag.load(prop.url);
+                        }
+                    }
+                    return;
+                }
 
                 // pick up an existing element
                 if (prop.template !== undef) {
@@ -190,18 +208,13 @@ var XNAT = getObject(XNAT);
                 // I really don't like doing this here.
                 prop.id = prop.id || prop.element.id || toDashed(prop.name);
 
-                // accept 'kind' or 'type' property name
-                // but 'kind' will take priority
-                // with a fallback to a generic div
-                kind = prop.kind || prop.type || null;
-
                 if (prop.url) {
                     prop.url = spawnerUrl(prop.url)
                 }
                 if (prop.action) {
                     prop.action = spawnerUrl(prop.action)
                 }
-                if (prop.load && !/^([!?][?])/.test(prop.load)) {
+                if (prop.load && !/^([#!?][?])/.test(prop.load)) {
                     prop.load = spawnerUrl(prop.load)
                 }
 
@@ -338,7 +351,7 @@ var XNAT = getObject(XNAT);
                         $spawnedElement.append(prop.contents + '');
                     }
                     else {
-                        $spawnedElement.append(spawnerInit(prop.contents).get());
+                        $spawnedElement.append(spawneri(prop.contents).get());
                     }
                 }
 
@@ -353,7 +366,7 @@ var XNAT = getObject(XNAT);
                         $frag.append(prop.after)
                     }
                     else if (isPlainObject(prop.after)) {
-                        $frag.append(spawnerInit(prop.after).get())
+                        $frag.append(spawneri(prop.after).get())
                     }
                 }
 
@@ -362,7 +375,7 @@ var XNAT = getObject(XNAT);
                         $frag.prepend(prop.before)
                     }
                     else if (isPlainObject(prop.before)) {
-                        $frag.prepend(spawnerInit(prop.before).get())
+                        $frag.prepend(spawneri(prop.before).get())
                     }
                 }
 
@@ -389,36 +402,36 @@ var XNAT = getObject(XNAT);
 
         });
 
-        spawnerInit.spawned = frag;
+        spawneri.spawned = frag;
 
-        spawnerInit.element = frag;
+        spawneri.element = frag;
 
-        spawnerInit.children = frag.children;
+        spawneri.children = frag.children;
 
-        spawnerInit.get = function(){
+        spawneri.get = function(){
             return frag;
         };
 
-        spawnerInit.get$ = function(){
+        spawneri.get$ = function(){
             return $frag;
         };
 
-        spawnerInit.getContents = function(){
+        spawneri.getContents = function(){
             return $frag.contents();
         };
 
-        spawnerInit.done = function(callback){
-            // console.log('spawnerInit.done');
+        spawneri.done = function(callback){
+            // console.log('spawneri.done');
             if (isFunction(callback)) {
-                // console.log('spawnerInit.done callback');
-                callback.call(spawnerInit, frag, $frag)
+                // console.log('spawneri.done callback');
+                callback.call(spawneri, frag, $frag)
             }
-            return spawnerInit;
+            return spawneri;
         };
 
-        spawnerInit.render = function(container, wait, callback){
+        spawneri.render = function(container, wait, callback){
 
-            console.log('spawnerInit.render');
+            console.log('spawneri.render');
 
             var $container = $$(container).hide();
 
@@ -431,7 +444,7 @@ var XNAT = getObject(XNAT);
                 // fire collected callbacks
                 callbacks.forEach(function(fn){
                     try {
-                        fn.call(spawnerInit, obj);
+                        fn.call(spawneri, obj);
                     }
                     catch(e) {
                         console.log(e)
@@ -439,7 +452,7 @@ var XNAT = getObject(XNAT);
                 });
 
                 if (isFunction(callback)) {
-                    callback.call(spawnerInit, obj);
+                    callback.call(spawneri, obj);
                 }
 
             }, wait * 2);
@@ -453,7 +466,7 @@ var XNAT = getObject(XNAT);
             //             console.log('callbacks.forEach');
             //             // setTimeout(function(){
             //             try {
-            //                 fn.call(spawnerInit);
+            //                 fn.call(spawneri);
             //             }
             //             catch (e) {
             //                 console.log(e)
@@ -464,18 +477,18 @@ var XNAT = getObject(XNAT);
             //     // setTimeout(function(){
             //     if (isFunction(callback)) {
             //         console.log('render callback');
-            //         callback.call(spawnerInit, obj);
+            //         callback.call(spawneri, obj);
             //     }
             //     // }, wait * 2);
             // });
 
-            return spawnerInit;
+            return spawneri;
 
         };
 
-        spawnerInit.foo = '(spawn.foo)';
+        spawneri.foo = '(spawn.foo)';
 
-        return spawnerInit;
+        return spawneri;
 
     };
     // ==================================================
@@ -517,10 +530,13 @@ var XNAT = getObject(XNAT);
     // var adminPage = XNAT.spawner.resolve('siteAdmin/root');
     // adminPage.render('#page-container');
     // and methods from the AJAX request will be in .get.done(), .get.fail(), etc.
-    spawner.resolve = function(nsPath, opts) {
+    spawner.resolve = function(nsPath, opts){
 
         // you can pass a config object as the only argument
         opts = cloneObject(firstDefined(opts, getObject(nsPath)));
+
+        // object to return
+        var resolve = {};
 
         var url = opts.url || XNAT.url.restUrl('/xapi/spawner/resolve/' + nsPath);
 
@@ -528,65 +544,89 @@ var XNAT = getObject(XNAT);
             url: url
         }, opts));
 
+        resolve.url = url;
+        resolve.request = request;
+
+        // save reference to generated Spawner instance
+        var spawneri;
+
         function spawnRender(){
             // console.log('spawnRender');
-            var renderArgs = arguments;
-            return request.done(function(obj){
-                spawner.spawn(obj).render.apply(request, renderArgs);
-                return request;
+            var args = arguments;
+            return request.done(function(data){
+                spawneri = spawneri || spawner.spawn(data);
+                spawneri.render.apply(request, args);
+                return spawneri;
             });
         }
 
-        var resolve = {
-            // returned 'ok' method only fires with 200 response
-            // and returns with 'this' as Spawner instance
-            ok: function(success, failure){
-                if (jsdebug) console.log('spawner.resolve().ok()');
-                request.done(function(obj, txtStatus, xhr){
-                    var spawnerInit = spawner.spawn(obj);
-                    if (xhr.status === 200) {
-                        if (isFunction(success)){
-                            success.call(spawnerInit, obj, txtStatus, xhr)
-                        }
+        // returned 'ok' method only fires with 200 response
+        // and returns with Spawner instance as 'this'
+        resolve.ok = function(success, failure){
+            if (jsdebug) console.log('spawner.resolve().ok()');
+            request.done(function(data, txtStatus, xhr){
+                spawneri = spawneri || spawner.spawn(data);
+                if (xhr.status === 200) {
+                    if (isFunction(success)) {
+                        success.call(resolve, data, txtStatus, xhr)
                     }
-                    else {
-                        // try something else if element isn't present
-                        if (isFunction(failure)) {
-                            failure.call(spawnerInit, obj, txtStatus, xhr)
-                        }
+                }
+                else {
+                    // try something else if element isn't present
+                    if (isFunction(failure)) {
+                        failure.call(resolve, data, txtStatus, xhr)
                     }
-                });
-                return resolve;
-            },
-            done: request.done,
-            fail: function(callback){
-                console.log('spawner.resolve().fail()');
-                request.done(function(obj, txtStatus, xhr){
-                    var spawnerInstance = spawner.spawn(obj);
-                    if (xhr.status !== 200) {
-                        if (isFunction(callback)){
-                            callback.apply(spawnerInstance, arguments)
-                        }
-                    }
-                });
-                return resolve;
-            },
-            always: request.always,
-            spawn: spawnRender,
-            render: function(container, callback){
-                resolve.ok(function(obj){
-                    this.render(container);
-                    if (isFunction(callback)) {
-                        try {
-                            this.done(callback)
-                        }
-                        catch (e) {
-                            if (jsdebug) console.error(e);
-                        }
-                    }
-                });
-                return resolve;
+                }
+            });
+            return resolve;
+        };
+
+        resolve.done = function(callback){
+            if (isFunction(callback)) {
+                request.done(callback);
             }
+            return resolve;
+        };
+
+        resolve.fail = function(callback){
+            if (jsdebug) console.log('spawner.resolve().fail()');
+            request.done(function(data, txtStatus, xhr){
+                spawneri = spawneri || spawner.spawn(data);
+                if (xhr.status !== 200) {
+                    if (isFunction(callback)) {
+                        callback.apply(resolve, arguments)
+                    }
+                }
+            });
+            return resolve;
+        };
+
+        resolve.always = function(callback){
+            if (isFunction(callback)) {
+                request.always(callback);
+            }
+            return resolve;
+        };
+
+        resolve.spawn = function(){
+            resolve.request = spawnRender.apply(resolve, arguments);
+            return resolve;
+        };
+
+        resolve.render = function(container, callback){
+            resolve.ok(function(data){
+                spawneri = spawneri || spawner.spawn(data);
+                spawneri.render(container);
+                if (isFunction(callback)) {
+                    try {
+                        spawneri.done.call(resolve, callback)
+                    }
+                    catch(e) {
+                        if (jsdebug) console.error(e);
+                    }
+                }
+            });
+            return resolve;
         };
 
         return resolve;

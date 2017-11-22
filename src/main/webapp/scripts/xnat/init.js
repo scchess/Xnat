@@ -49,13 +49,15 @@ var XNAT = getObject(XNAT);
     // add build info to page elements *AFTER* DOM load
     $(function(){
 
+        var $doc = $(document);
+
         // prevent default click triggers on '#' links
-        $(document).on('click', '[href^="#"], [href^="@!"]', function(e){
+        $doc.on('click', '[href^="#"], [href^="@!"]', function(e){
             e.preventDefault();
         });
 
         // add 'dirty' class to changed input on focus
-        $(document).on('focus.check-input', 'input, textarea', function(){
+        $doc.on('focus.check-input', 'input, textarea', function(){
             // console.log('focus');
             var input$ = $(this);
             var startVal = input$.data('value') || input$.val();
@@ -72,14 +74,14 @@ var XNAT = getObject(XNAT);
             });
         });
 
-        $(document).on('click.check-ckbx', 'input[type="radio"], input[type="checkbox"]', function(){
+        $doc.on('click.check-ckbx', 'input[type="radio"], input[type="checkbox"]', function(){
             console.log('changed');
             $(this).addClass('dirty');
         });
 
         // manhandle 'checked' attribute and property on radio buttons
         // applies to radio buttons with the same name in the same form
-        $(document).on('click', 'input[type="radio"]', function(){
+        $doc.on('click', 'input[type="radio"]', function(){
             var radio$ = $(this);
             // make sure we've got the custom 'checked' method
             if (radio$.checked && isFunction(radio$.checked)) {
@@ -93,7 +95,7 @@ var XNAT = getObject(XNAT);
         // <input type="checkbox" name="bogus" title="bogus=yes|no">
         // ...or...
         // <input type="checkbox" name="bogus" title="bogus: yes|no">
-        $(document).on('change', 'input.controller[type="checkbox"]', function(){
+        $doc.on('change', 'input.controller[type="checkbox"]', function(){
 
             var ckbx$ = $(this);
             var ckbx0 = this;
@@ -101,7 +103,7 @@ var XNAT = getObject(XNAT);
             var values = ['true', 'false'];
             var dataValues = ckbx$.data('values') || ckbx$.data('options');
 
-            ckbx0.name = '';
+            ckbx0.name = NAME;
 
             // if the [title] attribute contains '=' (or ':') and '|'
             // ...it's probably the value options
@@ -113,39 +115,7 @@ var XNAT = getObject(XNAT);
                 values = (dataValues+'').split('|');
             }
 
-            var VALUE = ckbx0.checked ? (values[0]+'').trim() : (values[1]+'').trim();
-            ckbx0.value = VALUE;
-
-            var container$ = ckbx$.closest('form');
-
-            if (!container$.length) {
-                container$ = $(document.body);
-            }
-
-            var proxyId = ckbx$.data('proxy');
-            var proxy$ = [];
-
-            // is a proxy defined in the input element?
-            if (proxyId) {
-                proxy$ = container$.find('#' + proxyId);
-                proxy$[0].name = NAME;
-            }
-            else {
-                // is there already a proxy input that tracks the value?
-                proxy$ = container$.find('input.proxy[name="' + NAME + '"]');
-                proxyId = randomID('prx', false);
-                ckbx$.data('proxy', proxyId);
-            }
-
-            if (!proxy$.length) {
-                proxy$ = $.spawn('input.proxy|type=hidden');
-                ckbx$.after(proxy$);
-            }
-
-            proxy$[0].id = proxyId;
-            proxy$[0].value = VALUE;
-
-            // ckbx$.addClass('ready');
+            ckbx0.value = ckbx0.checked ? (values[0]+'').trim() : (values[1]+'').trim();
 
         });
 
