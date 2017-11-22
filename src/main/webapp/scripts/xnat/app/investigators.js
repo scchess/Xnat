@@ -279,7 +279,8 @@ var XNAT = getObject(XNAT);
                 investigatorForm: {
                     kind: 'panel.form',
                     name: 'editInvestigator',
-                    url: setupUrl(id),
+                    load: id ? setupUrl(id) : '!?',
+                    action: setupUrl(id),
                     method: id ? 'PUT' : 'POST',
                     contentType: 'json',
                     header: false,
@@ -315,14 +316,14 @@ var XNAT = getObject(XNAT);
             }
         }
 
-        var invForm = XNAT.spawner.spawn(investigatorForm());
-
         var dialog =
                 xmodal.open({
                     title: (id ? 'Edit' : 'Create') + ' Investigator',
                     content: '<div class="add-edit-investigator"></div>',
                     beforeShow: function(obj){
-                        invForm.render(obj.$modal.find('div.add-edit-investigator'));
+                        XNAT.spawner
+                            .spawn(investigatorForm())
+                            .render(obj.$modal.find('div.add-edit-investigator'));
                     },
                     afterShow: function(obj){
                         if (self.menu) {
