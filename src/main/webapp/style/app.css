@@ -1236,6 +1236,14 @@ b.x {
     line-height: 20px;
     color: #c00;
 }
+b.XL {
+    font-size: 30px;
+    line-height: 30px;
+}
+b.XXL {
+     font-size: 40px;
+     line-height: 40px;
+ }
 /* style for checkmark character */
 b.check,
 b.checkmark {
@@ -2931,8 +2939,12 @@ span.spacer {
     box-sizing: border-box;
 }
 
-.xnat-table th,
-.xnat-table td {
+.xnat-table > tr > th,
+.xnat-table > tr > td,
+.xnat-table > thead > tr > th,
+.xnat-table > tbody > tr > th,
+.xnat-table > thead > tr > td,
+.xnat-table > tbody > tr > td {
     padding: 6px 12px;
     box-sizing: border-box;
     border: 1px solid #ccc;
@@ -2941,7 +2953,9 @@ span.spacer {
     border-collapse: collapse;
 }
 
-.xnat-table th {
+.xnat-table > tr > th,
+.xnat-table > thead > tr > th,
+.xnat-table > tbody > tr > th {
     vertical-align: middle;
     font-size: 12px;
     font-weight: normal;
@@ -2951,7 +2965,9 @@ span.spacer {
     border-color: #aaa;
 }
 
-.xnat-table td {
+.xnat-table > tr > td,
+.xnat-table > thead > tr > td,
+.xnat-table > tbody > tr > td {
     vertical-align: middle;
     text-align: left;
 }
@@ -2980,23 +2996,31 @@ span.spacer {
     box-shadow: 0 0 5px #0850b4;
 }
 
-.xnat-table th:last-of-type,
-.xnat-table td:last-of-type {
+.xnat-table > tr > th:last-of-type,
+.xnat-table > tr > td:last-of-type,
+.xnat-table > thead > tr > th:last-of-type,
+.xnat-table > tbody > tr > th:last-of-type,
+.xnat-table > thead > tr > td:last-of-type,
+.xnat-table > tbody > tr > td:last-of-type {
     border-right: none;
 }
 
-.xnat-table tr:last-of-type td {
+.xnat-table > tr:last-child > td,
+.xnat-table > tbody > tr:last-child > td {
     border-bottom: none;
 }
 
-.xnat-table tr.highlight:hover,
-.xnat-table.highlight tr:hover,
-.xnat-table.striped.highlight tr:hover {
+.xnat-table > tr.highlight:hover,
+.xnat-table.highlight > tr:hover,
+.xnat-table.striped.highlight > tr:hover,
+.xnat-table > tbody > tr.highlight:hover,
+.xnat-table.highlight > tbody > tr:hover,
+.xnat-table.striped.highlight > tbody > tr:hover {
     background: #e5f2ff;
 }
 
-.xnat-table thead tr.highlight:hover,
-.xnat-table.highlight thead tr:hover {
+.xnat-table > thead > tr.highlight:hover,
+.xnat-table.highlight > thead > tr:hover {
     background: inherit;
 }
 
@@ -3036,66 +3060,111 @@ span.spacer {
     border-color: #d0d0d0;
 }
 
-.xnat-table.alt1 th {
+.xnat-table.alt1 > tr > th,
+.xnat-table.alt1 > thead > tr > th,
+.xnat-table.alt1 > tbody > tr > th {
     background: #f0f0f0;
     text-align: left;
     font-weight: bold;
 }
 
-.xnat-table.alt1 th,
-.xnat-table.alt1 td {
+.xnat-table.alt1 > tr > th,
+.xnat-table.alt1 > tr > td,
+.xnat-table.alt1 > thead > tr > th,
+.xnat-table.alt1 > tbody > tr > th,
+.xnat-table.alt1 > thead > tr > td,
+.xnat-table.alt1 > tbody > tr > td {
     border-color: #d0d0d0;
 }
 
-.xnat-table.rows th,
-.xnat-table.rows td,
-.xnat-table.rows-only th,
-.xnat-table.rows-only td {
+.xnat-table.rows > tr > th,
+.xnat-table.rows > tr > td,
+.xnat-table.rows > thead > tr > th,
+.xnat-table.rows > tbody > tr > th,
+.xnat-table.rows > thead > tr > td,
+.xnat-table.rows > tbody > tr > td,
+.xnat-table.rows-only > tr > th,
+.xnat-table.rows-only > tr > td,
+.xnat-table.rows-only > thead > tr > th,
+.xnat-table.rows-only > tbody > tr > th,
+.xnat-table.rows-only > thead > tr > td,
+.xnat-table.rows-only > tbody > tr > td {
     border-left: none;
     border-right: none;
 }
 
-.xnat-table.clean th {
+.xnat-table.clean > tr > th,
+.xnat-table.clean > thead > tr > th {
     border-right: none;
 }
 
-.xnat-table.clean td {
+.xnat-table.clean > tr > td,
+.xnat-table.clean > tbody > tr > td {
     border: none;
 }
 
-.xnat-table.clean tr:hover {
+.xnat-table.clean > tbody > tr:hover {
     /*background: #e5f2ff;*/
 }
 
-.xnat-table.compact th,
-.xnat-table.compact td {
+.xnat-table.compact > tr > th,
+.xnat-table.compact > tr > td,
+.xnat-table.compact > thead > tr > th,
+.xnat-table.compact > tbody > tr > th,
+.xnat-table.compact > thead > tr > td,
+.xnat-table.compact > tbody > tr > td {
     padding: 4px 10px;
 }
 
-.xnat-table.striped tr:nth-of-type(2n) {
+.xnat-table.ultra-compact > tr > th,
+.xnat-table.ultra-compact > tr > td,
+.xnat-table.ultra-compact > thead > tr > th,
+.xnat-table.ultra-compact > tbody > tr > th,
+.xnat-table.ultra-compact > thead > tr > td,
+.xnat-table.ultra-compact > tbody > tr > td {
+    padding: 2px 5px;
+}
+
+.xnat-table.striped > tbody > tr:nth-of-type(2n) {
     /*background: #e5f2ff;*/
     background: #f0f0f0;
 }
 
-.xnat-table.columns th,
-.xnat-table.columns td,
-.xnat-table.columns-only th,
-.xnat-table.columns-only td {
+.xnat-table.columns > tr > th,
+.xnat-table.columns > tr > td,
+.xnat-table.columns > thead > tr > th,
+.xnat-table.columns > tbody > tr > th,
+.xnat-table.columns > thead > tr > td,
+.xnat-table.columns > tbody > tr > td,
+.xnat-table.columns-only > tr > th,
+.xnat-table.columns-only > tr > td,
+.xnat-table.columns-only > thead > tr > th,
+.xnat-table.columns-only > tbody > tr > th,
+.xnat-table.columns-only > thead > tr > td,
+.xnat-table.columns-only > tbody > tr > td {
     border-left: none;
     border-right: 1px solid #ccc;
 }
 
-.xnat-table.columns th:last-of-type,
-.xnat-table.columns td:last-of-type,
-.xnat-table.columns-only th:last-of-type,
-.xnat-table.columns-only td:last-of-type {
+.xnat-table.columns > tr > th:last-of-type,
+.xnat-table.columns > tr > td:last-of-type,
+.xnat-table.columns > thead > tr > th:last-of-type,
+.xnat-table.columns > tbody > tr > td:last-of-type,
+.xnat-table.columns-only > tr > th:last-of-type,
+.xnat-table.columns-only > tr > td:last-of-type,
+.xnat-table.columns-only > thead > tr > th:last-of-type,
+.xnat-table.columns-only > tbody > tr > td:last-of-type {
     border-right: none;
 }
 
 .xnat-table.borderless,
-.xnat-table.borderless tr,
-.xnat-table.borderless th,
-.xnat-table.borderless td {
+.xnat-table.borderless > tr,
+.xnat-table.borderless > thead > tr,
+.xnat-table.borderless > tbody > tr,
+.xnat-table.borderless > tr > th,
+.xnat-table.borderless > tr > td,
+.xnat-table.borderless > thead > tr > th,
+.xnat-table.borderless > tbody > tr > td {
     border: none;
 }
 
