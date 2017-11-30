@@ -1,6 +1,8 @@
 package org.nrg.xapi.rest.dicomweb;
 
 import org.dcm4che3.data.Attributes;
+import org.nrg.xapi.model.dicomweb.DicomObjectI;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
@@ -19,32 +21,34 @@ import java.util.Map;
 
 
 @Component
-public class MultipartDicomMessageConverter extends AbstractHttpMessageConverter< List<Attributes>> {
+@Lazy
+public class MultipartDicomFileMessageConverter extends AbstractHttpMessageConverter< List<DicomObjectI>> {
 
     private List<HttpMessageConverter<?>> _converters;
     private final static Map<String, String> DICOM_XML_TYPE = createMediaTypes();
     private static Map<String, String> createMediaTypes() {
         Map<String, String> aMap = new HashMap<>();
-        aMap.put("type", "\"application/dicom+xml\"");
+        aMap.put("type", "\"application/dicom\"");
         return Collections.unmodifiableMap(aMap);
     }
     private final static MediaType MULTIPART_MIXED = new MediaType("multipart", "mixed");
     private final static MediaType MULTIPART_RELATED = new MediaType("multipart", "related");
+    private final static MediaType APPLICATION_DICOM = new MediaType("application", "dicom");
     private final static MediaType APPLICATION_DICOM_XML = new MediaType("application", "dicom+xml");
 
-    public MultipartDicomMessageConverter(List<HttpMessageConverter<?>> converters) {
+    public MultipartDicomFileMessageConverter() {
         super( MULTIPART_MIXED, MULTIPART_RELATED);
-        this._converters = converters;
+        this._converters = null;
     }
 
     // for reading from the input message.
     @Override
-    protected List<Attributes> readInternal(Class<? extends List<Attributes>> arg0, HttpInputMessage arg1) throws IOException, HttpMessageNotReadableException {
+    protected List<DicomObjectI> readInternal(Class<? extends List<DicomObjectI>> arg0, HttpInputMessage arg1) throws IOException, HttpMessageNotReadableException {
         return null;
     }
-
     @Override
-    protected void writeInternal( List<Attributes> dicomParts, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
+
+    protected void writeInternal( List<DicomObjectI> dicomParts, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
         
         try {
 
@@ -61,19 +65,20 @@ public class MultipartDicomMessageConverter extends AbstractHttpMessageConverter
             // write preamble
             outputMessage.getBody().write( "\r\n".getBytes());
 
-            for ( Attributes dicomPart: dicomParts) {
+            for ( DicomObjectI dicomPart: dicomParts) {
 
-                HttpMessageConverter converter = getConverter( dicomPart.getClass(), APPLICATION_DICOM_XML);
+                HttpMessageConverter converter = getConverter( dicomPart.getClass(), APPLICATION_DICOM);
                 
                 if( converter == null) {
-                    handleNoConverterFound(dicomPart.getClass(), APPLICATION_DICOM_XML);
+                    handleNoConverterFound(dicomPart.getClass(), APPLICATION_DICOM);
                 }
 
-                outputMessage.getBody().write( ("\r\n--"+ boundary + "\r\n").getBytes());
-                outputMessage.getBody().write( ("Content-Type: application/dicom+xml\r\n\r\n").getBytes());
-//                outputMessage.getBody().write( ("Content-Type: application/dicom+xml\r\n").getBytes());
+//                outputMessage.getBody().write( ("\n--"+ boundary + "\n\n").getBytes());
 
-                converter.write( dicomPart, APPLICATION_DICOM_XML, outputMessage);
+                outputMessage.getBody().write( ("\r\n--"+ boundary + "\r\n").getBytes());
+                outputMessage.getBody().write( ("Content-Type: application/dicom\r\n\r\n").getBytes());
+
+                converter.write( dicomPart, APPLICATION_DICOM, outputMessage);
             }
             outputMessage.getBody().write( ("\r\n--"+ boundary + "--\r\n\r\n").getBytes());
 
@@ -86,7 +91,7 @@ public class MultipartDicomMessageConverter extends AbstractHttpMessageConverter
     private void handleNoConverterFound(Class<?> aClass, MediaType mediaType) {
     }
 
-    private HttpMessageConverter<Attributes> getConverter(Class<?> clazz, MediaType mediaType) {
+    private HttpMessageConverter<DicomObjectI> getConverter(Class<?> clazz, MediaType mediaType) {
 //        for( HttpMessageConverter converter: _converters) {
 //            if( converter.canWrite( clazz, mediaType)) {
 //                return converter;
@@ -94,7 +99,7 @@ public class MultipartDicomMessageConverter extends AbstractHttpMessageConverter
 //        }
 //        return null;
 
-        return new Dicom2XmlMessageConverter();
+        return new DicomObjectMessageConverter();
     }
 
     @Override
@@ -109,12 +114,13 @@ public class MultipartDicomMessageConverter extends AbstractHttpMessageConverter
             if( type != null) {
                 type = type.replaceAll("^\"|\"$", "");
                 MediaType partMediaType = MediaType.parseMediaType( type);
-                if( APPLICATION_DICOM_XML.isCompatibleWith( partMediaType)) {
+                if( APPLICATION_DICOM.isCompatibleWith( partMediaType)) {
                     return true;
                 }
             }
         }
         return false;
+//        return super.canWrite(clazz, mediaType);
     }
 
     @Override
@@ -129,9 +135,9 @@ public class MultipartDicomMessageConverter extends AbstractHttpMessageConverter
     }
 
     public static void main(String[] args) {
-        MediaType type = MultipartDicomMessageConverter.MULTIPART_RELATED;
+        MediaType type = MultipartDicomFileMessageConverter.MULTIPART_RELATED;
         Map<String,String> map = new HashMap<>();
-        map.put("type", "\"application/dicom+xml\"");
+        map.put("type", "\"application/dicom\"");
         MediaType type2 = new MediaType("multipart", "related", map);
         System.out.println(type);
 

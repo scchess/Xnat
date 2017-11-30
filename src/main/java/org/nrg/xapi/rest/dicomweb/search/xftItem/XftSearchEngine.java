@@ -71,6 +71,9 @@ public class XftSearchEngine implements SearchEngineI {
                 case QueryParameters.STUDY_DATE_NAME:
                     cc.addClause( "xnat:experimentData/date", "=" , queryParameters.getParams( paramName).get(0));
                     break;
+                case QueryParameters.STUDY_ID_NAME:
+                    cc.addClause( "xnat:imagesessionData/studyId", "=" , queryParameters.getParams( paramName).get(0));
+                    break;
                 default:
                     _log.warn("Ignoring query parameter: " + queryParameters.asString(paramName));
                     break;

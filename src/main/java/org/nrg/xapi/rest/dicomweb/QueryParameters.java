@@ -17,6 +17,7 @@ public class QueryParameters {
     public static final String PATIENT_ID_NAME = "patientID";
     public static final String PATIENT_NAME_NAME = "patientName";
     public static final String ACCESSION_NUMBER_NAME = "accessionNumber";
+    public static final String STUDY_ID_NAME = "studyID";
 
     private Map<String, List<String>> normalizedMap;
     private static final Logger _log = LoggerFactory.getLogger(DicomWebApi.class);
@@ -62,6 +63,10 @@ public class QueryParameters {
             case "00080050":
             case "accessionnumber":
                 addParam( ACCESSION_NUMBER_NAME, value);
+                break;
+            case "00200010":
+            case "studyid":
+                addParam( STUDY_ID_NAME, value);
                 break;
             default:
                 _log.warn("Ignoring unrecognized parameter: " + dicomParamName + " = " + value);

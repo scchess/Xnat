@@ -13,6 +13,12 @@ public class DicomObjectChe3 implements DicomObjectI{
         this.file = file;
     }
 
+    /**
+     * Blast the file, as is, down stream.
+     *
+     * @param os
+     * @throws IOException
+     */
     @Override
     public void write(OutputStream os) throws IOException {
         byte[] buf = new byte[16384];

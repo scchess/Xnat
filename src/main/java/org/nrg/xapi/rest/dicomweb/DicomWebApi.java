@@ -93,19 +93,21 @@ public class DicomWebApi extends AbstractXapiProjectRestController {
             @ApiResponse(code = 500, message = "An unexpected error occurred.")})
     @XapiRequestMapping(value = "studies/{studyInstanceUID}/series/{seriesInstanceUID}/instances/{sopInstanceUID}", produces = {"multipart/related;type=\"application/dicom\""}, method = RequestMethod.GET, restrictTo = Read)
     @ResponseBody
-    public ResponseEntity<DicomObjectI> doRetrieveInstance( @PathVariable("studyInstanceUID") String studyInstanceUID,
+    public ResponseEntity<List<DicomObjectI>> doRetrieveInstance( @PathVariable("studyInstanceUID") String studyInstanceUID,
                                                                   @PathVariable("seriesInstanceUID") String seriesInstanceUID,
                                                                   @PathVariable("sopInstanceUID") String sopInstanceUID) throws NrgServiceException, NoContentException {
         UserI user = getSessionUser();
 
         DicomObjectI instance = null;
+        List<DicomObjectI> instances = new ArrayList<>();
         try {
             instance = _searchEngine.retrieveInstance( studyInstanceUID, seriesInstanceUID, sopInstanceUID, user);
+            instances.add(instance);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return new ResponseEntity<>(instance, HttpStatus.OK );
+        return new ResponseEntity<>(instances, HttpStatus.OK );
     }
 
 
