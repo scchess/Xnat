@@ -3,6 +3,7 @@ package org.nrg.xapi.rest.dicomweb.search;
 import org.nrg.xapi.model.dicomweb.DicomObjectI;
 import org.nrg.xapi.model.dicomweb.QIDOResponse;
 import org.nrg.xapi.rest.dicomweb.QueryParameters;
+import org.nrg.xapi.rest.dicomweb.QueryParametersStudy;
 import org.nrg.xft.security.UserI;
 
 import java.io.File;
@@ -16,7 +17,7 @@ public interface SearchEngineI {
 
     DicomObjectI[] getStudyAsArray(String studyInstanceUID) throws IOException;
 
-    List<QIDOResponse> searchForStudies(QueryParameters queryParameters, UserI user) throws Exception;
+    List<QIDOResponse> searchForStudies(QueryParametersStudy queryParameters, UserI user) throws Exception;
 
     DicomObjectI retrieveInstance(String studyInstanceUID, String seriesInstanceUID, String sopInstanceUID, UserI user) throws Exception;
 }

@@ -11,16 +11,10 @@ import java.util.*;
  * A DICOM query param can be repeated.
  *
  */
-public class QueryParameters {
-    public static final String STUDY_INSTANCE_UID_NAME = "studyInstanceUID";
-    public static final String STUDY_DATE_NAME = "studyDate";
-    public static final String PATIENT_ID_NAME = "patientID";
-    public static final String PATIENT_NAME_NAME = "patientName";
-    public static final String ACCESSION_NUMBER_NAME = "accessionNumber";
-    public static final String STUDY_ID_NAME = "studyID";
+public abstract class QueryParameters {
 
     private Map<String, List<String>> normalizedMap;
-    private static final Logger _log = LoggerFactory.getLogger(DicomWebApi.class);
+    private static final Logger _log = LoggerFactory.getLogger(QueryParameters.class);
 
     public QueryParameters() {
         normalizedMap = new HashMap<>();
@@ -39,39 +33,7 @@ public class QueryParameters {
      * @param dicomParamName
      * @param value
      */
-    public void addDicomParameter(String dicomParamName, String value) {
-        switch( dicomParamName.toLowerCase()) {
-            case "studyinstanceuid":
-            case "0020000d":
-                List<String> uids = parseUIDs( value);
-                for( String uid: uids) {
-                    addParam( STUDY_INSTANCE_UID_NAME, uid);
-                }
-                break;
-            case "studydate":
-            case "00080020":
-                addParam( STUDY_DATE_NAME, value);
-                break;
-            case "00100020":
-            case "patientid":
-                addParam( PATIENT_ID_NAME, value);
-                break;
-            case "00100010":
-            case "patientname":
-                addParam( PATIENT_NAME_NAME, value);
-                break;
-            case "00080050":
-            case "accessionnumber":
-                addParam( ACCESSION_NUMBER_NAME, value);
-                break;
-            case "00200010":
-            case "studyid":
-                addParam( STUDY_ID_NAME, value);
-                break;
-            default:
-                _log.warn("Ignoring unrecognized parameter: " + dicomParamName + " = " + value);
-        }
-    }
+    public abstract void  addDicomParameter(String dicomParamName, String value) ;
 
     public void addParam( String key, String value) {
         List<String> values;

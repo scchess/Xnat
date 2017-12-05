@@ -75,7 +75,7 @@ public class DicomWebApi extends AbstractXapiProjectRestController {
 
         UserI user = getSessionUser();
 
-        QueryParameters dicomQueryParams = new QueryParameters( allRequestParams);
+        QueryParametersStudy dicomQueryParams = new QueryParametersStudy( allRequestParams);
         List<QIDOResponse> qidoResponses = null;
         try {
             qidoResponses = _searchEngine.searchForStudies( dicomQueryParams, user);

@@ -2,10 +2,7 @@ package org.nrg.xapi.model.dicomweb;
 
 import javax.json.Json;
 import javax.json.stream.JsonGenerator;
-import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.adapters.XmlAdapter;
-import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
@@ -17,17 +14,13 @@ import javax.xml.transform.stream.StreamSource;
 import org.dcm4che3.data.Attributes;
 import org.dcm4che3.data.ElementDictionary;
 import org.dcm4che3.io.SAXWriter;
-import org.dcm4che3.json.JSONWriter;
 import org.nrg.framework.annotations.XnatMixIn;
 import org.nrg.xapi.rest.dicomweb.QIDOResponseMixin;
-import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,17 +36,19 @@ public class QIDOResponse extends Attributes {
     // TODO: All available Study Level DICOM Attributes if the "includefield" query key is included with a value of "all"
 
 
-    private SimpleDateFormat df = new SimpleDateFormat( "yyyyMMdd");
+    private SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyyMMdd");
+    private SimpleDateFormat timeFormat = new SimpleDateFormat( "HHmmss");
 
     public String getSpecificCharacterSetString() { return getString( 0x00080005); }
     public void setSpecificCharacterSetString(String value) { setString( 0x00080005, ElementDictionary.vrOf(0x00080005,null), value ); }
 
     public String getStudyDate() { return getString( 0x00080020); }
     public void setStudyDate(String value) { setString( 0x00080020, ElementDictionary.vrOf(0x00080020, null), value ); }
-    public void setStudyDate(Object obj) { setString( 0x00080020, ElementDictionary.vrOf(0x00080020, null), df.format( obj) ); }
+    public void setStudyDate(Object obj) { setString( 0x00080020, ElementDictionary.vrOf(0x00080020, null), dateFormat.format( obj) ); }
 
     public String getStudyTime() { return getString(0x00080030); }
     public void setStudyTime(String value) { setString( 0x00080030, ElementDictionary.vrOf(0x00080030, null), value ); }
+    public void setStudyTime(Object obj) { setString( 0x00080030, ElementDictionary.vrOf(0x00080030, null), timeFormat.format( obj) ); }
 
     public String getAccessionNumber() { return getString(0x00080050); }
     public void setAccessionNumber(String value) { setString( 0x00080050, ElementDictionary.vrOf(0x00080050, null), value ); }
@@ -91,11 +86,15 @@ public class QIDOResponse extends Attributes {
     public String getStudyID() { return getString(0x00200010); }
     public void setStudyID(String value) { setString( 0x00200010, ElementDictionary.vrOf(0x00200010, null), value ); }
 
-    public String getNumberOfStudyRelatedSeries() { return getString(0x00201206); }
+//    public String getNumberOfStudyRelatedSeries() { return getString(0x00201206); }
+    public int getNumberOfStudyRelatedSeries() { return getInt(0x00201206, 0); }
     public void setNumberOfStudyRelatedSeries(String value) { setString( 0x00201206, ElementDictionary.vrOf(0x00201206, null), value ); }
+    public void setNumberOfStudyRelatedSeries(int intValue) { setInt( 0x00201206, ElementDictionary.vrOf(0x00201206, null), intValue ); }
 
-    public String getNumberOfStudyRelatedInstances() { return getString(0x00201208); }
+//    public String getNumberOfStudyRelatedInstances() { return getString(0x00201208); }
+    public int getNumberOfStudyRelatedInstances() { return getInt(0x00201208, 0); }
     public void setNumberOfStudyRelatedInstances(String value) { setString( 0x00201208, ElementDictionary.vrOf(0x00201208, null), value ); }
+    public void setNumberOfStudyRelatedInstances(int intValue) { setInt( 0x00201208, ElementDictionary.vrOf(0x00201208, null), intValue ); }
 
     public static JsonGenerator createGenerator(OutputStream out) {
         boolean indent = true;
