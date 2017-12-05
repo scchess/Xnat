@@ -244,7 +244,7 @@
         var result      = [],
             currentNode = rootNode.firstChild;
 
-        while (currentNode) {
+        while (currentNode && currentNode.value !== '') {
             result      = result.concat(extractNodeValues(currentNode, nodeCallback, useAttribute, getDisabled));
             currentNode = currentNode.nextSibling;
         }
@@ -329,13 +329,15 @@
                         else if (fieldNode.hasAttribute('data-options')) {
                             values = fieldNode.getAttribute('data-options').split('|');
                         }
-                        // or if options are encoded in the [title] attribute
+                        // or if options are encoded in the [title] attribute like:
+                        // <input type="checkbox" name="foo[]" title="foo:bar|baz" value="bar">
+                        // ...where it will submit 'bar' if checked and 'baz' if unchecked
                         else if (/^(.*\w+.*:.*\w+.*\|.*\w+.*)$/i.test(fieldNode.title)) {
                             values = fieldNode.title.split(':')[1].split('|');
                         }
                         if (fieldNode.checked && fieldNode.value === valueTrue()) return valueTrue();
                         if (!fieldNode.checked && fieldNode.value === valueTrue()) return valueFalse();
-                        return fieldNode.checked ? valueTrue() : valueFalse();
+                        return fieldNode.checked ? fieldNode.value : '';
                         break;
 
                     case 'button':
