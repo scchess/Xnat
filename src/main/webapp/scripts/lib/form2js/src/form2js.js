@@ -121,7 +121,7 @@
 
             value = realValue(nameValues[i].value);
 
-            if (skipEmpty && (value === '' || value === null)) continue;
+            if (skipEmpty && (value === '' || value == null)) continue;
 
             name       = nameValues[i].name;
             _nameParts = name.split(delimiter);
@@ -273,7 +273,7 @@
                 fieldValue = fieldValue.split(arrayDelim);
             }
 
-            if (fieldValue === null) {
+            if (fieldValue == null) {
                 result = [];
             }
             else {
@@ -337,7 +337,7 @@
                         }
                         if (fieldNode.checked && fieldNode.value === valueTrue()) return valueTrue();
                         if (!fieldNode.checked && fieldNode.value === valueTrue()) return valueFalse();
-                        return fieldNode.checked ? fieldNode.value : '';
+                        return fieldNode.checked ? fieldNode.value : null;
                         break;
 
                     case 'button':
@@ -403,7 +403,7 @@
 
 
     function realValue(val, bool){
-        var undefined;
+        var undef;
         // only evaluate strings
         if (typeof val !== 'string') return val;
         if (bool) {
@@ -423,7 +423,7 @@
             case 'false':
                 return false;
             case 'undefined':
-                return undefined;
+                return undef;
             case 'null':
                 return null;
             default:
