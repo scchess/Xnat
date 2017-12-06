@@ -4,7 +4,8 @@ import org.h2.util.StringUtils;
 import org.nrg.xapi.model.dicomweb.DicomObjectFactory;
 import org.nrg.xapi.model.dicomweb.DicomObjectI;
 import org.nrg.xapi.model.dicomweb.QIDOResponse;
-import org.nrg.xapi.rest.dicomweb.QueryParameters;
+import org.nrg.xapi.model.dicomweb.QIDOResponseStudy;
+import org.nrg.xapi.rest.dicomweb.QueryParametersSeriesWithStudyUID;
 import org.nrg.xapi.rest.dicomweb.QueryParametersStudy;
 import org.nrg.xapi.rest.dicomweb.search.SearchEngineI;
 import org.nrg.xdat.bean.CatCatalogBean;
@@ -136,6 +137,11 @@ public class JdbcSearchEngine implements SearchEngineI {
         });
 
         return qidoResponses;
+    }
+
+    @Override
+    public List<QIDOResponse> searchForSeries(String studyInstanceUID, QueryParametersSeriesWithStudyUID queryParameters, UserI user) throws Exception {
+        return null;
     }
 
     @Override

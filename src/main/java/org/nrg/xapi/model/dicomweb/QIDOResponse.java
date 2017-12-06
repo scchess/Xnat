@@ -36,65 +36,9 @@ public class QIDOResponse extends Attributes {
     // TODO: All available Study Level DICOM Attributes if the "includefield" query key is included with a value of "all"
 
 
-    private SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyyMMdd");
-    private SimpleDateFormat timeFormat = new SimpleDateFormat( "HHmmss");
+    protected SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyyMMdd");
+    protected SimpleDateFormat timeFormat = new SimpleDateFormat( "HHmmss");
 
-    public String getSpecificCharacterSetString() { return getString( 0x00080005); }
-    public void setSpecificCharacterSetString(String value) { setString( 0x00080005, ElementDictionary.vrOf(0x00080005,null), value ); }
-
-    public String getStudyDate() { return getString( 0x00080020); }
-    public void setStudyDate(String value) { setString( 0x00080020, ElementDictionary.vrOf(0x00080020, null), value ); }
-    public void setStudyDate(Object obj) { setString( 0x00080020, ElementDictionary.vrOf(0x00080020, null), dateFormat.format( obj) ); }
-
-    public String getStudyTime() { return getString(0x00080030); }
-    public void setStudyTime(String value) { setString( 0x00080030, ElementDictionary.vrOf(0x00080030, null), value ); }
-    public void setStudyTime(Object obj) { setString( 0x00080030, ElementDictionary.vrOf(0x00080030, null), timeFormat.format( obj) ); }
-
-    public String getAccessionNumber() { return getString(0x00080050); }
-    public void setAccessionNumber(String value) { setString( 0x00080050, ElementDictionary.vrOf(0x00080050, null), value ); }
-
-    public String getInstanceAvailability() { return getString(0x00080056); }
-    public void setInstanceAvailability(String value) { setString( 0x00080056, ElementDictionary.vrOf(0x00080056, null), value ); }
-
-    public String getModalitiesInStudy() { return getString(0x00080061); }
-    public void setModalitiesInStudy(String value) { setString( 0x00080061, ElementDictionary.vrOf(0x00080061, null), value ); }
-
-    public String getReferringPhysiciansName() { return getString(0x00080090); }
-    public void setReferringPhysiciansName(String value) { setString( 0x00080090, ElementDictionary.vrOf(0x00080090, null), value ); }
-
-    public String getTimezoneOffsetFromUTC() { return getString(0x00080201); }
-    public void setTimezoneOffsetFromUTC(String value) { setString( 0x00080201, ElementDictionary.vrOf(0x00080201, null), value ); }
-
-    public String getRetrieveURL() { return getString(0x00081190); }
-    public void setRetrieveURL(String value) { setString( 0x00081190, ElementDictionary.vrOf(0x00081190, null), value ); }
-
-    public String getPatientsName() { return getString(0x00100010); }
-    public void setPatientsName(String value) { setString( 0x00100010, ElementDictionary.vrOf(0x00100010, null), value ); }
-
-    public String getPatientID() { return getString(0x00100020); }
-    public void setPatientID(String value) { setString( 0x00100020, ElementDictionary.vrOf(0x00100020, null), value ); }
-
-    public String getPatientsBirthDate() { return getString(0x00100030); }
-    public void setPatientsBirthDate(String value) { setString( 0x00100030, ElementDictionary.vrOf(0x00100030, null), value ); }
-
-    public String getPatientsSex() { return getString(0x00100040); }
-    public void setPatientsSex(String value) { setString( 0x00100040, ElementDictionary.vrOf(0x00100040, null), value ); }
-
-    public String getStudyInstanceUID() { return getString(0x0020000D); }
-    public void setStudyInstanceUID(String value) { setString( 0x0020000D, ElementDictionary.vrOf(0x0020000D, null), value ); }
-
-    public String getStudyID() { return getString(0x00200010); }
-    public void setStudyID(String value) { setString( 0x00200010, ElementDictionary.vrOf(0x00200010, null), value ); }
-
-//    public String getNumberOfStudyRelatedSeries() { return getString(0x00201206); }
-    public int getNumberOfStudyRelatedSeries() { return getInt(0x00201206, 0); }
-    public void setNumberOfStudyRelatedSeries(String value) { setString( 0x00201206, ElementDictionary.vrOf(0x00201206, null), value ); }
-    public void setNumberOfStudyRelatedSeries(int intValue) { setInt( 0x00201206, ElementDictionary.vrOf(0x00201206, null), intValue ); }
-
-//    public String getNumberOfStudyRelatedInstances() { return getString(0x00201208); }
-    public int getNumberOfStudyRelatedInstances() { return getInt(0x00201208, 0); }
-    public void setNumberOfStudyRelatedInstances(String value) { setString( 0x00201208, ElementDictionary.vrOf(0x00201208, null), value ); }
-    public void setNumberOfStudyRelatedInstances(int intValue) { setInt( 0x00201208, ElementDictionary.vrOf(0x00201208, null), intValue ); }
 
     public static JsonGenerator createGenerator(OutputStream out) {
         boolean indent = true;
@@ -129,7 +73,7 @@ public class QIDOResponse extends Attributes {
 
     public static void main(String[] args) {
         QIDOResponse response = new QIDOResponse();
-        response.setStudyDate("20170519");
+//        response.setStudyDate("20170519");
 
         TransformerHandler th = null;
         try {

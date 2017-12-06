@@ -2,14 +2,14 @@ package org.nrg.xapi.model.dicomweb;
 
 import java.util.*;
 
-public class QIDOStudyResponseList extends ArrayList<QIDOResponse> {
+public class QIDOStudyResponseList extends ArrayList<QIDOResponseStudy> {
 
-    public boolean add(QIDOResponse newResponse) {
+    public boolean add(QIDOResponseStudy newResponse) {
         if( this.isEmpty()) {
             return super.add( newResponse);
         }
         else {
-            for (QIDOResponse response : this) {
+            for (QIDOResponseStudy response : this) {
                 if ( isSameStudy( response, newResponse)) {
                     return merge(response, newResponse);
                 }
@@ -18,13 +18,13 @@ public class QIDOStudyResponseList extends ArrayList<QIDOResponse> {
         }
     }
 
-    private boolean isSameStudy(QIDOResponse response, QIDOResponse newResponse) {
+    private boolean isSameStudy(QIDOResponseStudy response, QIDOResponseStudy newResponse) {
         String suid = response.getStudyInstanceUID();
         String newSuid = newResponse.getStudyInstanceUID();
         return suid.equals( newSuid);
     }
 
-    private boolean merge(QIDOResponse response, QIDOResponse newResponse) {
+    private boolean merge(QIDOResponseStudy response, QIDOResponseStudy newResponse) {
         boolean b;
 
         b = mergeModalitiesInStudy( response, newResponse);
@@ -33,7 +33,7 @@ public class QIDOStudyResponseList extends ArrayList<QIDOResponse> {
         return b;
     }
 
-    private boolean mergeModalitiesInStudy(QIDOResponse response, QIDOResponse newResponse) {
+    private boolean mergeModalitiesInStudy(QIDOResponseStudy response, QIDOResponseStudy newResponse) {
         String[] modalities = parseMultiValues( response.getModalitiesInStudy());
         String[] newModalities = parseMultiValues( newResponse.getModalitiesInStudy());
         Set<String> set = new HashSet<>();
@@ -50,13 +50,13 @@ public class QIDOStudyResponseList extends ArrayList<QIDOResponse> {
         return true;
     }
 
-    private int mergeSeriesCount(QIDOResponse response, QIDOResponse newResponse) {
+    private int mergeSeriesCount(QIDOResponseStudy response, QIDOResponseStudy newResponse) {
         int count = response.getNumberOfStudyRelatedSeries() + newResponse.getNumberOfStudyRelatedSeries();
         response.setNumberOfStudyRelatedSeries( count);
         return count;
     }
 
-    private int mergeInstanceCount(QIDOResponse response, QIDOResponse newResponse) {
+    private int mergeInstanceCount(QIDOResponseStudy response, QIDOResponseStudy newResponse) {
         int count = response.getNumberOfStudyRelatedInstances() + newResponse.getNumberOfStudyRelatedInstances();
         response.setNumberOfStudyRelatedInstances( count);
         return count;

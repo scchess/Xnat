@@ -21,7 +21,10 @@ import org.nrg.xapi.model.dicomweb.QIDOResponse;
 import org.nrg.xapi.rest.AbstractXapiProjectRestController;
 import org.nrg.xapi.rest.XapiRequestMapping;
 import org.nrg.xapi.rest.dicomweb.search.SearchEngineI;
-import org.nrg.xdat.om.*;
+import org.nrg.xdat.om.XnatImagescandata;
+import org.nrg.xdat.om.XnatImagesessiondata;
+import org.nrg.xdat.om.XnatProjectdata;
+import org.nrg.xdat.om.XnatSubjectdata;
 import org.nrg.xdat.preferences.SiteConfigPreferences;
 import org.nrg.xdat.security.services.RoleHolder;
 import org.nrg.xdat.security.services.UserManagementServiceI;
@@ -61,12 +64,12 @@ public class DicomWebApi extends AbstractXapiProjectRestController {
 
     @ApiOperation(value = "QIDO-RS SearchForStudies.", response = QIDOResponse.class)
     @ApiResponses({@ApiResponse(code = 200, message = "Successfully performed QIDO-RS query."),
-            @ApiResponse(code = 204, message = "The specified subject was found but had no associated experiments."),
+            @ApiResponse(code = 204, message = "No matches."),
             @ApiResponse(code = 403, message = "Insufficient permissions to perform the request."),
             @ApiResponse(code = 500, message = "An unexpected error occurred.")})
     @XapiRequestMapping(value = "studies", produces = {"application/dicom+json","multipart/related;type=\"application/dicom+xml\""}, method = RequestMethod.GET, restrictTo = Read)
     @ResponseBody
-    public ResponseEntity<List<QIDOResponse>> doSearchForStudies( @RequestParam final Map<String,String> allRequestParams) throws NrgServiceException, NoContentException {
+    public ResponseEntity<List<? extends QIDOResponse>> doSearchForStudies( @RequestParam final Map<String,String> allRequestParams) throws NrgServiceException {
         Set<String> paramNames = allRequestParams.keySet();
 
         if (paramNames == null || paramNames.isEmpty()) {
@@ -76,14 +79,54 @@ public class DicomWebApi extends AbstractXapiProjectRestController {
         UserI user = getSessionUser();
 
         QueryParametersStudy dicomQueryParams = new QueryParametersStudy( allRequestParams);
-        List<QIDOResponse> qidoResponses = null;
+        List<? extends QIDOResponse> qidoResponses = null;
         try {
             qidoResponses = _searchEngine.searchForStudies( dicomQueryParams, user);
+
+            if( qidoResponses.isEmpty()) {
+                return new ResponseEntity<>( HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<List<? extends QIDOResponse>>(qidoResponses, HttpStatus.OK );
+
         } catch (Exception e) {
             e.printStackTrace();
+            _log.error("An error occurred when user " + getSessionUser().getUsername() + " tried QIDO SearchForStudies with params " + allRequestParams, e);
+            return new ResponseEntity<List<? extends QIDOResponse>>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @ApiOperation(value = "QIDO-RS SearchForSeries.", response = QIDOResponse.class)
+    @ApiResponses({@ApiResponse(code = 200, message = "Successfully performed QIDO-RS query."),
+            @ApiResponse(code = 204, message = "No matches."),
+            @ApiResponse(code = 403, message = "Insufficient permissions to perform the request."),
+            @ApiResponse(code = 500, message = "An unexpected error occurred.")})
+    @XapiRequestMapping(value = "studies/{studyInstanceUID}/series", produces = {"application/dicom+json","multipart/related;type=\"application/dicom+xml\""}, method = RequestMethod.GET, restrictTo = Read)
+    @ResponseBody
+    public ResponseEntity<List<? extends QIDOResponse>> doSearchForSeries( @PathVariable("studyInstanceUID") String studyInstanceUID,
+                                                                 @RequestParam final Map<String,String> allRequestParams) throws NrgServiceException {
+        Set<String> paramNames = allRequestParams.keySet();
+
+        if (paramNames == null || paramNames.isEmpty()) {
+            // badly formatted query. No query params specified.
         }
 
-        return new ResponseEntity<List<QIDOResponse>>(qidoResponses, HttpStatus.OK );
+        UserI user = getSessionUser();
+
+        QueryParametersSeriesWithStudyUID dicomQueryParams = new QueryParametersSeriesWithStudyUID( allRequestParams);
+        List<? extends QIDOResponse> qidoResponses = null;
+        try {
+            qidoResponses = _searchEngine.searchForSeries( studyInstanceUID, dicomQueryParams, user);
+
+            if( qidoResponses.isEmpty()) {
+                return new ResponseEntity<>( HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<List<? extends QIDOResponse>>(qidoResponses, HttpStatus.OK );
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            _log.error("An error occurred when user " + getSessionUser().getUsername() + " tried QIDO SearchForSeries with params " + allRequestParams, e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 
