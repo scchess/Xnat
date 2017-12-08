@@ -12,20 +12,20 @@ import java.util.Map;
  * A DICOM query param can be repeated.
  *
  */
-public class QueryParametersSeriesWithStudyUID extends QueryParametersStudy {
+public class QueryParametersSeries extends QueryParameters {
     public static final String MODALITY_NAME = "modality";
     public static final String SERIES_INSTANCE_UID_NAME = "seriesInstanceUID";
     public static final String SERIES_NUMBER_NAME = "seriesNumber";
     public static final String PERFORMED_PROCEDURE_STEP_STARTDATE = "PerformedProcedureStepStartDate";
     public static final String PERFORMED_PROCEDURE_STEP_STARTTIME = "PerformedProcedureStepStartTime";
 
-    private static final Logger _log = LoggerFactory.getLogger(QueryParametersSeriesWithStudyUID.class);
+    private static final Logger _log = LoggerFactory.getLogger(QueryParametersSeries.class);
 
-    public QueryParametersSeriesWithStudyUID() {
+    public QueryParametersSeries() {
         super();
     }
 
-    public QueryParametersSeriesWithStudyUID(Map<String, String> dicomRequestParams) {
+    public QueryParametersSeries(Map<String, String> dicomRequestParams) {
         super(dicomRequestParams);
     }
 

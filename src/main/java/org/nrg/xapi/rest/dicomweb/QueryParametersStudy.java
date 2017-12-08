@@ -85,14 +85,4 @@ public class QueryParametersStudy extends QueryParameters {
         }
     }
 
-    public List<String> getModalities() {
-        List<String> modalityParms = getParams( MODALITIES_IN_STUDY_NAME);
-        List<String> modalities =  (modalityParms != null &&  ! modalityParms.isEmpty())? parseMultivaluedValue( modalityParms.get(0)): new ArrayList<String>();
-        return modalities;
-    }
-
-    List<String> parseMultivaluedValue(String value) {
-        return Arrays.asList( value.split("\\\\"));
-    }
-
 }

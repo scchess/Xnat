@@ -1,13 +1,15 @@
 package org.nrg.xapi.rest.dicomweb.search.xftItem;
 
 import org.nrg.xapi.model.dicomweb.*;
-import org.nrg.xapi.rest.dicomweb.QueryParametersSeriesWithStudyUID;
+import org.nrg.xapi.rest.dicomweb.QueryParametersSeries;
 import org.nrg.xapi.rest.dicomweb.QueryParametersStudy;
+import org.nrg.xapi.rest.dicomweb.QueryParametersStudySeries;
 import org.nrg.xapi.rest.dicomweb.search.SearchEngineI;
 import org.nrg.xdat.bean.CatCatalogBean;
 import org.nrg.xdat.bean.CatDcmcatalogBean;
 import org.nrg.xdat.model.CatDcmentryI;
 import org.nrg.xdat.model.XnatAbstractresourceI;
+import org.nrg.xdat.model.XnatImagescandataI;
 import org.nrg.xdat.om.XnatImagescandata;
 import org.nrg.xdat.om.XnatImagesessiondata;
 import org.nrg.xdat.om.XnatResourcecatalog;
@@ -27,9 +29,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 public class XftSearchEngine implements SearchEngineI {
@@ -64,62 +64,7 @@ public class XftSearchEngine implements SearchEngineI {
 
     @Override
     public List<? extends QIDOResponse> searchForStudies(QueryParametersStudy queryParameters, UserI user) throws Exception {
-        CriteriaCollection cc = new CriteriaCollection("AND");
-        for (String paramName: queryParameters.keySet() ) {
-            switch( paramName) {
-                case QueryParametersStudy.STUDY_DATE_NAME:
-//                    cc.addClause( "xnat:experimentData/date", "=" , queryParameters.getParams( paramName).get(0));
-                    cc.addClause( parseDateCriteria( queryParameters.getParams( paramName).get(0)));
-                    break;
-                case QueryParametersStudy.STUDY_TIME_NAME:
-//                    cc.addClause( "xnat:experimentData/time", "=" , queryParameters.getParams( paramName).get(0));
-                    cc.addClause( parseTimeCriteria( queryParameters.getParams( paramName).get(0)));
-                    break;
-                case QueryParametersStudy.STUDY_ID_NAME:
-                    cc.addClause( "xnat:imagesessionData/study_id", "=" , queryParameters.getParams( paramName).get(0));
-                    break;
-                case QueryParametersStudy.STUDY_INSTANCE_UID_NAME:
-                    List<String> uids = queryParameters.getParams(paramName);
-                    CriteriaCollection cc_or_uid = new CriteriaCollection("OR");
-                    for( String uid: uids) {
-                        cc_or_uid.addClause( "xnat:imagesessiondata/uid", "=", uid);
-                    }
-                    cc.addClause( cc_or_uid);
-                    break;
-                case QueryParametersStudy.REFERRING_PHYSICIAN_NAME_NAME:
-                    _log.warn("Study-level query parameter ReferringPhysicianName is not supported.");
-                    break;
-                case QueryParametersStudy.PATIENT_ID_NAME:
-                    cc.addClause( "xnat:imagesessionData/dcmpatientid", "=" , queryParameters.getParams( paramName).get(0));
-                    break;
-                case QueryParametersStudy.PATIENT_NAME_NAME:
-//                    cc.addClause( "xnat:imagesessionData/dcmpatientname", "=" , queryParameters.getParams( paramName).get(0));
-                    cc.addClause( parsePatientNameCriteria( queryParameters.getParams( paramName).get(0)));
-                    break;
-                case QueryParametersStudy.ACCESSION_NUMBER_NAME:
-                    cc.addClause( "xnat:imagesessionData/dcmaccessionnumber", "=" , queryParameters.getParams( paramName).get(0));
-                    break;
-                case QueryParametersStudy.MODALITIES_IN_STUDY_NAME:
-                    List<String> modalities = queryParameters.getModalities();
-
-                    // Neither the straight AND or OR do the right thing.
-//                    CriteriaCollection cc_and = new CriteriaCollection("AND");
-//                    CriteriaCollection cc_or = new CriteriaCollection("OR");
-//                    for( String modality: modalities) {
-////                        cc_and.addClause( "xnat:imagescanData/modality", "=", modality);
-//                        cc_or.addClause( "xnat:imagescanData/modality", "=", modality);
-//                    }
-////                    cc.addClause( cc_and);
-//                    cc.addClause( cc_or);
-
-                    // Filter on the first of the values, for now.
-                    cc.addClause( "xnat:imagescanData/modality", "=", modalities.get(0));
-                    break;
-                default:
-                    _log.warn("Ignoring query parameter: " + queryParameters.asString(paramName));
-                    break;
-            }
-        }
+        CriteriaCollection cc = QueryParametersToCriteria.map( queryParameters);
 
         ItemCollection ic = ItemSearch.GetItems( "xnat:imageSessionData", cc, user, false);
 
@@ -136,7 +81,7 @@ public class XftSearchEngine implements SearchEngineI {
             response.setPatientID( session.getDcmpatientid());
 //            response.setPatientsName( session.getSubjectData().getLabel());
             response.setPatientsName( session.getDcmpatientname());
-            response.setModalitiesInStudy( session.getModality());
+            response.setModalitiesInStudy( getModalitiesInStudy( session));
             response.setPatientsSex( session.getSubjectData().getGender());
             response.setPatientsBirthDate( session.getSubjectData().getDOBDisplay());
             response.setStudyID( session.getStudyId());
@@ -148,38 +93,8 @@ public class XftSearchEngine implements SearchEngineI {
     }
 
     @Override
-    public List<? extends QIDOResponse> searchForSeries(String studyInstanceUID, QueryParametersSeriesWithStudyUID queryParameters, UserI user) throws Exception {
-        CriteriaCollection cc = new CriteriaCollection("AND");
-
-        cc.addClause( "xnat:imagesessiondata/uid", studyInstanceUID);
-
-        for (String paramName: queryParameters.keySet() ) {
-            switch( paramName) {
-                case QueryParametersSeriesWithStudyUID.PERFORMED_PROCEDURE_STEP_STARTDATE:
-                    cc.addClause( parseRangeCriteria( "xnat:imagescandata/start_date", queryParameters.getParams( paramName).get(0)));
-                    break;
-                case QueryParametersSeriesWithStudyUID.PERFORMED_PROCEDURE_STEP_STARTTIME:
-                    cc.addClause( parseRangeCriteria( "xnat:imagescandata/starttime", queryParameters.getParams( paramName).get(0)));
-                    break;
-                case QueryParametersSeriesWithStudyUID.SERIES_NUMBER_NAME:
-                    cc.addClause( "xnat:imagescanData/id", "=" , queryParameters.getParams( paramName).get(0));
-                    break;
-                case QueryParametersSeriesWithStudyUID.SERIES_INSTANCE_UID_NAME:
-                    List<String> uids = queryParameters.getParams(paramName);
-                    CriteriaCollection cc_or_uid = new CriteriaCollection("OR");
-                    for( String uid: uids) {
-                        cc_or_uid.addClause( "xnat:imagescandata/uid", "=", uid);
-                    }
-                    cc.addClause( cc_or_uid);
-                    break;
-                case QueryParametersSeriesWithStudyUID.MODALITY_NAME:
-                    cc.addClause( "xnat:imagescanData/modality", "=" , queryParameters.getParams( paramName).get(0));
-                    break;
-                default:
-                    _log.warn("Ignoring query parameter: " + queryParameters.asString(paramName));
-                    break;
-            }
-        }
+    public List<? extends QIDOResponse> searchForSeries(String studyInstanceUID, QueryParametersSeries queryParameters, UserI user) throws Exception {
+        CriteriaCollection cc = QueryParametersToCriteria.map( studyInstanceUID, queryParameters);
 
         ItemCollection ic = ItemSearch.GetItems( "xnat:imageScanData", cc, user, false);
 
@@ -198,6 +113,43 @@ public class XftSearchEngine implements SearchEngineI {
             responses.add( response);
         }
         return responses;
+    }
+
+    @Override
+    public List<? extends QIDOResponse> searchForSeries(QueryParametersStudySeries queryParameters, UserI user) throws Exception {
+        CriteriaCollection cc = QueryParametersToCriteria.map( queryParameters);
+
+        ItemCollection ic = ItemSearch.GetItems( "xnat:imageScanData", cc, user, false);
+
+//        QIDOStudyResponseList responses = new QIDOStudyResponseList();
+        List<QIDOResponse> responses = new ArrayList();
+        for( ItemI item: ic.getItems()) {
+            XnatImagescandata scandata = new XnatImagescandata(item);
+            QIDOResponseSeries response = new QIDOResponseSeries();
+            response.setModality( scandata.getModality());
+            response.setSeriesDescription( scandata.getSeriesDescription());
+            response.setSeriesInstanceUID( scandata.getUid());
+            response.setSeriesNumber( scandata.getId());
+            response.setPerformedProcedureStepStartDate( scandata.getStartDate());
+            response.setPerformedProcedureStepStartTime( scandata.getStarttime());
+            response.setNumberOfSeriesRelatedInstances( scandata.getFrames());
+            responses.add( response);
+        }
+        return responses;
+    }
+
+    private String getModalitiesInStudy( XnatImagesessiondata session) {
+        SortedSet<String> modalitySet = new TreeSet<>();
+        for( XnatImagescandataI scan: session.getScans_scan()) {
+            modalitySet.add( scan.getModality());
+        }
+        StringBuilder sb = new StringBuilder();
+        Iterator<String> it = modalitySet.iterator();
+        while( it.hasNext()) {
+            sb.append( it.next());
+            if( it.hasNext()) sb.append("\\");
+        }
+        return sb.toString();
     }
 
     private int countSeries( UserI user, XnatImagesessiondata session) {
