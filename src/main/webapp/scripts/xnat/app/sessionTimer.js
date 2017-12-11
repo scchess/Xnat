@@ -219,7 +219,10 @@ var XNAT = getObject(XNAT);
 
     var shade = XNAT.ui.dialog.shade({
         protected: true,
-        id: 'page-obfuscator'
+        id: 'page-obfuscator',
+        afterShow: function(){
+            shade.isOpen = true;
+        }
     }).hide();
 
     // custom shade
@@ -258,7 +261,6 @@ var XNAT = getObject(XNAT);
                 decoded: _usr + '@' + _pg
             }
         }
-
 
         var resumeCounter = 0;
 
@@ -497,7 +499,7 @@ var XNAT = getObject(XNAT);
 
         timeout.touch = function(opts){
             return XNAT.xhr.get(extend(true, {
-                url: XNAT.url.restUrl('/xapi/siteConfig/buildInfo')
+                url: XNAT.url.rootUrl('/xapi/siteConfig/buildInfo')
             }, opts || {}));
         };
 

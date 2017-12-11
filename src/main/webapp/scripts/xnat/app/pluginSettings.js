@@ -27,8 +27,6 @@ var XNAT = getObject(XNAT);
 
     var pluginSettings;
     var adminMenuItem = false;
-    var hasSiteSettings = false;
-    var hasProjectSettings = false;
     var adminMenuElement = '#/view-plugin-settings';
 
     XNAT.app =
@@ -40,6 +38,8 @@ var XNAT = getObject(XNAT);
     XNAT.data =
             getObject(XNAT.data);
 
+    XNAT.app.pluginSettings.hasSiteSettings = false;
+    XNAT.app.pluginSettings.hasProjectSettingsTabs = false;
 
     // get the 'adminMenuElement', optionally setting it
     pluginSettings.adminMenuElement = function(element){
@@ -53,7 +53,7 @@ var XNAT = getObject(XNAT);
     // show the "Plugin Settings" menu item
     // in the top-level site "Administer" menu
     function showAdminMenuItem(menuItem){
-        if (adminMenuItem) return false;
+        if (adminMenuItem) return true;
         pluginSettings.adminMenuElement(menuItem).removeClass(function(){
             adminMenuItem = true;
             return 'hidden';
@@ -90,12 +90,12 @@ var XNAT = getObject(XNAT);
 
     // return site-level settings Spawner object for specified plugin
     getPluginSettings.siteSettings = function getPluginSiteSettings(name, id){
-        if (hasSiteSettings) {
+        if (XNAT.app.pluginSettings.hasSiteSettings) {
             // stop if there are already site settings
             return false;
         }
         return getPluginSettings(name, id || 'siteSettings').ok(function(){
-            hasSiteSettings = true;
+            XNAT.app.pluginSettings.hasSiteSettings = true;
             renderPluginSettingsTabs.call(this, pluginSettings.siteSettingsTabs || null);
         })
     };
@@ -104,11 +104,11 @@ var XNAT = getObject(XNAT);
 
     // return project-level settings Spawner object for specified plugin
     getPluginSettings.projectSettings = function getPluginProjectSettings(name, id){
-        if (hasProjectSettings){
+        if (XNAT.app.pluginSettings.hasProjectSettingsTabs){
             return false;
         }
         return getPluginSettings(name, id || 'projectSettings').ok(function(){
-            hasProjectSettings = true;
+            XNAT.app.pluginSettings.hasProjectSettingsTabs = true;
             renderPluginSettingsTabs.call(this, pluginSettings.projectSettingsTabs || null);
         });
     };
@@ -193,9 +193,6 @@ var XNAT = getObject(XNAT);
                     // --- CALLBACK --- //
                     var pluginsWithElements = [];
                     // 'plugins' will be an object map of ALL plugins
-                    // we're adding 'xnat' as a default plugin namespace
-                    // without actually installing an 'xnat' plugin
-                    extend(plugins, { xnat: { id: 'xnat', name: 'XNAT Default'} });
                     forOwn(plugins, function(name, obj){
                         // plugins with namespaced elements
                         // will have plugin name first
@@ -210,7 +207,7 @@ var XNAT = getObject(XNAT);
                             getPluginElementNames(namespace).done(function(ids){
                                 // --- CALLBACK --- //
                                 var allIds = ids.join(';') + ';';
-                                console.log(allIds);
+                                if (jsdebug) console.log(allIds);
                                 [].concat(types).forEach(function(type){
                                     var pluginNamespace = plugin;
                                     var hasElementType = ids.indexOf(type) > -1;
@@ -290,7 +287,7 @@ var XNAT = getObject(XNAT);
         XNAT.tabs.container = $$(XNAT.tabs.container || pluginSettings.siteSettingsTabs).empty();
         XNAT.tabs.layout = XNAT.tabs.layout || 'left';
         pluginSettings.showTabs = true;
-        return pluginSettings.renderSettings('siteSettings', pluginSettings.siteSettingsTabs, callback);
+        return pluginSettings.renderSettings('siteSettings', callback);
     };
 
     // render project-level settings for installed plugins
@@ -300,10 +297,10 @@ var XNAT = getObject(XNAT);
             tabContainer ?
                 $$(tabContainer) :
                 $('#project-settings-tabs').find('div.content-tabs');
-        XNAT.tabs.container = $$(XNAT.tabs.container || pluginSettings.projectSettingsTabs).empty();
+        XNAT.tabs.container = $$(XNAT.tabs.container || pluginSettings.projectSettingsTabs);
         XNAT.tabs.layout = XNAT.tabs.layout || 'left';
         pluginSettings.showTabs = true;
-        return pluginSettings.renderSettings('projectSettings', pluginSettings.projectSettingsTabs, callback);
+        return pluginSettings.renderSettings('projectSettings', callback);
     };
 
     // call it.

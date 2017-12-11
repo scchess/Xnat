@@ -182,7 +182,7 @@ var XNAT = getObject(XNAT);
     // RETURNS A DOM ELEMENT
     usersGroups.userSwitchElement = function(username, type, status){
         return XNAT.ui.input.switchbox({
-            value: realValue(status),
+            value: firstDefined(status, '') + '',
             element: {
                 name: type,
                 className: 'user-' + type,
@@ -230,7 +230,7 @@ var XNAT = getObject(XNAT);
     // define the user properties dialog
     function editUserDialog(data, onclose){
         if (data && !data.username) {
-            return xmodal.message('Error', 'An error occurred displaying user data.');
+            return XNAT.dialog.message('Error', 'An error occurred displaying user data.');
         }
         // define the <form> Spawner element
         function userForm(){
@@ -358,23 +358,24 @@ var XNAT = getObject(XNAT);
             }
         }
         var updated = false;
-        return xmodal.open({
+        return XNAT.dialog.open({
             width: 600,
-            height: 600,
+            // height: 600,
+            speed: 200,
             title: 'User Properties for <b>' + data.username + '</b>',
-            content: '<div class="user-data"></div>',
-            beforeShow: function(obj){
-                var _userForm = XNAT.spawner.spawn(userForm());
-                obj.$modal.find('div.user-data').append(_userForm.get())
-            },
+            content: XNAT.spawner.spawn(userForm()).get(),
+            // content: '<div class="user-data"></div>',
+            // beforeShow: function(obj){
+            //     var _userForm = XNAT.spawner.spawn(userForm());
+            //     obj.$modal.find('div.user-data').append(_userForm.get())
+            // },
             okLabel: 'Save',
             okClose: false,
             okAction: function(obj){
-                var $form = obj.$modal.find('form#user-account-form-panel');
+                var $form = obj.$modal.find('form#user-account-form');
                 var doSave = saveUserData($form);
                 doSave.done(function(){
                     updated = true;
-
                     obj.close();
                 });
             },
@@ -393,7 +394,9 @@ var XNAT = getObject(XNAT);
 
     // get user data and return AJAX promise object
     function getUserData(username){
-        var _url = XNAT.url.restUrl('/xapi/users/' + username);
+        var _url = XNAT.url.restUrl('/xapi/users/profile/' + username);
+        delete XNAT.data['/xapi/users/profile/' + username];
+        delete XNAT.data['/xapi/users/' + username];
         return XNAT.xhr.get(_url)
     }
 
@@ -631,7 +634,7 @@ var XNAT = getObject(XNAT);
 
     function userAccountForm(data){
 
-        var _load = data ? serverRoot + '/xapi/users/' + data.username : false;
+        var _load = data ? serverRoot + '/xapi/users/profile/' + data.username : false;
 
         data = data || {};
 
@@ -645,7 +648,7 @@ var XNAT = getObject(XNAT);
                 obj.contents = {
                     usernameText: {
                         kind: 'html',
-                        content: data.username
+                        content: data.username || ''
                     },
                     usernameInput: {
                         kind: 'input.hidden',
@@ -663,6 +666,10 @@ var XNAT = getObject(XNAT);
             return obj;
         }
 
+        var username = data.username || '*';
+        var userVerified = data.verified || 'false';
+        var userEnabled = data.enabled || 'false';
+
         var form = {
             kind: 'panel.form',
             label: 'Account Information',
@@ -672,7 +679,8 @@ var XNAT = getObject(XNAT);
             contentType: 'json',
             load: _load,
             refresh: false,
-            action: '/xapi/users' + (_load ? '/' + data.username : ''),
+            reload: true,
+            action: '/xapi/users' + (_load ? '/' + username : ''),
             contents: {
                 // details: {
                 //     kind: 'panel.subhead',
@@ -719,20 +727,24 @@ var XNAT = getObject(XNAT);
                 verified: {
                     kind: 'panel.input.switchbox',
                     label: 'Verified',
-                    value: data.verified !== undefined ? data.verified + '' : 'false',
+                    // options: 'true|false',
+                    value: userVerified,
                     element: {
                         //disabled: !!_load,
-                        title: data.username + ':verified'//,
+                        checked: !/false/i.test(userVerified)//,
+                        //title: username + ':verified'//,
                         //on: { click: _load ? setVerified : diddly }
                     }
                 },
                 enabled: {
                     kind: 'panel.input.switchbox',
                     label: 'Enabled',
-                    value: data.enabled !== undefined ? data.enabled + '' : 'false',
+                    // options: 'true|false',
+                    value: userEnabled,
                     element: {
                         //disabled: !!_load,
-                        title: data.username + ':enabled'//,
+                        checked: !/false/i.test(userEnabled)//,
+                        //title: username + ':enabled'//,
                         //on: { click: _load ? setEnabled : diddly }
                     }
                 }
@@ -753,8 +765,8 @@ var XNAT = getObject(XNAT);
                             on: {
                                 click: function(e){
                                     e.preventDefault();
-                                    var modalId = $(this).closest('div.xmodal').attr('id');
-                                    xmodal.modals[modalId].close();
+                                    var modalId = $(this).closest('div.xnat-dialog').attr('id');
+                                    XNAT.dialog.close(modalId);
                                     window.top.usernameForUserThatIsCurrentlyBeingEdited = data.username;
                                     userProjectsAndSecurity(e, data.username);
                                 }
@@ -839,11 +851,14 @@ var XNAT = getObject(XNAT);
             src: _url,
             name: 'advanced-user-settings',
             width: 800,
-            height: '100%',
+            height: '80%',
             title: 'Edit User Info',
             // footer: false,
             okLabel: 'Close',
             cancel: false,
+            beforeShow: function(){
+                XNAT.dialog.close(XNAT.dialog.topUID, true);
+            },
             onClose: function(){
                 var editedUser = window.top.usernameForUserThatIsCurrentlyBeingEdited;
                 if (!window.top.XNAT.page.userAdminPage) {
@@ -865,9 +880,10 @@ var XNAT = getObject(XNAT);
     // open a dialog for creating a new user
     function newUserDialog(){
         var updated = false;
-        return xmodal.open({
+        return XNAT.dialog.open({
             width: 600,
-            height: 500,
+            // height: 500,
+            speed: 200,
             title: 'Create New User',
             content: '<div class="new-user-form"></div>',
             beforeShow: function(){
@@ -877,7 +893,7 @@ var XNAT = getObject(XNAT);
             okLabel: 'Save',
             okClose: 'false',
             okAction: function(obj){
-                var $form = obj.$modal.find('form#user-account-form-panel');
+                var $form = obj.$modal.find('form#user-account-form');
                 var _username = $form.find('input[name="username"]').val();
                 // make sure new username is not a duplicate
                 var getUserList = usersGroups.userData().usernames();
@@ -1137,7 +1153,7 @@ var XNAT = getObject(XNAT);
         function killActiveSessions(e){
             e.preventDefault();
             var username = this.title.split(':')[0].trim();
-            return xmodal.confirm({
+            return XNAT.dialog.confirm({
                 title: 'Kill Active Sessions?',
                 content: 'Kill all active sessions for <b>' + username + '</b>?',
                 okClose: false,
@@ -1255,7 +1271,8 @@ var XNAT = getObject(XNAT);
                         '    #user-profiles td.username .truncate { width: 90px; } \n' +
                         '    #user-profiles td.fullName .truncate { width: 100px; } \n' +
                         '    #user-profiles td.email .truncate { width: 140px; } \n' +
-                        '}'
+                        '} \n' +
+                        '#user-account-form { border: none; margin: 0; }'
                     }
                 },
                 onRender: showUsersTable,
@@ -1519,7 +1536,13 @@ var XNAT = getObject(XNAT);
                                                 $dataRows.addClass(FILTERCLASS).filter(function(){
                                                     var timestamp = this.querySelector('input.last-login.timestamp');
                                                     var lastLogin = +(timestamp.value);
-                                                    return selectedValue === lastLogin-1 || selectedValue > (currentTime - lastLogin);
+                                                    if (selectedValue === -1) {
+                                                        // special handling for users that have never logged in
+                                                        return lastLogin === 0;
+                                                    }
+                                                    else {
+                                                        return selectedValue === lastLogin-1 || selectedValue > (currentTime - lastLogin);
+                                                    }
                                                 }).removeClass(FILTERCLASS);
                                             }
                                         }
