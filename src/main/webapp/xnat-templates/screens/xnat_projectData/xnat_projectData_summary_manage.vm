@@ -179,7 +179,7 @@
 ##        scriptUrl('xnat/app/eventsManager.js')
 ##    ]);
 ##</script>
-<script type="text/javascript" src="$content.getURI("scripts/lib/ace/ace.js")"></script>
+##<script type="text/javascript" src="$content.getURI("scripts/lib/ace/ace.js")"></script>
 <script type="text/javascript" src="$content.getURI("scripts/seriesImportFilter.js")"></script>
 <script type="text/javascript" src="$content.getURI("scripts/settingsManager.js")"></script>
 <script type="text/javascript" src="$content.getURI("scripts/xnat/app/eventsManager.js")"></script>
@@ -488,18 +488,25 @@
 <script>
 
     $.fn.superSimpleAccordion = function(){
-        var container = $(this).show();
-        var h3s = container.find('h3');
-        var divs = h3s.next('div');
-        divs.addClass('content').hide();
-        container.find('.active').show();
-        h3s.on('click', function(){
-            var content = $(this).next('div');
-            if (content.is(':hidden')) {
-                h3s.removeClass('active');
+        var container$ = $(this).show();
+        var h3s$ = container$.find('h3');
+        var divs$ = h3s$.next('div');
+        divs$.addClass('content').hide();
+        container$.find('.active').show();
+        h3s$.on('click', function(){
+            var content$ = $(this).next('div');
+            if (content$.is(':hidden')) {
+                h3s$.removeClass('active');
                 $(this).addClass('active');
-                divs.removeClass('active').slideUp();
-                content.addClass('active').slideDown();
+                divs$.slideUp().removeClass('active');
+                content$.slideDown().addClass('active');
+                return;
+            }
+            if (content$.is(':visible')) {
+                content$.slideUp(function(){
+                    content$.removeClass('active');
+                    h3s$.removeClass('active');
+                });
             }
         });
     };
@@ -507,3 +514,4 @@
     $('#accordion').superSimpleAccordion();
 
 </script>
+
