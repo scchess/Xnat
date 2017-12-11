@@ -372,13 +372,13 @@ function setObject(obj, str, val) {
     parts = str.split('.');
     while (parts.length > 1) {
         part = parts.shift();
-        obj = getObject(obj);
-        if (!obj[part]) {
+        // obj = getObject(obj);
+        if (!(part in obj)) {
             obj[part] = {};
         }
         obj = obj[part];
     }
-    obj[parts[0]] = val || {};
+    obj[parts[0]] = val || obj[parts[0]] || {};
     return obj;
 }
 
@@ -409,7 +409,7 @@ function lookupObjectValue(root, objStr, prop){
         root = window;
     }
 
-    if (!objStr) return '';
+    if (typeof objStr !== 'string') return objStr || '';
 
     root = root || window;
 
@@ -456,6 +456,36 @@ function lookupObjectValue(root, objStr, prop){
 
     return val;
 
+}
+
+// replace values wrapped in {{...}} or {(...)} to:
+function strReplace(str){
+
+    // {{ foo.bar.baz }} // object lookup
+    var LOOKUP_REGEX = /{{(.*?)}}/g;
+
+    // {( 1+2+3 )} // js eval, or...
+    // (( 1+2+3 )) // js eval
+    var EVAL_REGEX = /{\((.*?)\)}|\(\((.*?)\)\)/g;
+
+    return (str+'').replace(LOOKUP_REGEX, function(part){
+        var pt = (part+'').trim()
+                          .replace(/^{{\s*|\s*}}$/g, '');
+        return firstDefined(lookupObjectValue(pt), part);
+    }).replace(EVAL_REGEX, function(part){
+        var pt = (part+'').trim()
+                          .replace(/^{\(\s*|\s*\)}$/g, '')
+                          .replace(/^\(\(\s*|\s*\)\)$/g, '');
+        if (jsdebug) console.log(part);
+        if (jsdebug) console.log(pt);
+        try {
+            return firstDefined(eval(pt), part);
+        }
+        catch(e){
+            if (jsdebug) console.log(e);
+            return part;
+        }
+    });
 }
 
 // return the last item in an array-like object
@@ -615,7 +645,7 @@ function toNumber( val, strip, force, dec ){
 
         // strip non-numeric characters (besides decimal)
         if (strip){
-            val = val.replace(/[^0-9\.]/g,'');
+            val = val.replace(/[^0-9.]/g,'');
         }
 
         // chop off after 2nd decimal, if present
@@ -1345,4 +1375,28 @@ function waitForIt(interval, test, callback){
         }
     }, interval || 10);
     return waiting;
+}
+
+// wait for element to show up in the DOM
+// then execute callback
+function waitForElement(interval, selector, callback){
+    var counter = 0;
+    var $element;
+    waitForIt(interval, function(){
+        if (++counter > 1000) {
+            return true;
+        }
+        if (jsdebug) {
+            console.log('waiting for element...')
+            console.log(selector)
+        }
+        return ($element = $$(selector)).length
+    }, function(){
+        if (counter > 1000) {
+            console.warn("Can't find element: " + selector);
+        }
+        else {
+            callback.call($element[0], $element);
+        }
+    })
 }

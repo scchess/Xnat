@@ -35,6 +35,17 @@ if(!("lastElementChild" in document.documentElement)){
     });
 }
 
+// .forEach() method for NodeList
+if (NodeList && !NodeList.prototype.forEach) {
+    NodeList.prototype.forEach = function(callback, thisArg){
+        var i   = -1;
+        thisArg = thisArg || window;
+        while (++i < this.length) {
+            callback.call(thisArg, this[i], i, this)
+        }
+    };
+}
+
 // String.trim() polyfill (IE8)
 if (!String.prototype.trim) {
     (function() {
