@@ -951,6 +951,76 @@ function sortElements( _parent, _child ){
     $.each(listitems, function( idx, itm ) { $mylist.append(itm) });
 }
 
+function numericSort(a,b) {
+    return (a*1) - (b*1);
+}
+
+function matchCellWidths(widths, table1, table2 /* etc... */){
+
+    var argi = -1;
+    var args = toArray(arguments);
+    var cellWidths = args.shift() || [];
+    var argLen = args.length;
+    var colLength = 0;
+    var tmpTable = 0;
+
+    // first check
+    while (++argi < argLen) {
+        args[argi] = isString(args[argi]) ? document.querySelector(args[argi]) : args[argi];
+        tmpTable = args[argi];
+        // first table decides how many columns we're working with
+        if (argi === 0) {
+            // we only need to check the first row (index 0)
+            colLength = tmpTable.rows[0].cells.length;
+            if (tmpTable.rows[0].cells[0].style.width) {
+                forEach(tmpTable.rows[0].cells, function(cell){
+                    cellWidths.push(cell.clientWidth)
+                });
+            }
+            continue;
+        }
+        if (colLength !== tmpTable.rows[0].cells.length) {
+            console.error('Cannot modify tables with different numbers of columns.');
+            return false;
+        }
+    }
+
+    if (!cellWidths.length) {
+        // iterate tables to collect widths
+        forEach(args, function(table, t){
+            // iterate rows for each table
+            forEach(table.rows[0].cells, function(cell, r){
+                // create a 2-D array of possible widths for each cell
+                cellWidths[r] = [].concat(cellWidths[r], cell.clientWidth);
+            });
+        });
+    }
+
+    // iterate collection of widths to find the largest value for each column
+    cellWidths = cellWidths.map(function(widths, c){
+        return [].concat(widths).sort(numericSort).reverse()[0];
+    });
+
+    // iterate tables again to SET widths
+    forEach(args, function(table, t){
+        table.style.tableLayout = 'fixed';
+        // kill explicit widths for all cells
+        forEach(table.querySelectorAll('th, td'), function(cell){
+            // cell.appendChild(spawn('span.truncate', {
+            //     style: { width: cell.style.width }
+            // }, toArray(cell.children)));
+            cell.style.width = null;
+            // cell.style.overflow = 'hidden';
+            cell.classList.add('truncate');
+        });
+        forEach(cellWidths, function(width, w){
+            table.rows[0].cells[w].style.width = width + 'px';
+        });
+    });
+
+    return cellWidths;
+
+}
 
 // force a jQuery object and allow use of
 // non-standard id names with special prefix:
