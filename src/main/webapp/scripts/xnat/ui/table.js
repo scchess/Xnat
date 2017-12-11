@@ -921,13 +921,23 @@ var XNAT = getObject(XNAT);
                                     applyFn = (applyFn+'').trim();
                                     // wrap eval() expression in {( expr )} or (( expr ))
                                     if (XNAT.parse.REGEX.evalTest.test(applyFn)) {
-                                        applyFn = applyFn.replace(XNAT.parse.REGEX.evalTrim, '');
-                                        itemVal = eval(applyFn).apply(item, [].concat(itemVal, _tr)) || itemVal;
+                                        applyFn = eval(applyFn.replace(XNAT.parse.REGEX.evalTrim, '').trim());
+                                        if (isFunction(applyFn)) {
+                                            itemVal = applyFn.apply(item, [].concat(itemVal, item, _tr)) || itemVal;
+                                        }
+                                        else {
+                                            itemVal = applyFn;
+                                        }
                                     }
                                     // or start with standard Spawner 'eval' string
                                     else if (EVALREGEX.test(applyFn)) {
-                                        applyFn = applyFn.replace(EVALREGEX, '');
-                                        itemVal = eval('(' + applyFn + ')').apply(item, [].concat(itemVal, _tr)) || itemVal;
+                                        applyFn = eval(applyFn.replace(EVALREGEX, '').trim());
+                                        if (isFunction(applyFn)) {
+                                            itemVal = applyFn.apply(item, [].concat(itemVal, item, _tr)) || itemVal;                                            
+                                        }
+                                        else {
+                                            itemVal = applyFn;
+                                        }
                                     }
                                     else if (applyFn = lookupObjectValue(window, applyFn)) {
                                         //          ^^^ correct, we're doing assignment in an 'if' statement
