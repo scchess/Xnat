@@ -21,14 +21,27 @@ public class InitializeXNAT {
         sendPUTRequest( "/data/projects/" + id, "name=" + name);
     }
 
-    public void createSubject( String projectId, String subjectLabel) {
-        sendPUTRequest( "/data/projects/" + projectId + "/subjects/" + subjectLabel, null);
+    public void createUser( String userName, String password) {
+
+    }
+
+    public void createSubject( String projectId, String subjectLabel, String gender, String dob) {
+        StringBuilder sb = new StringBuilder();
+        if( gender != null) sb.append("gender="+gender);
+        if( dob != null) sb.append( "dob="+dob);
+        String params = sb.toString();
+
+        sendPUTRequest( "/data/projects/" + projectId + "/subjects/" + subjectLabel, params);
+    }
+
+    public void loadData() {
+
     }
 
     public void sendPUTRequest( String path, String params) {
         HttpURLConnection conn = null;
         try {
-            URL url = new URL(host + path + "?" + ((params != null)? URLEncoder.encode(params, StandardCharsets.UTF_8.toString()): "") );
+            URL url = new URL(host + path + ( (params == null || params.isEmpty())? "": "?" + URLEncoder.encode(params, StandardCharsets.UTF_8.toString())));
 
             conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("PUT");
@@ -66,15 +79,13 @@ public class InitializeXNAT {
         while ((output = br.readLine()) != null) {
             ps.println(output);
         }
-
-
     }
 
     public static void main(String[] args) {
         InitializeXNAT xnat = new InitializeXNAT( "http://xnat-latest", "Basic YWRtaW46YWRtaW4=");
 
-//        xnat.createProject("projectPut2", "Name of projectPut2");
-        xnat.createSubject("projectPut2", "subjectPut22");
+//        xnat.createProject("publicProject1", "Public Project 1");
+        xnat.createSubject("projectPut2", "subjectPut22", "male", "19600519");
     }
 
 }
