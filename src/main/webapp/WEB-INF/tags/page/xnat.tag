@@ -23,15 +23,16 @@
 
 <head>
 
-    <c:if test="${empty requestScope.hasInit}">
-        <pg:init>
-            <c:if test="${empty requestScope.hasVars}">
-                <pg:jsvars/>
-            </c:if>
-        </pg:init>
-    </c:if>
+    <pg:init/>
+    <pg:jsvars/>
 
     ${headTop}
+
+    <c:set var="js" value="min.js"/>
+    <c:if test="${param.debug == true || param.jsdebug == true}">
+        <c:set var="DEBUG" value="true"/>
+        <c:set var="js" value="js"/>
+    </c:if>
 
     <title>${empty title ? 'XNAT' : title}</title>
 
@@ -40,14 +41,18 @@
     <%--<c:set var="_scriptsLib" value="${SITE_ROOT}/scripts/lib"/>--%>
     <c:set var="csrfToken" value="${sessionScope.csrfToken}"/>
     <c:set var="_user" value="${sessionScope.username}"/>
-    <c:set var="versionString" value="v=1.7.3a"/>
+    <c:set var="versionString" value="v=1.7.5a"/>
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="cache-control" content="max-age=0">
-    <meta http-equiv="cache-control" content="no-cache">
-    <meta http-equiv="expires" content="-1">
-    <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT">
+
+    <c:if test="${not empty DEBUG}">
+        <meta http-equiv="Pragma" content="no-cache">
+        <meta http-equiv="cache-control" content="max-age=0">
+        <meta http-equiv="cache-control" content="no-cache">
+        <meta http-equiv="expires" content="-1">
+        <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT">
+        <script>console.log('DEBUG')</script>
+    </c:if>
 
     <!-- load polyfills before ANY other JavaScript -->
     <script src="${SITE_ROOT}/scripts/polyfills.js"></script>
@@ -76,8 +81,8 @@
 
     <!-- required libraries -->
     <script src="${SITE_ROOT}/scripts/lib/loadjs/loadjs.js"></script>
-    <script src="${SITE_ROOT}/scripts/lib/jquery/jquery.js"></script>
-    <script src="${SITE_ROOT}/scripts/lib/jquery/jquery-migrate.js"></script>
+    <script src="${SITE_ROOT}/scripts/lib/jquery/jquery.${js}"></script>
+    <script src="${SITE_ROOT}/scripts/lib/jquery/jquery-migrate.${js}"></script>
     <script type="text/javascript">
         // use 'jq' to avoid _possible_ conflicts with Velocity
         var jq = jQuery;
@@ -85,8 +90,8 @@
 
     <!-- jQuery plugins -->
     <link rel="stylesheet" type="text/css" href="${SITE_ROOT}/scripts/lib/jquery-plugins/chosen/chosen.min.css?${versionString}">
-    <script src="${SITE_ROOT}/scripts/lib/jquery-plugins/chosen/chosen.jquery.min.js"></script>
-    <script src="${SITE_ROOT}/scripts/lib/jquery-plugins/jquery.maskedinput.min.js"></script>
+    <script src="${SITE_ROOT}/scripts/lib/jquery-plugins/chosen/chosen.jquery.${js}"></script>
+    <script src="${SITE_ROOT}/scripts/lib/jquery-plugins/jquery.maskedinput.${js}"></script>
     <script src="${SITE_ROOT}/scripts/lib/jquery-plugins/jquery.hasClasses.js"></script>
     <script src="${SITE_ROOT}/scripts/lib/jquery-plugins/jquery.dataAttr.js"></script>
     <script src="${SITE_ROOT}/scripts/lib/jquery-plugins/jquery.form.js"></script>
@@ -96,6 +101,10 @@
     <script src="${SITE_ROOT}/scripts/lib/js.cookie.js"></script>
     <script src="${SITE_ROOT}/scripts/lib/yamljs/dist/yaml.js"></script>
     <script src="${SITE_ROOT}/scripts/lib/form2js/src/form2js.js"></script>
+    <script src="${SITE_ROOT}/scripts/lib/form2js/src/js2form.js"></script>
+    <script src="${SITE_ROOT}/scripts/lib/x2js/xml2json.js"></script>
+    <script src="${SITE_ROOT}/scripts/lib/DefiantJS/dist/defiant.${js}"></script>
+    <script src="${SITE_ROOT}/scripts/lib/jsonpath/jsonpath.js"></script>
     <script src="${SITE_ROOT}/scripts/lib/ace/ace.js"></script>
 
     <!-- XNAT utility functions -->
@@ -175,18 +184,13 @@
     <!-- YUI css -->
     <%--<link rel="stylesheet" type="text/css" href="${SITE_ROOT}/scripts/yui/build/assets/skins/sam/skin.css?v=1.7.0a1">--%>
 
+    <!-- app.css loaded first -->
+    <link rel="stylesheet" type="text/css" href="${SITE_ROOT}/style/app.css?${versionString}">
+
     <!-- Icon sets -->
     <link rel="stylesheet" type="text/css" href="${SITE_ROOT}/style/font-awesome.min.css?${versionString}">
     <link rel="stylesheet" type="text/css" href="${SITE_ROOT}/style/icons.css?${versionString}">
     <link rel="stylesheet" type="text/css" href="${SITE_ROOT}/page/admin/style.css?${versionString}">
-
-    <!-- xdat.css and xnat.css loaded last to override YUI styles -->
-    <link rel="stylesheet" type="text/css" href="${SITE_ROOT}/style/app.css?${versionString}">
-
-    <%-- styles for tabbed interface --%>
-    <%-- TODO: rename and move file or integrate it into app.css --%>
-    <link rel="stylesheet" type="text/css" href="${SITE_ROOT}/page/admin/style.css?${versionString}">
-
 
     <!-- legacy XNAT scripts -->
     <link rel="stylesheet" type="text/css" href="${SITE_ROOT}/scripts/xmodal-v1/xmodal.css?${versionString}">
@@ -205,12 +209,14 @@
 
     <!-- XNAT JLAPI scripts -->
     <script src="${SITE_ROOT}/scripts/xnat/util/sub64.js"></script>
+    <script src="${SITE_ROOT}/scripts/xnat/parse.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/validate.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/url.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/xhr.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/cookie.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/event.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/element.js"></script>
+    <script src="${SITE_ROOT}/scripts/xnat/ui/form.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/ui/templates.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/ui/input.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/ui/select.js"></script>
@@ -653,7 +659,7 @@ ${bodyTop}
 
         }
 
-        loadMainNav();
+        //loadMainNav();
 
     </script>
 
@@ -794,7 +800,7 @@ ${bodyTop}
 
     <script>
 
-        XNAT.app.customPage.container = $$('id=view-page');
+        XNAT.app.customPage.container = $$('#view-page');
 
         var body$ = $(document.body);
 

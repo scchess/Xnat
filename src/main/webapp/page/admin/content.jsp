@@ -1,4 +1,4 @@
-<%@ page session="true" contentType="text/html" pageEncoding="UTF-8" language="java" %>
+<%@ page contentType="text/html" pageEncoding="UTF-8" trimDirectiveWhitespaces="true" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="pg" tagdir="/WEB-INF/tags/page" %>
 
@@ -17,6 +17,8 @@
 </c:set>
 
 <pg:restricted msg="${redirect}">
+
+    <c:set var="SITE_ROOT" value="${sessionScope.siteRoot}"/>
 
     <div id="page-body">
         <div class="pad">
@@ -65,13 +67,13 @@
                             XNAT.data.siteConfig = ${siteConfig};
                             // get rid of the 'targetSource' property
                             delete XNAT.data.siteConfig.targetSource;
-                            XNAT.data['/xapi/siteConfig'] = XNAT.data.siteConfig;
+                            XNAT.data['${SITE_ROOT}/xapi/siteConfig'] = XNAT.data.siteConfig;
                         </c:if>
 
                         <%-- can't use empty/undefined object --%>
                         <c:if test="${not empty notifications}">
                             XNAT.data.notifications = ${notifications};
-                            XNAT.data['/xapi/notifications'] = XNAT.data.notifications;
+                            XNAT.data['${SITE_ROOT}/xapi/notifications'] = XNAT.data.notifications;
                         </c:if>
 
                         // these properties MUST be set before spawning 'tabs' widgets
@@ -80,7 +82,7 @@
 
                         var adminTabs =
                                 XNAT.spawner
-                                    .resolve('siteAdmin/adminPage')
+                                    .resolve('siteAdmin/root')
                                     .ok(function(){
                                         this.render(XNAT.tabs.container, 200, function(){
                                             //initInfoLinks();
@@ -94,13 +96,6 @@
 
                     })();
 
-//                    function initInfoLinks(){
-//                        $('.infolink').click(function(e){
-//                            var idx = this.id.substr(9);
-//                            var help = infoContent[idx];
-//                            xmodal.message(help.title, help.content);
-//                        });
-//                    }
                 </script>
 
             </div>
