@@ -210,14 +210,6 @@ jq(function () {
         __option_boxes.addClass('match');
     }
 
-    // create new case-insensitive :contains selector
-    // usage - jq('.this_selector:containsNC("hello")').click(function() { ... });
-    jq.extend(jq.expr[":"], {
-        "containsNC": function (elem, i, match, array) {
-            return (elem.textContent || elem.innerText || "").toLowerCase().indexOf((match[3] || "").toLowerCase()) >= 0;
-        }
-    });
-
 
     function resetFocusFilter() {
         __filter_input.val('').focus();
@@ -228,7 +220,8 @@ jq(function () {
     __filter_input.keyup(function (e) {
 
         var _filter_val = __filter_input.val();
-        var _filter_match = __active_container.find(option_text + ':containsNC(' + _filter_val + ')');
+//        var _filter_match = __active_container.find(option_text + ':containsNC(' + _filter_val + ')')
+        var _filter_match = __active_container.find(option_text).containsNC(_filter_val);
 
         if (e.keyCode == 27) {  // key 27 = 'esc'
             resetFocusFilter();
