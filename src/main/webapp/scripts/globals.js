@@ -57,6 +57,16 @@ function getParameterByName( name ){
     return getQueryStringValue(name)
 }
 
+// get value from specific 'hash' string
+function getHashValue(hash, start, end){
+    var part = '';
+    hash = hash || window.location.hash;
+    if (!hash) { return '' }
+    part = hash.split(start||'#')[1]||'';
+    part = part.split(end||/\/#|#/)[0]||'';
+    return part;
+}
+
 // get the url hash string without the '#'
 function getUrlHash(){
     return window.location.hash.split('#')[1] || '';
@@ -65,12 +75,7 @@ function getUrlHash(){
 // simplest function for getting
 // a value from the url hash
 function getUrlHashValue(start, end){
-    var part = '',
-        hash = window.location.hash;
-    if (!hash) { return '' }
-    part = hash.split(start||'#')[1]||'';
-    part = part.split(end||/\/#|#/)[0]||'';
-    return part;
+    return getHashValue(window.location.hash, start, end);
 }
 
 function firstDefined() {

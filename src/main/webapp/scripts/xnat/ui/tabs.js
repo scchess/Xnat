@@ -284,7 +284,13 @@ var XNAT = getObject(XNAT || {});
             // console.log('tabs load');
             // console.log($element);
             // $container.find('li.tab.active').first().trigger('click');
-            tab.activate(tab.active, $thisContainer);
+            if (/#tab=/i.test(window.location.hash)) {
+                tab.activate(getUrlHashValue('#tab='));
+                return;
+            }
+            else {
+                tab.activate(tab.active, $thisContainer);
+            }
             $thisContainer.hidden(false, 200);
             return tabContent;
         }
@@ -326,6 +332,13 @@ var XNAT = getObject(XNAT || {});
         var $thisContainer = $thisTab.closest('div.xnat-nav-tabs').parent();
         // activate the clicked tab and pane
         tab.activate(clicked, $thisContainer);
+    });
+
+    // listen for 'hashchange' event to update tab selection
+    $(window).on('hashchange', function(){
+        if (/#tab=/i.test(window.location.hash)) {
+            tab.activate(getUrlHashValue('#tab='));
+        }
     });
 
     // activate tab indicated in url hash

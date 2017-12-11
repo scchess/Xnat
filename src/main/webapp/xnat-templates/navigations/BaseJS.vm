@@ -29,6 +29,7 @@
         var csrfToken = '$!data.getSession().getAttribute("XNAT_CSRF")';
         var showReason = realValue('$!showReason');
         var requireReason = realValue('$!requireReason');
+        var logoutUrl = '$link.setAction("LogoutUser")';
 
     </script>
     ## separate script tags so not everything breaks if showReason or requireReason blows up

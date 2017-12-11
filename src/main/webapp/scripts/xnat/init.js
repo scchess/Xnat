@@ -215,6 +215,17 @@ var XNAT = getObject(XNAT);
             XNAT.cookie.set('SESSION_ACTIVE', 'false');
         }
 
+        if (XNAT.data.siteConfig.siteWideAlertStatus && XNAT.data.siteConfig.siteWideAlertStatus == 2) {
+            if (XNAT.cookie.get('NOTIFICATION_MESSAGE') !== 'CLOSED') {
+                $('.headNotification').removeClass('hidden');
+            }
+
+            $('.closeNotification').on('click',function(){
+                $(this).parent('.headNotification').slideUp().addClass('hidden');
+                XNAT.cookie.set('NOTIFICATION_MESSAGE', 'CLOSED');
+            });
+        }
+
         var clicker = XNAT.event.click('#header_logo, #xnat_power > a');
 
         // shift-click the header or footer XNAT logo to TOGGLE debug mode on/off

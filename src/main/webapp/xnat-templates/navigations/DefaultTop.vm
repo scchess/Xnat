@@ -202,76 +202,9 @@
 <!-- /main_nav -->
 
 <!-- main_nav interactions -->
-<script type="text/javascript">
-
-    jq(function(){
-
-        var docBody         = jq(document.body);
-        var mainNav         = jq('#main_nav').find('ul.nav');
-        var mainNavBackdrop = jq('#main-nav-backdrop');
-
-        function mainNavClose(e){
-            mainNavBackdrop.hide();
-            mainNav.find('.active').removeClass('active');
-            mainNav.find('.open').hide().removeClass('open');
-        }
-
-        // give menus with submenus a class of 'more'
-        mainNav.find('li ul, li li ul').closest('li').addClass('more');
-        mainNav.find('li li ul').addClass('subnav');
-
-        mainNav.on('click.nolink', 'a[href^="#"]', function(e){
-            e.preventDefault();
-        });
-
-        mainNav.on('click.topnav', '> li', function(e){
-            e.stopPropagation();
-
-            var topMenuItem  = jq(this);
-            var subMenu      = topMenuItem.find('> ul');
-            var subMenuItems = null;
-
-            mainNavBackdrop.show();
-
-            // deactive all top-level items
-            mainNav.find('> li').removeClass('active');
-            // activate only this one
-            topMenuItem.addClass('active');
-
-            subMenuItems = subMenu.find('> li.more').removeClass('active');
-            subMenuItems.off('click.subnav').on('click.subnav', function(e){
-                e.stopPropagation();
-                subMenuItems.removeClass('active');
-                var thisMenuItem = jq(this);
-                thisMenuItem.addClass('active')
-                            .find('> ul')
-                            .each(function(){
-                                var sub     = jq(this);
-                                var offsetL = sub.closest('li').width();
-                                sub.css({ 'left': offsetL });
-                            });
-            });
-
-        });
-
-        mainNav.on('click', 'a', function(e){
-            var href = $(this).attr('href');
-            if (href.indexOf('#') !== 0) {
-                mainNavClose.call(this, e)
-            }
-        });
-        mainNavBackdrop.on('click', mainNavClose);
-
-        // clicking the "Logout" link sets the warning bar cookie to 'OPEN' so it's available if needed on next login
-        jq('#logout_user').click(function(e){
-            e.preventDefault();
-            XNAT.cookie.set('WARNING_BAR', 'OPEN');
-            XNAT.cookie.set('NOTIFICATION_MESSAGE', 'OPEN');
-            window.location.replace('$link.setAction("LogoutUser")');
-        });
-
-    });
-
+<script src="${SITE_ROOT}/scripts/xnat/app/mainNav.js"></script>
+<script>
+    XNAT.app.mainNav.init();
 </script>
 <!-- end main_nav interactions -->
 
@@ -286,14 +219,7 @@
         </div>
 
         <script>
-            if (XNAT.cookie.get('NOTIFICATION_MESSAGE') !== 'CLOSED') {
-                jq('.headNotification').removeClass('hidden');
-            }
-
-            jq('.closeNotification').on('click',function(){
-                jq(this).parent('.headNotification').slideUp().addClass('hidden');
-                XNAT.cookie.set('NOTIFICATION_MESSAGE', 'CLOSED');
-            })
+            XNAT.data.siteConfig.siteWideAlertStatus = 2;
         </script>
     #end
 

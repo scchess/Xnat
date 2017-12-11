@@ -101,6 +101,8 @@ $navigation.setTemplate("/BaseJS.vm")
         }
     });
 
+    XNAT.data.siteConfig = getObject(XNAT.data.siteConfig);
+
     if (XNAT.data.context.projectName === "") {
         #set ($projectName = $turbineUtils.getProjectName($om, $project))
         XNAT.data.context.projectName = "$!projectName";

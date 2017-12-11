@@ -133,13 +133,21 @@ window.xmodal = getObject(window.xmodal);
             var topDialog$ = topDialog.dialog$;
             if (keyCode === 27) {  // key 27 = 'esc'
                 if (topDialog.esc) {
-                    topDialog.close();
+                    topDialog.close(true, 100, function(){
+                        dialog.topUID = dialog.uids[dialog.uids.length-1];
+                        if (dialog.topUID) {
+                            dialog.dialogs[dialog.topUID].toTop();
+                        }
+                    });
                     // topDialog.cancelButton$.not('.disabled').trigger('click')
                 }
             }
             else if (keyCode === 13 && topDialog.enter && topDialog.submitButton$) {  // key 13 = 'enter'
                 if (topDialog$.has(document.activeElement).length || topDialog$.is(document.activeElement)) {
                     topDialog.submitButton$.not('.disabled').trigger('click');
+                }
+                else {
+                    e.preventDefault();
                 }
             }
         });
@@ -178,10 +186,10 @@ window.xmodal = getObject(window.xmodal);
 
         // opts.tag = 'button';
         opts.id = btnId;
-        opts.tabindex = '0';
+        opts.tabIndex = 0;
         opts.html = _btn.label || _btn.html || _btn.text || 'OK';
-        opts.attr = _btn.attr || {};
-        opts.attr.tabindex = 0;
+        // opts.attr = _btn.attr || {};
+        // opts.attr.tabindex = 0;
         opts.className = (function(){
 
             var cls = [];
@@ -267,7 +275,7 @@ window.xmodal = getObject(window.xmodal);
 
         this.maxxed = !!this.maxxed;
 
-        this.id = this.id || null;
+        this.id = this.id || this.uid;
 
         // use an outer container for correct positioning
         // this.container$ = $.spawn('div.xnat-dialog-container', {
@@ -330,7 +338,8 @@ window.xmodal = getObject(window.xmodal);
                 },
                 style: this.dialogStyle
             });
-            this.$modal = this.__modal = this.dialog$;
+            this.$modal = this.modal$ = this.__modal = this.dialog$;
+            this.dialog0 = this.dialog$[0];
 
             if (this.header !== false) {
 
@@ -672,6 +681,8 @@ window.xmodal = getObject(window.xmodal);
     Dialog.fn.setFocus = function(callback){
 
         // this.dialog$.focus();
+        document.activeElement.blur();
+        document.activeElement = this.dialog0;
 
         if (isFunction(this.onFocus)) {
             this.onFocusResult = this.onFocus.call(this);
@@ -1441,7 +1452,7 @@ window.xmodal = getObject(window.xmodal);
             return;
         }
 
-        config.url = XNAT.url.rootUrl(config.url);
+        // config.url = XNAT.url.rootUrl(config.url);
 
         config.content$ = $.spawn('div.load-content');
         config.content = config.content$[0];
