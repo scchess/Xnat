@@ -2,7 +2,7 @@
 
 <!-- START AppJS.vm -->
 
-#set($versionString = "v=1.7.3c")
+#set($versionString = "v=1.7.5a")
 #set($SITE_ROOT = $content.getURI(""))
 
 ## only load once
@@ -54,12 +54,14 @@
 
     <!-- XNAT JLAPI scripts -->
     <script src="${SITE_ROOT}/scripts/xnat/util/sub64.js"></script>
+    <script src="${SITE_ROOT}/scripts/xnat/parse.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/validate.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/url.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/xhr.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/cookie.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/event.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/element.js"></script>
+    <script src="${SITE_ROOT}/scripts/xnat/ui/form.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/ui/templates.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/ui/input.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/ui/select.js"></script>

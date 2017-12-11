@@ -2,14 +2,12 @@
 
 <!-- START BaseJS.vm -->
 
-#set ($versionString = "v=1.7.3c")
+#set ($versionString = "v=1.7.5a")
 #set ($SITE_ROOT = $content.getURI(""))
-#set ($debugParam = $data.getParameters().getString('debug'))
-#set ($jsDebugParam = $data.getParameters().getString('jsdebug'))
-#set ($DEBUG = ($debugParam == 'true' || $jsDebugParam == 'true'))
 
 #if ($DEBUG)
     #set ($js = "js")
+    <script>console.log('========== DEBUG ==========')</script>
 #else
     #set ($js = "min.js")
 #end
@@ -66,6 +64,10 @@
     <script src="${SITE_ROOT}/scripts/lib/js.cookie.js"></script>
     <script src="${SITE_ROOT}/scripts/lib/yamljs/dist/yaml.js"></script>
     <script src="${SITE_ROOT}/scripts/lib/form2js/src/form2js.js"></script>
+    <script src="${SITE_ROOT}/scripts/lib/form2js/src/js2form.js"></script>
+    <script src="${SITE_ROOT}/scripts/lib/x2js/xml2json.js"></script>
+    <script src="${SITE_ROOT}/scripts/lib/DefiantJS/dist/defiant.${js}"></script>
+    <script src="${SITE_ROOT}/scripts/lib/jsonpath/jsonpath.js"></script>
     <script src="${SITE_ROOT}/scripts/lib/ace/ace.js"></script>
 
     <!-- XNAT utility functions -->
@@ -80,3 +82,4 @@
 #end
 
 <!-- END BaseJS.vm -->
+

@@ -418,7 +418,7 @@ var XNAT = getObject(XNAT||{});
     });
 
 
-    url.reloadHash = function(key, value, delim){
+    url.reloadHash = function(key, value, delim, callback){
         var newHash = XNAT.url.updateHashPart('', key, value, delim);
         //window.location.replace(newHash);
         //window.location.reload();
@@ -545,6 +545,25 @@ var XNAT = getObject(XNAT||{});
 
     }
     url.buildUrl = url.setup = urlSetup;
+
+
+    // replace parseable URL parts while preserving 'special' prefix
+    url.parse = function( URL ){
+        if (!URL) return '';
+        var urlTemp = URL;
+        // preserve 'special' syntax prefixes
+        var parts = URL.split(/^(\$*[*?~]?\s*[:=]*\s*)/);
+        // if there's only one part, there's no prefix
+        if (parts.length === 1) {
+            urlTemp = strReplace(URL);
+        }
+        else {
+            urlTemp = strReplace(parts[2])
+        }
+        return (parts[1] || '') + rootUrl(urlTemp);
+    };
+    url.replace = url.parse;
+
 
     // build url path from object, array, or argument sequence
     // ({ projects: 'foo', subject: 'bar' })

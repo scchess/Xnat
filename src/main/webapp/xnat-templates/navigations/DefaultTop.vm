@@ -263,9 +263,11 @@
         mainNavBackdrop.on('click', mainNavClose);
 
         // clicking the "Logout" link sets the warning bar cookie to 'OPEN' so it's available if needed on next login
-        jq('#logout_user').click(function(){
+        jq('#logout_user').click(function(e){
+            e.preventDefault();
             XNAT.cookie.set('WARNING_BAR', 'OPEN');
             XNAT.cookie.set('NOTIFICATION_MESSAGE', 'OPEN');
+            window.location.replace('$link.setAction("LogoutUser")');
         });
 
     });
