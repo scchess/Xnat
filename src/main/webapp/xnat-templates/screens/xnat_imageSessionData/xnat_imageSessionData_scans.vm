@@ -173,8 +173,42 @@
             matchCellWidths([], '#scan-header-table', '#scan-data-table');
 
         </script>
-
         <script src="${SITE_ROOT}/scripts/xnat/app/imageSession/scanTable.js"></script>
+        <script src="${SITE_ROOT}/scripts/xnat/app/selectableTableBehavior.js"></script>
+
+        <!-- hidden: scan details -->
+
+        <style type="text/css">
+
+            div.scan-details > table {
+                width: 100%;
+                font-size: 13px;
+            }
+
+            div.scan-details > table td {
+                padding: 3px 8px;
+            }
+
+            div.xnat-dialog table.dump {
+                width: 100%;
+            }
+
+            div.xnat-dialog table.dump th {
+                padding-bottom: 20px;
+            }
+
+        </style>
+
+        #foreach($scan in $om.getSortedScans())
+            #set ($scanID = $!scan.getProperty("ID"))
+            <div class="html-template" id="scan-${scanID}-details-template">
+                <div class="scan-details">
+                    #parse($turbineUtils.getTemplateName("_details",$scan.getXSIType(),$project))
+                </div>
+            </div>
+        #end
+
+        <br>
 
     #end
 
@@ -192,245 +226,6 @@
         </div>
     #end
 </div>
-
-<!-- hidden: scan details -->
-
-<style type="text/css">
-
-    div.scan-details > table {
-        width: 100%;
-        font-size: 13px;
-    }
-
-    div.scan-details > table td {
-        padding: 3px 8px;
-    }
-
-    div.xnat-dialog table.dump {
-        width: 100%;
-    }
-
-    div.xnat-dialog table.dump th {
-        padding-bottom: 20px;
-    }
-
-</style>
-
-#foreach($scan in $om.getSortedScans())
-    #set ($scanID = $!scan.getProperty("ID"))
-<div class="html-template" id="scan-${scanID}-details-template">
-    <div class="scan-details">
-        #parse($turbineUtils.getTemplateName("_details",$scan.getXSIType(),$project))
-    </div>
-</div>
-#end
-
-##<script>
-##    (function(){
-##        /* inline scan table functions */
-##        window.displayScanDetails = function(scanId){
-##            if (!scanId) return false;
-##
-##            if (loadSnapshotImageNoBlocking(scanId)) {
-##                var tmpl = $('#scan-' + scanId + '-details-template').html();
-##
-##                XNAT.ui.dialog.open({
-##                    title: 'Scan ' + scanId,
-##                    width: 960,
-##                    content: spawn('div.panel', tmpl),
-##                    isDraggable: true,
-##                    mask: false,
-##                    footer: {
-##                        content: 'Click in the header to move this dialog around the page'
-##                    }
-##                });
-##            }
-##        };
-##
-##        window.editScanNote = function(scanId){
-##            var xsiType  = XNAT.data.context.xsiType;
-##            var noteText = $('.scan-' + scanId + '-note').find('.truncate').html().trim();
-##            XNAT.ui.dialog.open({
-##                title: 'Edit Note for Scan ' + scanId,
-##                width: 480,
-##                nuke: true,
-##                content: XNAT.spawner.spawn({
-##                    scanNoteEditor: {
-##                        kind: 'panel.form',
-##                        id: 'scan-note-editor',
-##                        contents: {
-##                            editor: {
-##                                kind: 'panel.textarea',
-##                                name: xsiType + '/scans/scan[ID=' + scanId + ']/note',
-##                                value: noteText,
-##                                code: 'html'
-##                            }
-##                        }
-##                    }
-##                }).get(),
-##//                contentx: '<div class="panel"><form id="scan-note-editor"></form></div>',
-##//                beforeShow: function (obj) {
-##//                    obj.modal$.find('#scan-note-editor')
-##//                            .append(XNAT.ui.panel.textarea({
-##//                                name: xsiType + '/scans/scan[ID=' + scanId + ']/note',
-##//                                label: 'Note',
-##//                                value: noteText,
-##//                                code: 'html'
-##//                            }).spawned);
-##//                },
-##                buttons: [
-##                    {
-##                        label: 'Update Note',
-##                        isDefault: true,
-##                        close: false,
-##                        action: function(obj){
-##                            var updateNoteUrl    = '/REST/projects/' + XNAT.data.context.projectID + '/subjects/' + XNAT.data.context.subjectID + '/experiments/' + XNAT.data.context.ID + '?req_format=form';
-##                            var updateNoteString = obj.modal$.find('#scan-note-editor').serialize();
-##                            updateNoteString     = updateNoteString || null;
-##                            XNAT.xhr.put({
-##                                url: XNAT.url.csrfUrl(updateNoteUrl),
-##                                data: updateNoteString,
-##                                success: function(data){
-##                                    XNAT.ui.dialog.open({
-##                                        title: 'Success',
-##                                        width: 360,
-##                                        content: '<p>Scan note updated. Page will reload.</p>',
-##                                        buttons: [
-##                                            {
-##                                                label: 'OK',
-##                                                isDefault: true,
-##                                                close: true,
-##                                                action: function(){
-##                                                    XNAT.ui.dialog.closeAll();
-##                                                    window.location.reload();
-##                                                }
-##                                            }
-##                                        ],
-##                                    })
-##                                },
-##                                fail: function(e){
-##                                    XNAT.ui.dialog.open({
-##                                        title: 'Error',
-##                                        width: 360,
-##                                        content: '<p><strong>Error ' + e.status + '</strong></p><p>' + e.statusText + '</p>',
-##                                        buttons: [
-##                                            {
-##                                                label: 'OK',
-##                                                isDefault: true,
-##                                                close: true
-##                                            }
-##                                        ]
-##                                    })
-##                                }
-##                            })
-##                        }
-##                    },
-##                    {
-##                        label: 'Cancel',
-##                        isDefault: false,
-##                        close: true
-##                    }
-##                ]
-##            });
-##        }
-##
-##        window.deleteScan = function(scanId){
-##            XNAT.ui.dialog.open({
-##                title: 'Delete Scan ' + scanId,
-##                width: 480,
-##                nuke: true, // destroys the modal on close, rather than preserving its state
-##                content: '<div class="panel"></div>',
-##                beforeShow: function(obj){
-##                    obj.modal$.find('.panel')
-##                       .append('<p>This will delete scan ' + scanId + ' from this image session. You can choose whether to delete all scan files from the filesystem as well. </p>')
-##                       .append(XNAT.ui.panel.input.switchbox({
-##                           name: 'delete_files',
-##                           id: 'delete_files',
-##                           kind: 'switchbox',
-##                           value: 'true',
-##                           label: 'Delete Scan Files',
-##                           onText: 'Yes (Default)',
-##                           offText: 'No'
-##                       }));
-##                },
-##                buttons: [
-##                    {
-##                        label: 'Delete Scan',
-##                        isDefault: true,
-##                        close: false,
-##                        action: function(obj){
-##                            var deleteUrl   = '/REST/experiments/' + XNAT.data.context.ID + '/scans/' + scanId;
-##                            var deleteFiles = obj.modal$.find('#delete_files').is(':checked');
-##                            var params      = '?format=json';
-##                            params += '&event_action=Removed scan';
-##                            params += '&event_type=WEB_FORM';
-##                            if (deleteFiles) {
-##                                params += '&removeFiles=true';
-##                            }
-##                            XNAT.xhr.delete({
-##                                url: XNAT.url.rootUrl(deleteUrl + params),
-##                                success: function(data){
-##                                    XNAT.ui.dialog.open({
-##                                        title: 'Success',
-##                                        width: 360,
-##                                        content: '<p>Scan Deleted. Page will reload.</p>',
-##                                        buttons: [
-##                                            {
-##                                                label: 'OK',
-##                                                isDefault: true,
-##                                                close: true,
-##                                                action: function(){
-##                                                    XNAT.ui.dialog.closeAll();
-##                                                    window.location.reload();
-##                                                }
-##                                            }
-##                                        ],
-##                                    })
-##                                },
-##                                fail: function(e){
-##                                    XNAT.ui.dialog.open({
-##                                        title: 'Error',
-##                                        width: 360,
-##                                        content: '<p><strong>Error ' + e.status + '</strong></p><p>' + e.statusText + '</p>',
-##                                        buttons: [
-##                                            {
-##                                                label: 'OK',
-##                                                isDefault: true,
-##                                                close: true
-##                                            }
-##                                        ]
-##                                    })
-##                                }
-##                            })
-##                        }
-##                    },
-##                    {
-##                        label: 'Cancel',
-##                        isDefault: false,
-##                        close: true
-##                    }
-##                ]
-##            });
-##        }
-##
-##        window.downloadScans = function(params){
-##            var url = '/app/action/XDATActionRouter/xdataction/XDATScreen_download_sessions/search_element/' + params.xsiType + '/search_field/' + params.xsiType + 'ID/search_value/' + params.accessionId + '/popup/false/project/' + params.projectId;
-##            window.location.assign(XNAT.url.rootUrl(url));
-##        }
-##
-##        function loadSnapshotImageNoBlocking(scanID){
-##            var element    = $("#" + "scan" + scanID + "snapshot");
-##            element[0].src = element.data("xnat-src");
-##            return true;
-##        }
-##    })();
-##
-##</script>
-<script src="$content.getURI("scripts/xnat/app/selectableTableBehavior.js")"></script>
-
-<BR/>
-<BR/>
-
 
 
 #set ($qcXsiType = "xnat:qcAssessmentData")
