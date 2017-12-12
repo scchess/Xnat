@@ -344,8 +344,8 @@ var XNAT = getObject(XNAT);
 
             // do XHR
             obj.request = XNAT.xhr.get({
-                url: obj.url,
-                dataType: obj.dataType
+                // dataType: obj.dataType,
+                url: obj.url
             });
 
             obj.request.always(function(){
