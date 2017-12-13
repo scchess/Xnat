@@ -3,28 +3,35 @@ package org.nrg.xapi.rest.dicomweb;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Translate parameter names between the DICOM and XNAT domains.
  *
- * A DICOM query param can be repeated.
  *
  */
-public abstract class QueryParameters {
+public class QueryParameters extends BaseQueryParameters {
+    public static final String STUDY_INSTANCE_UID_NAME = "studyInstanceUID";
+    public static final String STUDY_DATE_NAME = "studyDate";
+    public static final String STUDY_TIME_NAME = "studyTime";
+    public static final String MODALITIES_IN_STUDY_NAME = "modalitiesInStudy";
+    public static final String REFERRING_PHYSICIAN_NAME_NAME = "referringPhysicianName";
+    public static final String PATIENT_ID_NAME = "patientID";
+    public static final String PATIENT_NAME_NAME = "patientName";
+    public static final String ACCESSION_NUMBER_NAME = "accessionNumber";
+    public static final String STUDY_ID_NAME = "studyID";
 
-    private Map<String, List<String>> normalizedMap;
+    public static final String MODALITY_NAME = "modality";
+    public static final String SERIES_INSTANCE_UID_NAME = "seriesInstanceUID";
+    public static final String SERIES_NUMBER_NAME = "seriesNumber";
+    public static final String PERFORMED_PROCEDURE_STEP_STARTDATE = "PerformedProcedureStepStartDate";
+    public static final String PERFORMED_PROCEDURE_STEP_STARTTIME = "PerformedProcedureStepStartTime";
+
     private static final Logger _log = LoggerFactory.getLogger(QueryParameters.class);
 
-    public QueryParameters() {
-        normalizedMap = new HashMap<>();
-    }
-
     public QueryParameters(Map<String, String> dicomRequestParams) {
-        this();
-        for( String paramName: dicomRequestParams.keySet()) {
-            addDicomParameter( paramName, dicomRequestParams.get(paramName));
-        }
+        super(dicomRequestParams);
     }
 
     /**
@@ -33,60 +40,106 @@ public abstract class QueryParameters {
      * @param dicomParamName
      * @param value
      */
-    public abstract void  addDicomParameter(String dicomParamName, String value) ;
+    public void addDicomParameter(String dicomParamName, String value) {
+        switch( dicomParamName.toLowerCase()) {
+            case "studyinstanceuid":
+            case "0020000d":
+                List<String> uids = parseUIDs( value);
+                for( String uid: uids) {
+                    addParam( STUDY_INSTANCE_UID_NAME, uid);
+                }
+                break;
+            case "studydate":
+            case "00080020":
+                addParam( STUDY_DATE_NAME, value);
+                break;
+            case "studytime":
+            case "00080030":
+                addParam( STUDY_TIME_NAME, value);
+                break;
+            case "modalitiesinstudy":
+            case "00080061":
+                addParam( MODALITIES_IN_STUDY_NAME, value);
+                break;
+            case "referringphysicianname":
+            case "00080090":
+                addParam( REFERRING_PHYSICIAN_NAME_NAME, value);
+                break;
+            case "00100020":
+            case "patientid":
+                addParam( PATIENT_ID_NAME, value);
+                break;
+            case "00100010":
+            case "patientname":
+                addParam( PATIENT_NAME_NAME, value);
+                break;
+            case "00080050":
+            case "accessionnumber":
+                addParam( ACCESSION_NUMBER_NAME, value);
+                break;
+            case "00200010":
+            case "studyid":
+                addParam( STUDY_ID_NAME, value);
+                break;
 
-    public void addParam( String key, String value) {
-        List<String> values;
-        if( ! normalizedMap.containsKey( key)) {
-            values = new ArrayList<>();
-            normalizedMap.put( key, values);
+            case "seriesinstanceuid":
+            case "0020000E":
+                uids = parseUIDs( value);
+                for( String uid: uids) {
+                    addParam( SERIES_INSTANCE_UID_NAME, uid);
+                }
+                break;
+            case "modality":
+            case "00080060":
+                addParam( MODALITY_NAME, value);
+                break;
+            case "seriesnumber":
+            case "00200011":
+                addParam( SERIES_NUMBER_NAME, value);
+                break;
+            case "performedprocedurestepstartdate":
+            case "00400244":
+                addParam( PERFORMED_PROCEDURE_STEP_STARTDATE, value);
+                break;
+            case "performedprocedurestepstarttime":
+            case "00400245":
+                addParam( PERFORMED_PROCEDURE_STEP_STARTTIME, value);
+                break;
+            default:
+                _log.warn("Ignoring unrecognized series/study-level query parameter: " + dicomParamName + " = " + value);
         }
-        else {
-            values = normalizedMap.get( key);
+    }
+
+    public boolean hasStudyLevel() {
+        for( String key: keySet()) {
+            switch( key) {
+                case STUDY_INSTANCE_UID_NAME:
+                case STUDY_DATE_NAME:
+                case STUDY_TIME_NAME:
+                case MODALITIES_IN_STUDY_NAME:
+                case REFERRING_PHYSICIAN_NAME_NAME:
+                case PATIENT_ID_NAME:
+                case PATIENT_NAME_NAME:
+                case ACCESSION_NUMBER_NAME:
+                case STUDY_ID_NAME:
+                    return true;
+            }
         }
-        values.add( value);
+        return false;
     }
 
-    /**
-     * Return the values mapped to the normalized key.
-     *
-     * @param key
-     * @return the values mapped to the key, null if the key is not found.
-     */
-    public List<String> getParams( String key) {
-        return normalizedMap.get( key);
-    }
-
-    /**
-     * Return the values mapped to the normalized key as a single comma-delimited string.
-     *
-     * @param key
-     * @return empty string if no values are mapped to the key.
-     */
-    public String getParamsString( String key) {
-        StringBuilder sb = new StringBuilder();
-        List<String> values = normalizedMap.get( key);
-        for( int i = 0; i < values.size(); ) {
-            sb.append( values.get(i));
-            i++;
-            if( i < values.size()) sb.append(",");
+    public boolean hasSeriesLevel() {
+        for( String key: keySet()) {
+            switch( key) {
+                case MODALITY_NAME:
+                case SERIES_INSTANCE_UID_NAME:
+                case SERIES_NUMBER_NAME:
+                case PERFORMED_PROCEDURE_STEP_STARTDATE:
+                case PERFORMED_PROCEDURE_STEP_STARTTIME:
+                    return true;
+            }
         }
-        return sb.toString();
+        return false;
     }
 
-    public Map<String, List<String>> getParams() {
-        return normalizedMap;
-    }
-
-    public Set<String> keySet() {
-        return normalizedMap.keySet();
-    }
-
-    public List<String> parseUIDs( String uids) {
-        return Arrays.asList( uids.split("\\\\"));
-    }
-
-    public String asString(String paramName) {
-        return paramName + "=" + getParamsString( paramName);
-    }
 }

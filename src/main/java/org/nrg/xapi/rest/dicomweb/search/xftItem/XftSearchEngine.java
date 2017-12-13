@@ -1,9 +1,7 @@
 package org.nrg.xapi.rest.dicomweb.search.xftItem;
 
 import org.nrg.xapi.model.dicomweb.*;
-import org.nrg.xapi.rest.dicomweb.QueryParametersSeries;
-import org.nrg.xapi.rest.dicomweb.QueryParametersStudy;
-import org.nrg.xapi.rest.dicomweb.QueryParametersStudySeries;
+import org.nrg.xapi.rest.dicomweb.QueryParameters;
 import org.nrg.xapi.rest.dicomweb.search.SearchEngineI;
 import org.nrg.xdat.bean.CatCatalogBean;
 import org.nrg.xdat.bean.CatDcmcatalogBean;
@@ -63,8 +61,8 @@ public class XftSearchEngine implements SearchEngineI {
     }
 
     @Override
-    public List<? extends QIDOResponse> searchForStudies(QueryParametersStudy queryParameters, UserI user) throws Exception {
-        CriteriaCollection cc = QueryParametersToCriteria.map( queryParameters);
+    public List<? extends QIDOResponse> searchForStudies(QueryParameters queryParameters, UserI user) throws Exception {
+        CriteriaCollection cc = QueryParametersToCriteria.mapStudy( queryParameters);
 
         ItemCollection ic = ItemSearch.GetItems( "xnat:imageSessionData", cc, user, false);
 
@@ -93,8 +91,8 @@ public class XftSearchEngine implements SearchEngineI {
     }
 
     @Override
-    public List<? extends QIDOResponse> searchForSeries(String studyInstanceUID, QueryParametersSeries queryParameters, UserI user) throws Exception {
-        CriteriaCollection cc = QueryParametersToCriteria.map( studyInstanceUID, queryParameters);
+    public List<? extends QIDOResponse> searchForSeries(String studyInstanceUID, QueryParameters queryParameters, UserI user) throws Exception {
+        CriteriaCollection cc = QueryParametersToCriteria.mapSeries( studyInstanceUID, queryParameters);
 
         ItemCollection ic = ItemSearch.GetItems( "xnat:imageScanData", cc, user, false);
 
@@ -116,16 +114,63 @@ public class XftSearchEngine implements SearchEngineI {
     }
 
     @Override
-    public List<? extends QIDOResponse> searchForSeries(QueryParametersStudySeries queryParameters, UserI user) throws Exception {
-        CriteriaCollection cc = QueryParametersToCriteria.map( queryParameters);
+    public List<? extends QIDOResponse> searchForStudySeries(QueryParameters queryParameters, UserI user) throws Exception {
+        List<? extends QIDOResponse> responses = null;
 
+        if( queryParameters.hasStudyLevel()) {
+            List<? extends QIDOResponse> studyResponses = searchForStudySeriesByStudyParams( queryParameters, user);
+
+            if( queryParameters.hasSeriesLevel()) {
+                Iterator<? extends QIDOResponse> it = studyResponses.iterator();
+                while( it.hasNext()) {
+                    QIDOResponseStudySeries responseStudySeries = (QIDOResponseStudySeries) it.next();
+                    String studyInstanceUID = responseStudySeries.getStudyInstanceUID();
+
+                    responses = searchForStudySeriesByStudyUID( studyInstanceUID, queryParameters, user);
+                }
+            }
+            else {
+                responses = studyResponses;
+            }
+        }
+        else if( queryParameters.hasSeriesLevel()) {
+            responses = searchForStudySeriesBySeries( queryParameters, user);
+        }
+        else {
+            responses = new ArrayList<>();
+        }
+
+        return responses;
+    }
+
+    public List<? extends QIDOResponse> searchForStudySeriesByStudy( QueryParameters queryParameters, UserI user) throws Exception {
+        CriteriaCollection cc = QueryParametersToCriteria.mapStudy( queryParameters);
+
+        return searchForStudySeriesByStudy( cc, user);
+    }
+
+    public List<? extends QIDOResponse> searchForStudySeriesBySeries( QueryParameters queryParameters, UserI user) throws Exception {
+        CriteriaCollection cc = QueryParametersToCriteria.mapSeries( queryParameters);
+
+        return searchForStudySeriesByStudy( cc, user);
+    }
+
+    public List<? extends QIDOResponse> searchForStudySeriesByStudyUID(String studyInstanceUID, QueryParameters queryParameters, UserI user) throws Exception {
+        CriteriaCollection cc ;
+        if( studyInstanceUID != null) cc = QueryParametersToCriteria.mapSeries( studyInstanceUID, queryParameters);
+        else  cc = QueryParametersToCriteria.mapSeries( queryParameters);
+
+        return searchForStudySeriesByStudy( cc, user);
+    }
+
+    public List<? extends QIDOResponse> searchForStudySeriesByStudy( CriteriaCollection cc, UserI user) throws Exception {
         ItemCollection ic = ItemSearch.GetItems( "xnat:imageScanData", cc, user, false);
 
 //        QIDOStudyResponseList responses = new QIDOStudyResponseList();
-        List<QIDOResponse> responses = new ArrayList();
+        List<QIDOResponseStudySeries> responses = new ArrayList();
         for( ItemI item: ic.getItems()) {
             XnatImagescandata scandata = new XnatImagescandata(item);
-            QIDOResponseSeries response = new QIDOResponseSeries();
+            QIDOResponseStudySeries response = new QIDOResponseStudySeries();
             response.setModality( scandata.getModality());
             response.setSeriesDescription( scandata.getSeriesDescription());
             response.setSeriesInstanceUID( scandata.getUid());
@@ -133,7 +178,62 @@ public class XftSearchEngine implements SearchEngineI {
             response.setPerformedProcedureStepStartDate( scandata.getStartDate());
             response.setPerformedProcedureStepStartTime( scandata.getStarttime());
             response.setNumberOfSeriesRelatedInstances( scandata.getFrames());
+
+            response.setStudyDate( scandata.getImageSessionData().getExperimentdata().getDate());
+            response.setStudyTime( scandata.getImageSessionData().getExperimentdata().getTime());
+            response.setAccessionNumber( scandata.getImageSessionData().getDcmaccessionnumber());
+            response.setInstanceAvailability( "ONLINE");
+            response.setStudyInstanceUID( scandata.getImageSessionData().getUid());
+            response.setPatientID( scandata.getImageSessionData().getDcmpatientid());
+            response.setPatientsName( scandata.getImageSessionData().getDcmpatientname());
+            response.setModalitiesInStudy( getModalitiesInStudy( scandata.getImageSessionData()));
+            response.setPatientsSex( scandata.getImageSessionData().getSubjectData().getGender());
+            response.setPatientsBirthDate( scandata.getImageSessionData().getSubjectData().getDOBDisplay());
+            response.setStudyID( scandata.getImageSessionData().getStudyId());
+            response.setNumberOfStudyRelatedSeries( countSeries( user, scandata.getImageSessionData()));
+            response.setNumberOfStudyRelatedInstances( countInstances( user, scandata.getImageSessionData()));
+
             responses.add( response);
+        }
+        return responses;
+    }
+
+    public List<? extends QIDOResponse> searchForStudySeriesByStudyParams( QueryParameters queryParameters, UserI user) throws Exception {
+        CriteriaCollection cc = QueryParametersToCriteria.mapStudy( queryParameters);
+        ItemCollection ic = ItemSearch.GetItems( "xnat:imageSessionData", cc, user, false);
+
+//        QIDOStudyResponseList responses = new QIDOStudyResponseList();
+        List<QIDOResponseStudySeries> responses = new ArrayList();
+        for( ItemI item: ic.getItems()) {
+            XnatImagesessiondata session = new XnatImagesessiondata(item);
+
+            List<XnatImagescandataI> scans = session.getScans_scan();
+            for( XnatImagescandataI scan: scans) {
+                QIDOResponseStudySeries response = new QIDOResponseStudySeries();
+                response.setModality(scan.getModality());
+                response.setSeriesDescription(scan.getSeriesDescription());
+                response.setSeriesInstanceUID(scan.getUid());
+                response.setSeriesNumber(scan.getId());
+                response.setPerformedProcedureStepStartDate(scan.getStartDate());
+                response.setPerformedProcedureStepStartTime(scan.getStarttime());
+                response.setNumberOfSeriesRelatedInstances(scan.getFrames());
+
+                response.setStudyDate(session.getExperimentdata().getDate());
+                response.setStudyTime(session.getExperimentdata().getTime());
+                response.setAccessionNumber(session.getDcmaccessionnumber());
+                response.setInstanceAvailability("ONLINE");
+                response.setStudyInstanceUID(session.getUid());
+                response.setPatientID(session.getDcmpatientid());
+                response.setPatientsName(session.getDcmpatientname());
+                response.setModalitiesInStudy(getModalitiesInStudy(session));
+                response.setPatientsSex(session.getSubjectData().getGender());
+                response.setPatientsBirthDate(session.getSubjectData().getDOBDisplay());
+                response.setStudyID(session.getStudyId());
+                response.setNumberOfStudyRelatedSeries(countSeries(user, session));
+                response.setNumberOfStudyRelatedInstances(countInstances(user, session));
+
+                responses.add(response);
+            }
         }
         return responses;
     }
@@ -282,7 +382,7 @@ public class XftSearchEngine implements SearchEngineI {
         cc.addClause( "xnat:experimentData/date", ">" , params.get("date"));
         for( String param: params.keySet()) {
             switch( param) {
-                case QueryParametersStudy.STUDY_INSTANCE_UID_NAME:
+                case QueryParameters.STUDY_INSTANCE_UID_NAME:
                     cc.addClause( "xnat:experimentData/date", ">" , params.get( param));
                     default:
             }

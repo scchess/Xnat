@@ -4,9 +4,7 @@ import org.h2.util.StringUtils;
 import org.nrg.xapi.model.dicomweb.DicomObjectFactory;
 import org.nrg.xapi.model.dicomweb.DicomObjectI;
 import org.nrg.xapi.model.dicomweb.QIDOResponse;
-import org.nrg.xapi.rest.dicomweb.QueryParametersSeries;
-import org.nrg.xapi.rest.dicomweb.QueryParametersStudy;
-import org.nrg.xapi.rest.dicomweb.QueryParametersStudySeries;
+import org.nrg.xapi.rest.dicomweb.QueryParameters;
 import org.nrg.xapi.rest.dicomweb.search.SearchEngineI;
 import org.nrg.xdat.bean.CatCatalogBean;
 import org.nrg.xdat.model.XnatAbstractresourceI;
@@ -96,22 +94,22 @@ public class JdbcSearchEngine implements SearchEngineI {
 
 
     @Override
-    public List<QIDOResponse> searchForStudies(QueryParametersStudy queryParameters, UserI user) {
+    public List<QIDOResponse> searchForStudies(QueryParameters queryParameters, UserI user) {
         final DicomWebStudyViewSelect statement = new DicomWebStudyViewSelect();
 
         for (String paramName : queryParameters.keySet()) {
             switch (paramName) {
-                case QueryParametersStudy.PATIENT_ID_NAME:
-                    statement.addAndClause(statement.getPatientIDLabel(), queryParameters.getParams( QueryParametersStudy.PATIENT_ID_NAME).get(0));
+                case QueryParameters.PATIENT_ID_NAME:
+                    statement.addAndClause(statement.getPatientIDLabel(), queryParameters.getParams( QueryParameters.PATIENT_ID_NAME).get(0));
                     break;
-                case QueryParametersStudy.PATIENT_NAME_NAME:
-                    statement.addAndClause(statement.getPatientNameLabel(), queryParameters.getParams( QueryParametersStudy.PATIENT_NAME_NAME).get(0));
+                case QueryParameters.PATIENT_NAME_NAME:
+                    statement.addAndClause(statement.getPatientNameLabel(), queryParameters.getParams( QueryParameters.PATIENT_NAME_NAME).get(0));
                     break;
-                case QueryParametersStudy.ACCESSION_NUMBER_NAME:
-                    statement.addAndClause(statement.getAccessionNumberLabel(), queryParameters.getParams( QueryParametersStudy.PATIENT_NAME_NAME).get(0));
+                case QueryParameters.ACCESSION_NUMBER_NAME:
+                    statement.addAndClause(statement.getAccessionNumberLabel(), queryParameters.getParams( QueryParameters.PATIENT_NAME_NAME).get(0));
                     break;
-                case QueryParametersStudy.STUDY_INSTANCE_UID_NAME:
-                    List<String> uids = queryParameters.getParams( QueryParametersStudy.STUDY_INSTANCE_UID_NAME);
+                case QueryParameters.STUDY_INSTANCE_UID_NAME:
+                    List<String> uids = queryParameters.getParams( QueryParameters.STUDY_INSTANCE_UID_NAME);
                     for (String uid : uids) {
                         statement.addOrClause(statement.getStudyInstanceUIDLabel(), uid);
                     }
@@ -140,12 +138,12 @@ public class JdbcSearchEngine implements SearchEngineI {
     }
 
     @Override
-    public List<QIDOResponse> searchForSeries(String studyInstanceUID, QueryParametersSeries queryParameters, UserI user) throws Exception {
+    public List<QIDOResponse> searchForSeries(String studyInstanceUID, QueryParameters queryParameters, UserI user) throws Exception {
         return null;
     }
 
     @Override
-    public List<? extends QIDOResponse> searchForSeries(QueryParametersStudySeries queryParameters, UserI user) throws Exception {
+    public List<? extends QIDOResponse> searchForStudySeries(QueryParameters queryParameters, UserI user) throws Exception {
         return null;
     }
 

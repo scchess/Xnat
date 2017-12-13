@@ -18,6 +18,8 @@ import org.nrg.framework.exceptions.NrgServiceException;
 import org.nrg.xapi.exceptions.NoContentException;
 import org.nrg.xapi.model.dicomweb.DicomObjectI;
 import org.nrg.xapi.model.dicomweb.QIDOResponse;
+import org.nrg.xapi.model.dicomweb.QIDOResponseStudy;
+import org.nrg.xapi.model.dicomweb.QIDOResponseStudySeries;
 import org.nrg.xapi.rest.AbstractXapiProjectRestController;
 import org.nrg.xapi.rest.XapiRequestMapping;
 import org.nrg.xapi.rest.dicomweb.search.SearchEngineI;
@@ -78,7 +80,7 @@ public class DicomWebApi extends AbstractXapiProjectRestController {
 
         UserI user = getSessionUser();
 
-        QueryParametersStudy dicomQueryParams = new QueryParametersStudy( allRequestParams);
+        QueryParameters dicomQueryParams = new QueryParameters( allRequestParams);
         List<? extends QIDOResponse> qidoResponses = null;
         try {
             qidoResponses = _searchEngine.searchForStudies( dicomQueryParams, user);
@@ -112,7 +114,7 @@ public class DicomWebApi extends AbstractXapiProjectRestController {
 
         UserI user = getSessionUser();
 
-        QueryParametersSeries dicomQueryParams = new QueryParametersSeries( allRequestParams);
+        QueryParameters dicomQueryParams = new QueryParameters( allRequestParams);
         List<? extends QIDOResponse> qidoResponses = null;
         try {
             qidoResponses = _searchEngine.searchForSeries( studyInstanceUID, dicomQueryParams, user);
@@ -145,10 +147,10 @@ public class DicomWebApi extends AbstractXapiProjectRestController {
 
         UserI user = getSessionUser();
 
-        QueryParametersStudySeries dicomQueryParams = new QueryParametersStudySeries( allRequestParams);
+        QueryParameters dicomQueryParams = new QueryParameters( allRequestParams);
         List<? extends QIDOResponse> qidoResponses = null;
         try {
-            qidoResponses = _searchEngine.searchForSeries( dicomQueryParams, user);
+            qidoResponses = _searchEngine.searchForStudySeries( dicomQueryParams, user);
 
             if( qidoResponses.isEmpty()) {
                 return new ResponseEntity<>( HttpStatus.NO_CONTENT);
