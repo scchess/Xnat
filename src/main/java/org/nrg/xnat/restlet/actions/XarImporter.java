@@ -39,6 +39,7 @@ import com.google.common.io.Files;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.zip.ZipOutputStream;
@@ -47,11 +48,12 @@ import java.util.zip.ZipOutputStream;
 public class XarImporter extends ImporterHandlerA implements Callable<List<String>> {
 
 	private static final Logger logger = Logger.getLogger(XarImporter.class);
-
+	private final static SimpleDateFormat UPLOAD_ID_FORMATTER = new SimpleDateFormat ("yyyyMMdd_HHmmss_SSS");
 	private final FileWriterWrapperI fw;
 	private final UserI user;
 	final Map<String,Object> params;
 	private final ArrayList<String> urlList;
+	private static long counter;
 
 	/**
 	 *
@@ -95,8 +97,9 @@ public class XarImporter extends ImporterHandlerA implements Callable<List<Strin
 		final String localFilePath = (this.params.containsKey("localFilePath")) ? 
 				this.params.get("localFilePath").toString() : null;
 		final Date d = Calendar.getInstance().getTime();
-		final java.text.SimpleDateFormat formatter = new java.text.SimpleDateFormat ("yyyyMMdd_HHmmss");
-		final String uploadID = formatter.format(d);
+		final java.text.SimpleDateFormat formatter = UPLOAD_ID_FORMATTER;
+		counter+=1;
+		final String uploadID = formatter.format(d) + "_" + String.format("%06d",counter);
 		final String cachepath = ArcSpecManager.GetInstance().getGlobalCachePath()
 				+ "user_uploads/" +user.getID() + "/" + uploadID + "/";
 
