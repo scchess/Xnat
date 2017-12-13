@@ -7,6 +7,7 @@ import org.nrg.xnat.dicom.mizer.service.BaseMizerTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.activation.DataSource;
@@ -24,7 +25,7 @@ import static org.junit.Assert.fail;
  *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-//@ContextConfiguration(classes = MizerServiceTestConfig.class)
+@ContextConfiguration(classes = DicomWebTestConfig.class)
 public class MultipartDicomMessageConverterTest extends BaseMizerTest {
 
     /**

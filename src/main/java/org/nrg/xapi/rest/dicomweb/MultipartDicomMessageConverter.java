@@ -56,9 +56,10 @@ public class MultipartDicomMessageConverter extends AbstractHttpMessageConverter
             MediaType mediaType = new MediaType( "multipart", "related", contentTypeArgs );
             headers.setContentType( mediaType);
 
-            outputMessage.getBody().write( ("Content-Type: " + headers.getContentType().toString() + "\r\n").getBytes());
-
             // write preamble
+//            outputMessage.getBody().write( ("Content-Type: " + headers.getContentType().toString() + "\r\n").getBytes());
+
+            // separate header and body
             outputMessage.getBody().write( "\r\n".getBytes());
 
             for ( Attributes dicomPart: dicomParts) {

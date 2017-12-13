@@ -27,13 +27,6 @@ public class QueryParametersToCriteria {
         return cc;
     }
 
-    public static CriteriaCollection map( QueryParametersStudySeries params) {
-        CriteriaCollection cc = mapStudy( params);
-
-        cc.addClause(mapSeries(params));
-        return cc;
-    }
-
     private static CriteriaCollection mapStudy(QueryParameters params) {
         CriteriaCollection cc = new CriteriaCollection("AND");
         for (String paramName: params.keySet() ) {
@@ -126,6 +119,88 @@ public class QueryParametersToCriteria {
                     break;
             }
         }
+        return cc;
+    }
+
+    public static CriteriaCollection map( QueryParametersStudySeries params) {
+        CriteriaCollection cc = new CriteriaCollection("AND");
+        for (String paramName: params.keySet() ) {
+            switch( paramName) {
+                case QueryParametersStudy.STUDY_DATE_NAME:
+//                    cc.addClause( "xnat:experimentData/date", "=" , queryParameters.getParams( paramName).get(0));
+                    cc.addClause( parseDateCriteria( params.getParams( paramName).get(0)));
+                    break;
+                case QueryParametersStudy.STUDY_TIME_NAME:
+//                    cc.addClause( "xnat:experimentData/time", "=" , queryParameters.getParams( paramName).get(0));
+                    cc.addClause( parseTimeCriteria( params.getParams( paramName).get(0)));
+                    break;
+                case QueryParametersStudy.STUDY_ID_NAME:
+                    cc.addClause( "xnat:imagesessionData/study_id", "=" , params.getParams( paramName).get(0));
+                    break;
+                case QueryParametersStudy.STUDY_INSTANCE_UID_NAME:
+                    List<String> uids = params.getParams(paramName);
+                    CriteriaCollection cc_or_uid = new CriteriaCollection("OR");
+                    for( String uid: uids) {
+                        cc_or_uid.addClause( "xnat:imagesessiondata/uid", "=", uid);
+                    }
+                    cc.addClause( cc_or_uid);
+                    break;
+                case QueryParametersStudy.REFERRING_PHYSICIAN_NAME_NAME:
+                    _log.warn("Study-level query parameter ReferringPhysicianName is not supported.");
+                    break;
+                case QueryParametersStudy.PATIENT_ID_NAME:
+                    cc.addClause( "xnat:imagesessionData/dcmpatientid", "=" , params.getParams( paramName).get(0));
+                    break;
+                case QueryParametersStudy.PATIENT_NAME_NAME:
+//                    cc.addClause( "xnat:imagesessionData/dcmpatientname", "=" , queryParameters.getParams( paramName).get(0));
+                    cc.addClause( parsePatientNameCriteria( params.getParams( paramName).get(0)));
+                    break;
+                case QueryParametersStudy.ACCESSION_NUMBER_NAME:
+                    cc.addClause( "xnat:imagesessionData/dcmaccessionnumber", "=" , params.getParams( paramName).get(0));
+                    break;
+                case QueryParametersStudy.MODALITIES_IN_STUDY_NAME:
+                    List<String> modalities = getModalities( params.getParams( paramName).get(0));
+
+                    // Neither the straight AND or OR do the right thing.
+//                    CriteriaCollection cc_and = new CriteriaCollection("AND");
+//                    CriteriaCollection cc_or = new CriteriaCollection("OR");
+//                    for( String modality: modalities) {
+////                        cc_and.addClause( "xnat:imagescanData/modality", "=", modality);
+//                        cc_or.addClause( "xnat:imagescanData/modality", "=", modality);
+//                    }
+////                    cc.addClause( cc_and);
+//                    cc.addClause( cc_or);
+
+                    // Filter on the first of the values, for now.
+                    cc.addClause( "xnat:imagescanData/modality", "=", modalities.get(0));
+                    break;
+
+                case QueryParametersSeries.PERFORMED_PROCEDURE_STEP_STARTDATE:
+                    cc.addClause(parseRangeCriteria("xnat:imagescandata/start_date", params.getParams(paramName).get(0)));
+                    break;
+                case QueryParametersSeries.PERFORMED_PROCEDURE_STEP_STARTTIME:
+                    cc.addClause(parseRangeCriteria("xnat:imagescandata/starttime", params.getParams(paramName).get(0)));
+                    break;
+                case QueryParametersSeries.SERIES_NUMBER_NAME:
+                    cc.addClause("xnat:imagescanData/id", "=", params.getParams(paramName).get(0));
+                    break;
+                case QueryParametersSeries.SERIES_INSTANCE_UID_NAME:
+                    uids = params.getParams(paramName);
+                    cc_or_uid = new CriteriaCollection("OR");
+                    for (String uid : uids) {
+                        cc_or_uid.addClause("xnat:imagescandata/uid", "=", uid);
+                    }
+                    cc.addClause(cc_or_uid);
+                    break;
+                case QueryParametersSeries.MODALITY_NAME:
+                    cc.addClause("xnat:imagescanData/modality", "=", params.getParams(paramName).get(0));
+                    break;
+                default:
+                    _log.warn("Ignoring query parameter: " + params.asString(paramName));
+                    break;
+            }
+        }
+
         return cc;
     }
 
