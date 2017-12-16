@@ -682,7 +682,7 @@ window.xmodal = getObject(window.xmodal);
 
         // this.dialog$.focus();
         document.activeElement.blur();
-        document.activeElement = this.dialog0;
+        // document.activeElement = this.dialog0;
 
         if (isFunction(this.onFocus)) {
             this.onFocusResult = this.onFocus.call(this);
@@ -1459,7 +1459,7 @@ window.xmodal = getObject(window.xmodal);
 
         config.beforeShow = function(obj){
             config.content$.load(config.url, function(){
-                obj.setHeight(config.height || (config.content$.height() + 100))
+                obj.setHeight();
             });
         };
 
@@ -1470,6 +1470,17 @@ window.xmodal = getObject(window.xmodal);
     doc$.ready(function(){
         // generate the loadingBar on DOM ready
         var body$ = window.body$ = $(document.body);
+
+        // generate the loading dialog on DOM load
+        dialog.loadingBar = dialog.loadingbar = dialog.loading().hide();
+        // take over openModalPanel() and closeModalPanel()
+        window.openModalPanel = window.openModalPanel || function(){
+            dialog.loadingBar.open();
+        };
+        window.closeModalPanel = window.closeModalPanel || function(){
+            dialog.loadingBar.hide();
+        };
+
         // elements with a 'data-dialog="@/url/to/your/template.html" attribute
         // will render a new dialog that loads the specified template
         body$.on('click', '[data-dialog^="@"]', function(e){
@@ -1487,10 +1498,8 @@ window.xmodal = getObject(window.xmodal);
         // body$.on('mousedown', 'div.xnat-dialog', function(e){
         //     dialog.dialogs[this.id].toTop(false);
         // });
-
-        dialog.loadingbar = dialog.loadingBar = dialog.loading().hide();
     });
 
-    return XNAT.ui.dialog = XNAT.dialog = dialog;
+    return XNAT.dialog = XNAT.ui.dialog = dialog;
 
 }));

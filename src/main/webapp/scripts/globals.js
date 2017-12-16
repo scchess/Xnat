@@ -18,7 +18,7 @@
 
 // Avoid console errors in browsers that lack a console.
 (function(){
-    var method;
+    var method, debugMethod;
     var noop = function(){};
     var methods = [
         'assert', 'clear', 'count', 'debug', 'dir', 'dirxml', 'error',
@@ -35,10 +35,60 @@
         if ( !console[method] ) {
             console[method] = noop;
         }
+        // Create aliases to use only when debugging
+        debugMethod = 'debug' + method.charAt(0).toUpperCase() + method.slice(1);
+        window[debugMethod] = window.jsdebug || window.debug ? console[method] : noop;
     }
 }());
 
 function diddly(){}
+
+(function(){
+
+    function escapeHtml(str, regex) {
+        return (str + '').replace(regex || /[&<>"'\/]/g, function(s){
+            var entityMap = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;',
+                '/': '&#x2F;',
+                '---': '---'
+            };
+            return entityMap[s] || s;
+        });
+    }
+    window.escapeHtml = escapeHtml;
+    window.escapeHTML = escapeHtml;
+
+    function unescapeHtml(str) {
+        return (str + '').replace(/(&(amp|lt|gt|quot|apos|#39|#x2F);)/g, function(s){
+            var entityMap = {
+                '&amp;': '&',
+                '&lt;': '<',
+                '&gt;': '>',
+                '&quot;': '"',
+                '&apos;': "'",
+                '&#39;': "'",
+                '&#x2F;': '/',
+                '---': '---'
+            };
+            return entityMap[s] || s;
+        });
+    }
+    window.unescapeHtml = unescapeHtml;
+    window.unescapeHTML = unescapeHtml;
+
+    // fix double-escaped strings
+    function unescapeAllHtml(str){
+        return unescapeHtml(unescapeHtml(str));
+    }
+    window.unescapeAllHtml = unescapeAllHtml;
+    window.unescapeAllHTML = unescapeAllHtml;
+
+})();
+
 
 // utility for getting URL query string value
 function getQueryStringValue( param ){
@@ -50,7 +100,7 @@ function getQueryStringValue( param ){
         split('&')[0].
         split('#')[0].
         replace(/\/*$/,''); // remove any 'bonus' trailing slashes
-    return decodeURIComponent(val);
+    return escapeHtml(val, /[&<>"']/g);
 }
 
 function getParameterByName( name ){
@@ -63,8 +113,11 @@ function getHashValue(hash, start, end){
     hash = hash || window.location.hash;
     if (!hash) { return '' }
     part = hash.split(start||'#')[1]||'';
+    // if (part === '#') {
+    //     part = hash.split(start||'#')[2]||'';
+    // }
     part = part.split(end||/\/#|#/)[0]||'';
-    return part;
+    return escapeHtml(part, /[&<>"']/g);
 }
 
 // get the url hash string without the '#'

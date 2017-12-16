@@ -135,7 +135,7 @@ var XNAT = getObject(XNAT);
             content: XNAT.spawner.spawn({
                 p: {
                     tag: 'p',
-                    content: 'This will delete scan' + scanId + ' from this image session. You can choose whether to delete all scan files from the filesystem as well.'
+                    content: 'This will delete scan <b>' + scanId + '</b> from this image session. You can choose whether to delete all scan files from the filesystem as well.'
                 },
                 delete_files: {
                     kind: 'switchbox',
@@ -220,27 +220,23 @@ var XNAT = getObject(XNAT);
         var scanId   = this$.data('scanId');
         var xsiType  = XNAT.data.context.xsiType;
         var noteText = $('#scan-' + scanId + '-note').find('.scan-note-content > span').html().trim();
+        var noteEditor = spawn('textarea.note-editor', {
+            name: xsiType + '/scans/scan[ID=' + scanId + ']/note',
+            value: noteText,
+            attr: { rows: 10 },
+            style: { width: '100%' }
+        });
+
+        var editorForm$ = $.spawn('form.scan-note-editor', [noteEditor]);
 
         XNAT.ui.dialog.open({
             title: 'Edit Note for Scan ' + scanId,
             width: 480,
             destroyOnClose: true,
-            content: XNAT.spawner.spawn({
-                editorForm: {
-                    tag: 'form.scan-note-editor',
-                    contents: {
-                        editorTextarea: {
-                            kind: 'input.textarea',
-                            name: xsiType + '/scans/scan[ID=' + scanId + ']/note',
-                            value: noteText,
-                            // code: 'html',
-                            element: {
-                                style: { width: '100%' }
-                            }
-                        }
-                    }
-                }
-            }).get(),
+            content: editorForm$[0],
+            afterShow: function(){
+                $(noteEditor).focus();
+            },
             buttons: [
                 {
                     label: 'Update Note',
@@ -248,7 +244,10 @@ var XNAT = getObject(XNAT);
                     close: false,
                     action: function(obj){
                         var updateNoteUrl    = scanUrl('?req_format=form', projectId, subjectId);
-                        var updateNoteString = obj.dialogBody$.find('form.scan-note-editor').serialize() || '';
+                        if (!noteEditor.value) {
+                            noteEditor.value = ' '
+                        }
+                        var updateNoteString = editorForm$.serialize() || '';
                         XNAT.xhr.put({
                             url: XNAT.url.csrfUrl(updateNoteUrl),
                             data: updateNoteString,
@@ -405,7 +404,7 @@ var XNAT = getObject(XNAT);
         });
 
         // Download *all* selected scans
-        scanTableContainer$.on('click.download-scans', 'button.do-scan-download', function downloadSelectedFn(e){
+        scanTableContainer$.on('click.download-scans', 'button.do-scan-download:not(.disabled)', function downloadSelectedFn(e){
             e.preventDefault();
             downloadSelectedScans.call(this);
         });

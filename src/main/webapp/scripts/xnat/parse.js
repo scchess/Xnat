@@ -75,7 +75,7 @@ var XNAT = getObject(XNAT);
     // (( evalString )) - return result of eval() using enclosed string
     // {( evalString )} - return result of eval() using enclosed string
     REGEX.evalTest = /^[{(]?[(].+[)][)}]?$/;
-    REGEX.evalTrim = /^([{(]?[(])|([)][)}]?)$/g;
+    REGEX.evalTrim = /^([{(]?[(])|(;*[)][)}]?)$/g;
     // REGEX.evalReplace = /[{(]?[(]\s*(.+)\s*[)][)}]?/;
 
     // special syntax to get/set form input values
@@ -461,7 +461,7 @@ var XNAT = getObject(XNAT);
                        .trim();
             try {
                 // --- DO THE eval() --- //
-                obj.result = eval(val);
+                obj.result = eval('(' + val + ')');
                 if (obj.result === undef) {
                     obj.result = val;
                 }

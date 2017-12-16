@@ -158,16 +158,16 @@ div.xnat-dialog-shell.loading {
     bottom: auto;
     right: 0;
     left: 0;
-    margin: 5% auto 0;
-    background: rgba(255,255,255,0.9);
+    margin: 3% auto 0;
+    background: #fff;
     text-align: center;
     line-height: 0;
     /*vertical-align: middle;*/
     /* box-sizing: border-box; */
     padding: 15px 5px;
-    border-radius: 7px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    border: 2px solid rgba(0,0,0,0.3);
+    border-radius: 5px;
+    box-shadow: 0 5px 50px rgba(0,0,0,0.5);
+    border: 3px solid rgba(0,0,0,0.3);
     /*opacity: 0.8;*/
 }
 /*div.xnat-dialog.loading.loader { display: block; }*/

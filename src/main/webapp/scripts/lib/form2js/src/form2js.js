@@ -336,7 +336,9 @@
                             values = fieldNode.title.split(':')[1].split('|');
                         }
                         if (fieldNode.checked && fieldNode.value === valueTrue()) return valueTrue();
+                        if (fieldNode.checked && fieldNode.value === valueFalse()) return valueFalse();
                         if (!fieldNode.checked && fieldNode.value === valueTrue()) return valueFalse();
+                        if (!fieldNode.checked && fieldNode.value === valueFalse()) return valueFalse();
                         return fieldNode.checked ? fieldNode.value : null;
                         break;
 

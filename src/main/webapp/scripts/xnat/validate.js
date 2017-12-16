@@ -112,7 +112,7 @@ var XNAT = getObject(XNAT);
         alphaNumSafeSpace: /^[a-z0-9_ ]+$/i,   // ONLY letters, numbers, underscore, and space
         alphaNumDash: /^[a-z0-9_\-]+$/i,       // ONLY letters, numbers, underscore, and dash
         alphaNumDashSpace: /^[a-z0-9 _\-]+$/i, // ONLY letters, numbers, underscore, dash, and space
-        nameSafe: /^[a-z \-]+$/i,              // safe to use for names - letters, spaces, and hyphens
+        nameSafe: /^([a-z][a-z0-9 .,_-]*)$/i,  // safe to use for names - letters, numbers spaces, periods, commas, underscores and hyphens
         // safe to use for usernames - starts with a letter or number and contains letters, numbers, underscores, hyphens and periods
         username: /^([a-z0-9]+[a-z0-9._-]*)$/i,
         idSafe: /^([a-z][a-z0-9_\-]*)$/i,      // safe to use as an ID - alphasafe and must start with a letter
@@ -1017,6 +1017,17 @@ var XNAT = getObject(XNAT);
 
     validate = function(element){
         return new Validator(element);
+    };
+
+    validate.form = function(form){
+        var errors = 0;
+        $$(form).find(':input.validate').each(function(){
+            var type = $(this).dataAttr('validate');
+            if (validate(this).not(type).check()) {
+                errors += 1
+            }
+        });
+        return errors;
     };
 
     // validate a value on its ow

@@ -921,7 +921,7 @@ var XNAT = getObject(XNAT);
                                     applyFn = (applyFn+'').trim();
                                     // wrap eval() expression in {( expr )} or (( expr ))
                                     if (XNAT.parse.REGEX.evalTest.test(applyFn)) {
-                                        applyFn = eval(applyFn.replace(XNAT.parse.REGEX.evalTrim, '').trim());
+                                        applyFn = eval('(' + applyFn.replace(XNAT.parse.REGEX.evalTrim, '').trim() + ')');
                                         if (isFunction(applyFn)) {
                                             itemVal = applyFn.apply(item, [].concat(itemVal, item, _tr)) || itemVal;
                                         }
@@ -931,9 +931,9 @@ var XNAT = getObject(XNAT);
                                     }
                                     // or start with standard Spawner 'eval' string
                                     else if (EVALREGEX.test(applyFn)) {
-                                        applyFn = eval(applyFn.replace(EVALREGEX, '').trim());
+                                        applyFn = eval('(' + applyFn.replace(EVALREGEX, '').trim() + ')');
                                         if (isFunction(applyFn)) {
-                                            itemVal = applyFn.apply(item, [].concat(itemVal, item, _tr)) || itemVal;                                            
+                                            itemVal = applyFn.apply(item, [].concat(itemVal, item, _tr)) || itemVal;
                                         }
                                         else {
                                             itemVal = applyFn;

@@ -12,56 +12,6 @@
  * depend on jQuery. (load AFTER jQuery)
  */
 
-(function(){
-
-    function escapeHtml(str) {
-        return (str + '').replace(/[&<>"'\/]/g, function(s){
-            var entityMap = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#39;',
-                '/': '&#x2F;',
-                '---': '---'
-            };
-            return entityMap[s];
-        });
-    }
-    window.escapeHtml = escapeHtml;
-    window.escapeHTML = escapeHtml;
-
-
-    function unescapeHtml(str) {
-        return (str + '').replace(/(&(amp|lt|gt|quot|apos|#39|#x2F);)/g, function(s){
-            var entityMap = {
-                '&amp;': '&',
-                '&lt;': '<',
-                '&gt;': '>',
-                '&quot;': '"',
-                '&apos;': "'",
-                '&#39;': "'",
-                '&#x2F;': '/',
-                '---': '---'
-            };
-            return entityMap[s];
-        });
-    }
-    window.unescapeHtml = unescapeHtml;
-    window.unescapeHTML = unescapeHtml;
-
-
-    // fix double-escaped strings
-    function unescapeAllHtml(str){
-        return unescapeHtml(unescapeHtml(str));
-    }
-    window.unescapeAllHtml = unescapeAllHtml;
-    window.unescapeAllHTML = unescapeAllHtml;
-
-
-})();
-
-
 /**
  * Test function timing after iterating [count] number of times
  * @param fn {Function} REQUIRED - function we're testing
@@ -1011,7 +961,7 @@ function matchCellWidths(widths, table1, table2 /* etc... */){
             // }, toArray(cell.children)));
             cell.style.width = null;
             // cell.style.overflow = 'hidden';
-            cell.classList.add('truncate');
+            // cell.classList.add('truncate');
         });
         forEach(cellWidths, function(width, w){
             table.rows[0].cells[w].style.width = width + 'px';

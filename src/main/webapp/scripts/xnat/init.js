@@ -119,6 +119,12 @@ var XNAT = getObject(XNAT);
 
         });
 
+        // don't do anything when clicking '.disabled' elements
+        $doc.on('click', '.disabled', function(e){
+            e.preventDefault();
+            return false;
+        });
+
         // make sure switchboxes track values properly
         // encode the input name and values into the [title] attribute of the outer <label> element:
         // <label class="switchbox" title="myInput=checkedValue|uncheckedValue">

@@ -23,7 +23,7 @@
         <h3 class="data-table-title">Scans</h3>
         <div class="data-table-actionsrow">
             <span class="textlink-sm data-table-action">Bulk Actions:</span>
-            <button class="btn btn-sm data-table-action disabled">Open in Viewer</button>
+##            <button class="btn btn-sm data-table-action disabled">Open in Viewer</button>
             <button class="btn btn-sm data-table-action do-scan-download disabled">Download</button>
             #addGlobalCustomScreens("xnat_imageScanData/scanActions")
         </div>
@@ -39,22 +39,22 @@
             <table id="scan-header-table" class="xnat-table clean columns-only fixed-header selectable" style="width:100%;border:none;">
                 <thead>
                 <tr>
-                    <th class="toggle-all" style="width:40px">
+                    <th class="toggle-all" style="width:50px">
                         <label style="width:100%;">
                             <input type="checkbox" class="selectable-select-all" id="toggle-all-scans" title="Toggle All Scans">
                         </label>
                     </th>
-                    <th class="actions" style="width:120px;">Actions</th>
+                    <th class="actions" style="width:100px;">Actions</th>
                     <th class="left" style="width:120px;">Scan</th>
-                    <th class="left" style="width:120px;">Type</th>
+                    <th class="left" style="width:150px;">Type</th>
                     #if($siteConfig.uiDisplaySeriesDescription)
-                        <th class="left" style="width:120px;">Series Desc</th>
+                        <th class="left" style="width:150px;">Series Desc</th>
                         #set($fileIndex="4")
                     #else
                         #set($fileIndex="3")
                     #end
-                    <th class="left" style="width:120px;">Usability</th>
-                    <th class="left" style="width:180px;">Files</th>
+                    <th class="left" style="width:100px;">Usability</th>
+                    <th class="left" style="width:160px;">Files</th>
                     <th style="width:180px;">Note</th>
                     <th style="width:auto;">Run</th>
                 </tr>
@@ -92,9 +92,9 @@
                                 <a href="#!details#id=${scanID}" class="view-scan-details" #* onclick="displayScanDetails($scanID)" *# title="View Details: ${scanID}">
                                     <i class="fa fa-list-alt"></i>
                                 </a>
-                                <a href="#!ximg-viewer#id=${scanID}" class="open-ximg-viewer" title="Open in Image Viewer: ${scanID}">
-                                    <i class="fa fa-eye"></i>
-                                </a>
+##                                <a href="#!ximg-viewer#id=${scanID}" class="open-ximg-viewer" title="Open in Image Viewer: ${scanID}">
+##                                    <i class="fa fa-eye"></i>
+##                                </a>
                                 <a href="#!download#id=${scanID}#xsiType=${om.getXSIType()}#expt=$!{om.getId()}" class="download-scan" title="Download: ${scanID}">
                                     <i class="fa fa-download"></i>
                                 </a>
