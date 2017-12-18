@@ -196,6 +196,19 @@ this.xsiType="xnat:projectData";
 	}
 	this.setSecondaryId=setSecondaryId;
 
+    this.Doi=null;
+
+
+    function getDoi() {
+        return this.Doi;
+    }
+    this.getDoi=getDoi;
+
+
+    function setDoi(v){
+        this.Doi=v;
+    }
+    this.setDoi=setDoi;
 
 	this.getProperty=function(xmlPath){
 			if(xmlPath.startsWith(this.getFullSchemaElementName())){

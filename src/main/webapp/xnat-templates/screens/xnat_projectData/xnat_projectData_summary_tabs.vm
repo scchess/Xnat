@@ -60,6 +60,7 @@
             var oButton3 = new YAHOO.widget.Button("button3");
             var oButton4 = new YAHOO.widget.Button("button4");
             var oButton5 = new YAHOO.widget.Button("button5");
+            var oButton6 = new YAHOO.widget.Button("button6");
         #end
 
 

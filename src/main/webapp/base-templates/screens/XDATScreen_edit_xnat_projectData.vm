@@ -39,6 +39,7 @@ $page.setVlinkColor($ui.vlink)
 							<TR><TD>keywords</TD><TD>#xdatStringBox("xnat:projectData/keywords" $item "" $vr)</TD></TR>
 							<TR><TD>ID</TD><TD>#xdatStringBox("xnat:projectData/ID" $item "" $vr)</TD></TR>
 							<TR><TD>secondary_ID</TD><TD>#xdatStringBox("xnat:projectData/secondary_ID" $item "" $vr)</TD></TR>
+                            <TR><TD>doi</TD><TD>#xdatStringBox("xnat:projectData/doi" $item "" $vr)</TD></TR>
 						</TABLE>
 					</TD>
 				</TR>

@@ -62,7 +62,13 @@
 						 #xdatTextBox("xnat:petSessionData.acquisition_site" $item "" $vr)
 			 </td>
 		</tr>
-
+<tr>
+    <th>DOI</th>
+    <td>
+		#xdatTextBox("xnat:petSessionData.doi" $item "" $vr)
+    </td>
+    <td></td>
+</tr>
 		<tr name="additional_fields" >
 			 <th align="left">Operator</th>
 			 <td>

@@ -66,6 +66,13 @@
 	</td>
 	<td></td>
 </tr>
+<tr>
+    <th>DOI</th>
+    <td>
+		#xdatTextBox("xnat:mrSessionData.doi" $item "" $vr)
+    </td>
+    <td></td>
+</tr>
 
 		<script type="text/javascript">
 		  window.tr_visibility="none";

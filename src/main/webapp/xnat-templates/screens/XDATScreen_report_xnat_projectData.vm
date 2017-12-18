@@ -38,6 +38,12 @@
         <script type="text/javascript" src="$content.getURI("scripts/search/dataTableSearch.js")"></script>
         <script type="text/javascript" src="$content.getURI("scripts/search/dataTableStoredSearch.js")"></script>
         <script type="text/javascript" src="$content.getURI("scripts/yui/xnat_loader.js")"></script>
+        <script>
+            function openProjectPermalinkModal()
+            {
+                xModalMessage('Project Permalink', 'Select and copy this URL to link to this project. <br><input style="width: 100%" type="text" name="link" value="'+window.location.host+serverRoot + '/data/projects/$project.getId()" readonly>');
+            }
+        </script>
         <!-- BEGIN SET AND PARSE SUMMARY TABS -->
         #addCustomScreens($om.getXSIType() "report/preContent")
         #set($summary_tabs=$turbineUtils.getTemplateName("_summary_tabs","xnat:projectData",$project.getId()))

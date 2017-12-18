@@ -18,3 +18,9 @@
 		<td>$!item.getProperty("acquisition_site")</td>
 	</tr>
 #end
+#if($!item.getProperty("doi"))
+<tr>
+    <th align="left">DOI:</th>
+    <td>$!item.getProperty("doi")</td>
+</tr>
+#end

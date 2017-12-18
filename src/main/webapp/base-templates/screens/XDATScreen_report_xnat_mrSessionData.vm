@@ -36,6 +36,7 @@ $page.setVlinkColor($ui.vlink)
 							<TR><TD>session_type</TD><TD>$!item.getStringProperty("xnat:mrSessionData/session_type")</TD></TR>
 							<TR><TD>modality</TD><TD>$!item.getStringProperty("xnat:mrSessionData/modality")</TD></TR>
 							<TR><TD>UID</TD><TD>$!item.getStringProperty("xnat:mrSessionData/UID")</TD></TR>
+                            <TR><TD>DOI</TD><TD>$!item.getStringProperty("xnat:mrSessionData/DOI")</TD></TR>
 							<TR><TD>subject_ID</TD><TD>$!item.getStringProperty("xnat:mrSessionData/subject_ID")</TD></TR>
 							<TR><TD>age</TD><TD>$!item.getDoubleProperty("xnat:mrSessionData/age")</TD></TR>
 							<TR><TD>date</TD><TD>$!item.getProperty("xnat:mrSessionData/date")</TD></TR>

@@ -72,6 +72,7 @@
         #if($data.getSession().getAttribute("userHelper").canCreate($project))
             var oButton4 = new YAHOO.widget.Button("button4");
             var oButton5 = new YAHOO.widget.Button("button5");
+            var oButton6 = new YAHOO.widget.Button("button6");
         #end
 
         window.project_summary_module = new YAHOO.widget.Module("project_summary_module", { visible: false });

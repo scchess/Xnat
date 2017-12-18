@@ -9,6 +9,13 @@
         ##width:1px;
         ##}
         ##</STYLE>
+            <script type="text/javascript">
+                // display dataset permalinkSelect and copy this URL to link to this project
+                function openSessionPermalinkModal()
+                {
+                    xModalMessage('Session Permalink', 'Select and copy this URL to link to this project. <br><input style="width: 100%" type="text" name="link" value="'+window.location.host+serverRoot + '/data/projects/$project/subjects/$om.getSubjectId()/experiments/$om.getId()" readonly>');
+                }
+            </script>
             <div ID="expt_summary_module" style="display:none">
                 <div id="exptSummary" class="yui-navset">
                     <ul class="yui-nav" style="">
@@ -26,6 +33,7 @@
                                         <table>
                                             #parse($turbineUtils.getTemplateName("_keyFields",$om.getXSIType(),$project))
                                         </table>
+                                        <A ID="button6" href="javascript:openSessionPermalinkModal();">Click to View Permalink</A>
                                     </td>
                                     <td valign="top">
                                         <table>

@@ -167,6 +167,16 @@
         </td>
     </tr>
 
+    <tr>
+        <th>DOI</th>
+        <td>
+            <input id="xnat:projectData/doi" type="text" name="xnat:projectData/doi" value="$!item.getStringProperty("xnat:projectData/doi")" size="95" maxlength="255">
+            <div class="requirementStatement">
+                <span class="noteOptional">Optional: </span><span class="formLabelRequiredStatement">Enter DOI for this project.</span>
+            </div>
+        </td>
+    </tr>
+
 </table>
 
 <script type="text/javascript" src="$content.getURI("scripts/generated/xnat_investigatorData.js")"></script>

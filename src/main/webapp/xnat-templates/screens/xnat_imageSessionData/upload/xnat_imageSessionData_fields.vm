@@ -66,6 +66,13 @@
 	<td></td>
 </tr>
 <tr>
+    <th>DOI</th>
+    <td>
+		#xdatTextBox("${datatype}.doi" $item "" $vr)
+    </td>
+    <td></td>
+</tr>
+<tr>
 			 <td colspan="2"><div style="line-height:8px">&nbsp;</div></td>
 		</tr>	
 		<tr name="additional_fields" style="display:none">

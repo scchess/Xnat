@@ -70,6 +70,8 @@ function summaryTabManagerInit(){
 
 	
     window.expt_summary_module = new YAHOO.widget.Module("expt_summary_module",{visible:false,zIndex:5});
+
+    var oButton6 = new YAHOO.widget.Button("button6");
 	
 #addCustomScreenJS($om.getXSIType() "report/tabs_js") 
     

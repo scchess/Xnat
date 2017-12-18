@@ -1,4 +1,5 @@
 #* @vtlvariable name="siteConfig" type="org.nrg.xdat.preferences.SiteConfigPreferences" *#
+
 <table>
     <tr>
         <th align="left">ID:</th>
@@ -48,6 +49,13 @@
             </td>
         </tr>
     #end
+    #if($item.getProperty("xnat:projectData/doi"))
+        <tr>
+            <th align="left">DOI:</th>
+            <td>$!item.getStringProperty("xnat:projectData/doi")
+            </td>
+        </tr>
+    #end
 </table>
 #if($data.getSession().getAttribute("userHelper").isOwner($project.getId()) || $turbineUtils.isSiteAdmin($user))
 <BR><A ID="button1" href="$link.setAction("XDATActionRouter").addPathInfo("xdataction","edit").addPathInfo(
@@ -62,5 +70,6 @@
 <A ID="button5" href="$link.setAction("XDATActionRouter").addPathInfo("xdataction","protocols").addPathInfo(
     "search_element","xnat:projectData").addPathInfo("search_field","xnat:projectData.ID").addPathInfo(
     "search_value","$!{project.getId()}").addPathInfo("popup","$!popup")">Manage Custom Variables</A>
+<A ID="button6" href="javascript:openProjectPermalinkModal();">Permalink</A>
 
 #end
