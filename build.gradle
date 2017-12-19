@@ -43,7 +43,7 @@ buildscript {
         classpath "gradle.plugin.com.github.zhurlik:gradle-swagger-plugin:0.2"
         classpath "io.swagger:swagger-core:1.5.+"
         classpath "com.github.kongchen:swagger-maven-plugin:3.1.+"
-        classpath "org.nrg.xnat:xnat-data-models:1.7.5-SNAPSHOT"
+        classpath "org.nrg.xnat:xnat-data-models:1.7.5doi-SNAPSHOT"
         classpath "org.springframework:spring-webmvc:4.3.10.RELEASE"
         classpath "org.springframework:spring-jdbc:4.3.10.RELEASE"
     }
@@ -204,7 +204,7 @@ dependencyManagement.imports {
 dependencies {
     // NRG dependencies first.
     implementation "org.nrg.xnat:spawner"
-    implementation("org.nrg.xnat:xnat-data-models") {
+    compile("org.nrg.xnat:xnat-data-models:1.7.5doi-SNAPSHOT") {
         transitive = false
     }
     implementation "org.nrg.xdat:core"
