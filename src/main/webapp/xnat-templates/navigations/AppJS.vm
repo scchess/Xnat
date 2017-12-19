@@ -78,6 +78,7 @@
     <!-- XNAT app scripts -->
     <script src="${SITE_ROOT}/scripts/xnat/app/codeEditor.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/app/pluginSettings.js"></script>
+    <script src="${SITE_ROOT}/scripts/xnat/app/customPage.js"></script>
 
     #if ($theme && $theme != "none")
         <!-- Theme JS -->

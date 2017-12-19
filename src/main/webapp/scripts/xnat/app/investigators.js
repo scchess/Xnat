@@ -400,10 +400,11 @@ var XNAT = getObject(XNAT);
         this.tableContainer = $$(container || '#investigators-list-container');
 
         function investigatorFieldValue(val){
-            if(val){
-                return "<span class='truncate truncateCellNarrow' title='"+ val + "'>"+ val +"</span>";
+            var escVal = escapeHtml(val + '');
+            if (escVal) {
+                return "<span class='truncate truncateCellNarrow' title='" + escVal + "'>" + escVal + "</span>";
             }
-            else{
+            else {
                 return '<div class="center">&mdash;</div>';
             }
             //return val || '<div class="center">&mdash;</div>'
@@ -459,7 +460,7 @@ var XNAT = getObject(XNAT);
                         label: 'Name',
                         sort: true,
                         call: function(){
-                            return this.lastname + ', ' + this.firstname
+                            return escapeHtml(this.lastname + ', ' + this.firstname)
                         }
                     },
                     // firstname: {
@@ -495,7 +496,7 @@ var XNAT = getObject(XNAT);
                         className: 'center',
                         call: function(){
                             var ID = this.xnatInvestigatordataId;
-                            var NAME = this.firstname + ' ' + this.lastname;
+                            var NAME = escapeHtml(this.firstname + ' ' + this.lastname);
                             return spawn('button.delete-investigator.btn2.btn-sm.center|type=button', {
                                 on: { click: function(){
                                     self.deleteInvestigator(ID, NAME);

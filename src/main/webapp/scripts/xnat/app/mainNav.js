@@ -39,13 +39,21 @@ var XNAT = getObject(XNAT);
             mainNav$.find('.open').hide().removeClass('open');
         }
 
+        $('#nav-home').css({
+            width: '30px',
+            backgroundImage: "url('" + serverRoot + "/images/xnat-nav-logo-white-lg.png')",
+            backgroundRepeat: 'no-repeat',
+            backgroundSize: '32px',
+            backgroundPosition: 'center'
+        });
+
         // give menus with submenus a class of 'more'
         mainNav$.find('li ul, li li ul').closest('li').addClass('more');
         mainNav$.find('li li ul').addClass('subnav');
 
-        mainNav$.on('click.nolink', 'a[href^="#"]', function(e){
-            e.preventDefault();
-        });
+        // mainNav$.on('click.nolink', 'a[href^="#"]', function(e){
+        //     e.preventDefault();
+        // });
 
         mainNav$.on('click.topnav', '> li', function(e){
             // e.stopPropagation();

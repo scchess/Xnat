@@ -232,6 +232,7 @@
     <!-- XNAT app scripts -->
     <script src="${SITE_ROOT}/scripts/xnat/app/codeEditor.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/app/pluginSettings.js"></script>
+    <script src="${SITE_ROOT}/scripts/xnat/app/customPage.js"></script>
 
     ${headBottom}
 
@@ -565,18 +566,17 @@ ${bodyTop}
             // get Velocity-generated menu
             $('#main_nav').load('${SITE_ROOT}/app/template/Page.vm #main_nav > .inner', function(){
 
-
                 XNAT.app.mainNav.init();
 
                 loadjs('${SITE_ROOT}/scripts/xnat/app/topnav-browse.js');
 
-                <%--$('#nav-home').css({--%>
-                    <%--width: '30px',--%>
-                    <%--backgroundImage: "url('${SITE_ROOT}/images/xnat-nav-logo-white-lg.png')",--%>
-                    <%--backgroundRepeat: 'no-repeat',--%>
-                    <%--backgroundSize: '32px',--%>
-                    <%--backgroundPosition: 'center'--%>
-                <%--});--%>
+                $('#nav-home').css({
+                    width: '30px',
+                    backgroundImage: "url('${SITE_ROOT}/images/xnat-nav-logo-white-lg.png')",
+                    backgroundRepeat: 'no-repeat',
+                    backgroundSize: '32px',
+                    backgroundPosition: 'center'
+                });
 
 
                 <%--var searchField = $('#searchValue');--%>
@@ -771,10 +771,7 @@ ${bodyTop}
     <div id="layout_content2" style="display:none;">Loading...</div>
     <div id="layout_content">
         <!--BEGIN SCREEN CONTENT -->
-        <!-- start xnat-templates/screens/Page.vm -->
-        <script src="${SITE_ROOT}/scripts/xnat/app/customPage.js"></script>
-
-        <div id="view-page">
+        <div id="page-content">
 
 
 
@@ -799,10 +796,11 @@ ${bodyTop}
 
 
         </div>
-
-        <!-- end xnat-templates/screens/Page.vm -->
+        <!-- /#view-page -->
         <!--END SCREEN CONTENT -->
     </div>
+
+    <%--<script src="${SITE_ROOT}/scripts/xnat/app/customPage.js"></script>--%>
 
     <script>
 
