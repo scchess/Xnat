@@ -30,6 +30,8 @@ import org.nrg.xdat.om.XnatSubjectdata;
 import org.nrg.xdat.preferences.SiteConfigPreferences;
 import org.nrg.xdat.security.services.RoleHolder;
 import org.nrg.xdat.security.services.UserManagementServiceI;
+import org.nrg.xdat.security.user.exceptions.UserInitException;
+import org.nrg.xdat.security.user.exceptions.UserNotFoundException;
 import org.nrg.xft.security.UserI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,6 +81,20 @@ public class DicomWebApi extends AbstractXapiProjectRestController {
         }
 
         UserI user = getSessionUser();
+        if( user == null) {
+            if( ! _preferences.getRequireLogin()) {
+                try {
+                    user = getUserManagementService().getGuestUser();
+                } catch (UserNotFoundException | UserInitException e) {
+                    _log.error("An error occurred getting guest user during QIDO SearchForStudies with params " + allRequestParams, e);
+                    return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            }
+            else {
+                _log.warn("Anonymous QIDO SearchForStudies not enabled. ");
+                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            }
+        }
 
         QueryParameters dicomQueryParams = new QueryParameters( allRequestParams);
         List<? extends QIDOResponse> qidoResponses = null;
