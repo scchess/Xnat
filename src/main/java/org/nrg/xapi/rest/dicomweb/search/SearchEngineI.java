@@ -21,4 +21,8 @@ public interface SearchEngineI {
     List<? extends QIDOResponse> searchForStudySeries( QueryParameters queryParameters, UserI user) throws Exception;
 
     DicomObjectI retrieveInstance(String studyInstanceUID, String seriesInstanceUID, String sopInstanceUID, UserI user) throws Exception;
+
+    List<DicomObjectI> retrieveSeries(String studyInstanceUID, String seriesInstanceUID, UserI user) throws Exception;
+
+    List<DicomObjectI> retrieveStudy(String studyInstanceUID, UserI user) throws Exception;
 }

@@ -9,8 +9,6 @@
 
 package org.nrg.xnat.configuration;
 
-import org.nrg.xapi.model.dicomweb.DicomObjectI;
-import org.nrg.xapi.model.dicomweb.QIDOResponse;
 import org.nrg.xapi.rest.dicomweb.Dicom2XmlMessageConverter;
 import org.nrg.xapi.rest.dicomweb.MultipartDicomFileMessageConverter;
 import org.nrg.xapi.rest.dicomweb.MultipartDicomMessageConverter;

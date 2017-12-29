@@ -6,6 +6,7 @@ import org.nrg.xapi.rest.dicomweb.search.SearchEngineI;
 import org.nrg.xdat.bean.CatCatalogBean;
 import org.nrg.xdat.bean.CatDcmcatalogBean;
 import org.nrg.xdat.model.CatDcmentryI;
+import org.nrg.xdat.model.CatEntryI;
 import org.nrg.xdat.model.XnatAbstractresourceI;
 import org.nrg.xdat.model.XnatImagescandataI;
 import org.nrg.xdat.om.XnatImagescandata;
@@ -141,6 +142,39 @@ public class XftSearchEngine implements SearchEngineI {
         }
 
         return responses;
+    }
+
+    @Override
+    public DicomObjectI retrieveInstance(String studyInstanceUID, String seriesInstanceUID, String sopInstanceUID, UserI user) throws Exception {
+
+        XnatImagesessiondata session = getSession( studyInstanceUID, seriesInstanceUID, sopInstanceUID, user);
+        XnatImagescandata scan = getScan( studyInstanceUID, seriesInstanceUID, sopInstanceUID, user);
+        DicomObjectI instance = getInstance( session.getArchiveRootPath(), scan, sopInstanceUID);
+
+        return instance;
+    }
+
+    @Override
+    public List<DicomObjectI> retrieveSeries(String studyInstanceUID, String seriesInstanceUID, UserI user) throws Exception {
+
+        XnatImagesessiondata session = getSession( studyInstanceUID, null, null, user);
+        XnatImagescandata scan = getScan( studyInstanceUID, seriesInstanceUID, null, user);
+
+        List<DicomObjectI> instances = getInstances( session.getArchiveRootPath(), scan);
+
+        return instances;
+    }
+
+    @Override
+    public List<DicomObjectI> retrieveStudy(String studyInstanceUID, UserI user) throws Exception {
+
+        List<DicomObjectI> instances = new ArrayList<>();
+        XnatImagesessiondata session = getSession( studyInstanceUID, null, null, user);
+        for( XnatImagescandataI scan: session.getScans_scan()) {
+            instances.addAll( getInstances( session.getArchiveRootPath(), scan));
+        }
+
+        return instances;
     }
 
     public List<? extends QIDOResponse> searchForStudySeriesByStudy( QueryParameters queryParameters, UserI user) throws Exception {
@@ -339,13 +373,16 @@ public class XftSearchEngine implements SearchEngineI {
         ItemCollection ic = ItemSearch.GetItems( "xnat:imageScanData", cc, user, false);
 
         XnatImagescandata scan = null;
-        if( ic.size() == 1) {
+        if( ic.size() > 0) {
             scan = new XnatImagescandata( ic.get(0));
+        }
+        if( ic.size() > 1) {
+            _log.warn("Multiple scans (" + ic.size() + ") with study uid: " + studyInstanceUID + ", series uid: " + seriesInstanceUID);
         }
         return scan;
     }
 
-    private DicomObjectI getInstanceURL( String archiveRootPath, XnatImagescandata imageScanData, String sopInstanceUID) throws IOException {
+    private DicomObjectI getInstance( String archiveRootPath, XnatImagescandata imageScanData, String sopInstanceUID) throws IOException {
         File file = null;
         for(XnatAbstractresourceI resourceI: imageScanData.getFile()) {
             if( XnatResourcecatalog.class.isInstance( resourceI)) {
@@ -366,14 +403,34 @@ public class XftSearchEngine implements SearchEngineI {
         return (file == null)? null: DicomObjectFactory.create( file);
     }
 
-    @Override
-    public DicomObjectI retrieveInstance(String studyInstanceUID, String seriesInstanceUID, String sopInstanceUID, UserI user) throws Exception {
-
-        XnatImagesessiondata session = getSession( studyInstanceUID, seriesInstanceUID, sopInstanceUID, user);
-        XnatImagescandata scan = getScan( studyInstanceUID, seriesInstanceUID, sopInstanceUID, user);
-        DicomObjectI instance = getInstanceURL( session.getArchiveRootPath(), scan, sopInstanceUID);
-
-        return instance;
+    private List<DicomObjectI> getInstances( String archiveRootPath, XnatImagescandataI imageScanData) throws IOException {
+        List<DicomObjectI> instances = new ArrayList<>();
+        for(XnatAbstractresourceI resourceI: imageScanData.getFile()) {
+            if( XnatResourcecatalog.class.isInstance( resourceI)) {
+                XnatResourcecatalog catResource = (XnatResourcecatalog) resourceI;
+                if("RAW".equals( catResource.getContent()) && "DICOM".equals( catResource.getFormat())) {
+                    CatCatalogBean catalog1 = CatalogUtils.getCatalog(null, catResource);
+                    File catalogFile = CatalogUtils.getCatalogFile( archiveRootPath, catResource);
+                    String scanRootPath = catalogFile.getParentFile().getAbsolutePath();
+                    if(CatDcmcatalogBean.class.isInstance( catalog1)) {
+                        CatDcmcatalogBean dcmcatalog = (CatDcmcatalogBean) catalog1;
+                        for(CatEntryI entry: CatalogUtils.getEntriesByFilter(dcmcatalog, new CatalogUtils.CatEntryFilterI() {
+                            @Override
+                            public boolean accept(CatEntryI entry) {
+                                return true;
+                            }
+                        })) {
+                            CatDcmentryI dcmentry = (CatDcmentryI) entry;
+                            File file = CatalogUtils.getFile( dcmentry, scanRootPath);
+                            if( file != null) {
+                                instances.add( DicomObjectFactory.create(file));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return instances;
     }
 
     public  List<String> getStudyUIDs(Map<String , String > params) throws Exception {

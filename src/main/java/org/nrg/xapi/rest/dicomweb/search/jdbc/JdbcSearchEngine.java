@@ -151,5 +151,15 @@ public class JdbcSearchEngine implements SearchEngineI {
     public DicomObjectI retrieveInstance(String studyInstanceUID, String seriesInstanceUID, String sopInstanceUID, UserI user) {
         return null;
     }
+
+    @Override
+    public List<DicomObjectI> retrieveSeries(String studyInstanceUID, String seriesInstanceUID, UserI user) throws Exception {
+        return null;
+    }
+
+    @Override
+    public List<DicomObjectI> retrieveStudy(String studyInstanceUID, UserI user) throws Exception {
+        return null;
+    }
 }
 
