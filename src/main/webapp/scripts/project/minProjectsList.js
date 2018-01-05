@@ -11,7 +11,7 @@ function MinProjectsList(_div, _options){
     var projList = this,
         xhr = XNAT.xhr,
         undefined;
-    
+
     projList.options = _options;
     projList.div     = _div;
 
@@ -23,13 +23,13 @@ function MinProjectsList(_div, _options){
 
         projList.initLoader = prependLoader(projList.div, "Loading " + XNAT.app.displayNames.plural.project.toLowerCase());
 		projList.initLoader.render();
-		
+
 		//load from search xml from server
         projList.initCallback = {
             success: projList.completeInit,
             failure: projList.initFailure
         };
-		
+
 		var params=[];
 
         if (projList.options.recent != undefined) {
@@ -85,7 +85,7 @@ function MinProjectsList(_div, _options){
 
         //var items = [];
         var projects = projList.projectResultSet.ResultSet.Result;
-		
+
 		window.sort_field = "last_accessed_" + projList.projectResultSet.ResultSet.xdat_user_id;
 
         projects = projects.sort(function(a,b){
@@ -122,7 +122,7 @@ function MinProjectsList(_div, _options){
                 '</h3>';
 
             newDisplay.appendChild(row);
-			
+
 			row = document.createElement("div");
 			row.innerHTML =
                 "<b>" + XNAT.app.displayNames.singular.project + " ID: " + p.id +"</b>";
@@ -132,7 +132,7 @@ function MinProjectsList(_div, _options){
 			}
 
             newDisplay.appendChild(row);
-			
+
 			row = document.createElement("div");
 			if (p.description.length > 160){
 				row.innerHTML = p.description.substring(0,157) + "&nbsp;&hellip;";
@@ -141,7 +141,7 @@ function MinProjectsList(_div, _options){
 				row.innerHTML = p.description;
 			}
 			newDisplay.appendChild(row);
-			
+
 			row=document.createElement("div");
 
             if(p["user_role_"+projList.projectResultSet.ResultSet.xdat_user_id]==""){

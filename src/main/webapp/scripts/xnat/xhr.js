@@ -23,7 +23,7 @@ var XNAT = getObject(XNAT||{}),
 
     var xhr, url,
         root = this,
-        undefined;
+        undefined, undef;
 
     XNAT.xhr = xhr = getObject(XNAT.xhr||{});
     XNAT.url = url = getObject(XNAT.url||{});
@@ -399,10 +399,17 @@ var XNAT = getObject(XNAT||{}),
 
     // only do JSON.stringify on Arrays or Objects
     function safeStringify(val){
-        if ($.isArray(val) || $.isPlainObject(val)) {
+        if (stringable(val)) {
+            return val+'';
+        }
+        try {
             return JSON.stringify(val);
         }
-        return ''+val;
+        catch (e) {
+            console.warn('JSON.stringify() failed:');
+            console.warn(e);
+            return val+'';
+        }
     }
 
     // replace url params with values from [name] or [data-param] attribute (if it exists)
@@ -447,21 +454,43 @@ var XNAT = getObject(XNAT||{}),
 
     }
 
-    function processJSON(data, stringify){
+    function processJSON(items, stringify){
+
         var output = {};
-        forEach(data, function(item){
-            var prop = item.name;
+        var arrayRegex = /[\[|\]]/;
+
+        forEach(items, function(item){
+
+            // '[fooBar|;]' will be split into:
+            // ["", "fooBar", ";", ""]
+            var nameParts = item.name.split(arrayRegex);
+            var prop = nameParts[1] || nameParts[0];
             var val  = item.value;
-            if (typeof output[prop] == 'undefined') {
+
+            // is this value supposed to be an array?
+            // <input name="[fooBar|;]" value="foo; bar; baz">
+            // --> { fooBar: ['foo', 'bar', 'baz'] }
+
+            var delim = nameParts[2] || ',';
+
+            // if there is more than one item in the nameParts array...
+            // ...split the value into an actual array
+            if (nameParts.length > 1) {
+                val = val.split(delim).map(function(part){ return part.trim() });
+            }
+            if (output[prop] === undef) {
                 output[prop] = val;
             }
             else {
                 output[prop] = [].concat(output[prop], val) ;
             }
+
         });
+
         if (stringify) {
             return safeStringify(output);
         }
+
         return output;
     }
 
@@ -489,9 +518,14 @@ var XNAT = getObject(XNAT||{}),
         return $el;
     }
 
+    function setValues_(inputs, dataObj){
+        console.log('XNAT.xhr#setValues');
+        XNAT.form.setValues(inputs, dataObj)
+    }
+
     // set form element values from an object map
     // 'inputs' can be a form element, selector, or array of inputs
-    function setValues(inputs, dataObj, opts){
+    function setValuesX(inputs, dataObj, opts){
 
         // cache and check if form exists
         var $inputs = $$(inputs),
@@ -609,18 +643,23 @@ var XNAT = getObject(XNAT||{}),
     }
 
     // make globally accessible through $
-    $.setValues = setValues;
+    $.setValuesX = setValuesX;
 
     // this could be a handy jQuery method
-    $.fn.setValues = function(dataObj, opts){
-        setValues(this, dataObj, opts);
+    $.fn.setValuesX = function(dataObj, opts){
+        setValuesX(this, dataObj, opts);
         return this;
     };
+
+    function getValues_(inputs){
+        console.log('XNAT.xhr#getValues');
+        return XNAT.form.getValues(inputs);
+    }
 
     // return values of named form elements
     // as an object using element 'name' attributes
     // as the object property names
-    function getValues(inputs){
+    function getValuesX(inputs){
 
         var $inputs = $$(inputs),
             values = {},
@@ -644,7 +683,7 @@ var XNAT = getObject(XNAT||{}),
                 val = realValue($this.val()||'');
 
             // make sure 'name' is camelCase
-            name = toCamelCase(name);
+            //name = toCamelCase(name);
 
             if (/checkbox/i.test(this.type)) {
                 values[name] = val || this.checked;
@@ -668,11 +707,11 @@ var XNAT = getObject(XNAT||{}),
     }
 
     // make globally accessible through $
-    $.getValues = getValues;
+    $.getValuesX = getValuesX;
 
     // get values of selected form elements
-    $.fn.getValues = function(callback){
-        var values = getValues(this);
+    $.fn.getValuesX = function(callback){
+        var values = getValuesX(this);
         if (typeof callback === 'function') {
             callback.call(this, values);
         }
@@ -686,7 +725,7 @@ var XNAT = getObject(XNAT||{}),
         var $form = null;
         var $inputs = $$(inputs);
 
-        if ($inputs.length === 1 && /form/i.test($inputs[0].tagName)) {
+        if ($inputs.length === 1 && /FORM/i.test($inputs[0].tagName)) {
             $form = $inputs.jquery ? $inputs : $($inputs[0]);
             $inputs = $form.find(':input');
         }
@@ -741,7 +780,7 @@ var XNAT = getObject(XNAT||{}),
         var errors = [];
 
         // validate all fields with [data-validate] attribute
-        if (validateForm && XNAT.validate) {
+        if (opts.validate || (validateForm && XNAT.validate)) {
 
             $inputs.filter('[data-validate]').each(function(){
                 var valid = XNAT.validate(this).check();
@@ -777,7 +816,8 @@ var XNAT = getObject(XNAT||{}),
                 opts.validated = opts.invalid.call(_form, $form, errors);
             }
             if (opts.validated === false) {
-                return NOOPS;
+                console.log('opts.validated = false');
+                //return NOOPS;
             }
 
             errors = errors.map(function(error){
@@ -841,7 +881,7 @@ var XNAT = getObject(XNAT||{}),
             opts.success = function(data){
                 callback.apply($form, arguments);
                 // DON'T TRUST RETURNED DATA
-                setValues($form, data);
+                $form.setValues(data);
             };
         }
 
@@ -849,11 +889,11 @@ var XNAT = getObject(XNAT||{}),
         return xhr.request(opts);
 
     };
-    xhr.submit = xhr.form;
+    xhr.submit = xhr.submitForm = xhr.form;
 
     $.fn.submitForm = function(opts){
         var $form = $(this);
-        return xhr.form($form, extend(true, {
+        return xhr.submitForm($form, extend(true, {
             method: $form.data('method') || this.method || 'POST'
         }, opts))
     };
@@ -861,7 +901,7 @@ var XNAT = getObject(XNAT||{}),
     // $('form.foo').submitJSON();
     $.fn.submitJSON = function(opts){
         var $form = $(this);
-        return xhr.form($form, extend(true, {
+        return xhr.submitForm($form, extend(true, {
             method: $form.data('method') || this.method || 'POST',
             processData: false,
             contentType: 'application/json'

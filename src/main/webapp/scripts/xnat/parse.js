@@ -81,6 +81,7 @@ var XNAT = getObject(XNAT);
     // special syntax to get/set form input values
     // value: '$? /data/thing $:text > [[yerInput]]'
     // value: '$? /data/stuff | :ResultSet:Result:0 > [[yerInput]]'
+    // action: '/data/thing < [[yerInput]]'
     REGEX.setInputValue = />\s*\[\[(.+)]]/;
     REGEX.getInputValue = /<\s*\[\[(.+)]]/;
     REGEX.inputValueTest = /[><]+\s*\[\[.+]]/;
@@ -212,6 +213,7 @@ var XNAT = getObject(XNAT);
      * @param failure {Function}
      */
     function doLookup(value, success, failure){
+
         var obj = this;
 
         // lookup value from a global variable?
@@ -283,6 +285,7 @@ var XNAT = getObject(XNAT);
     function doAjax(val, success, failure){
 
         var obj = this;
+
         // lookup value using XHR?
         // */path/to/data  <-- ALWAYS load fresh data
         // ~/path/to/data
@@ -290,6 +293,7 @@ var XNAT = getObject(XNAT);
         // $? /path/to/stuff | :ResultSet:Result:0
         // $? /path/to/stuff | $.ResultSet.Result[0]
         // $? /path/to/other $:xml
+
         if (REGEX.ajaxPrefix.test(val)) {
 
             if (jsdebug) console.log('===== doAjax =====');

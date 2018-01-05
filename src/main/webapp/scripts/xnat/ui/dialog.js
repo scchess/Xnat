@@ -338,7 +338,7 @@ window.xmodal = getObject(window.xmodal);
                 },
                 style: this.dialogStyle
             });
-            this.$modal = this.modal$ = this.__modal = this.dialog$;
+            this.$modal = this.modal$ = this.__modal = this.$dialog = this.dialog$;
             this.dialog0 = this.dialog$[0];
 
             if (this.header !== false) {
@@ -508,7 +508,7 @@ window.xmodal = getObject(window.xmodal);
                         isDefault: true,
                         isSubmit: this.enter, // also use submit: true
                         action: this.okAction || diddly,
-                        close: firstDefined(this.okClose || true)
+                        close: firstDefined(this.okClose || undef, true)
                     });
                     // default 'cancel' button
                     this.buttons.push({
@@ -518,7 +518,7 @@ window.xmodal = getObject(window.xmodal);
                         isDefault: false,
                         isCancel: this.esc,  // also use cancel: true
                         action: this.cancelAction || diddly,
-                        close: this.cancelClose || true
+                        close: firstDefined(this.cancelClose || undef, true)
                     });
                 }
 
@@ -835,10 +835,24 @@ window.xmodal = getObject(window.xmodal);
             }
         }
 
+        if (isFunction(this.beforeClose)) {
+            this.beforeCloseResult = this.beforeClose.call(this, this);
+            if (this.beforeCloseResult === false) {
+                return this;
+            }
+        }
+
         if (isFunction(this.onHide)) {
             this.onHideResult = this.onHide.call(this, this);
             // return false from onHide to stop dialog from hiding
             if (this.onHideResult === false) {
+                return this;
+            }
+        }
+
+        if (isFunction(this.onClose)) {
+            this.onCloseResult = this.onClose.call(this, this);
+            if (this.onCloseResult === false) {
                 return this;
             }
         }
@@ -982,12 +996,12 @@ window.xmodal = getObject(window.xmodal);
         // destroy by default when calling .close() method
         var _destroy = firstDefined(destroy, true);
 
-        if (isFunction(this.onClose)) {
-            this.onCloseResult = this.onClose.call(this, this);
-            if (this.onCloseResult === false) {
-                return this;
-            }
-        }
+        // if (isFunction(this.onClose)) {
+        //     this.onCloseResult = this.onClose.call(this, this);
+        //     if (this.onCloseResult === false) {
+        //         return this;
+        //     }
+        // }
 
         this.setSpeed(firstDefined(duration || undef, 0));
 

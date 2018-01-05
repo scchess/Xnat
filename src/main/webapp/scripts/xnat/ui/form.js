@@ -87,7 +87,8 @@ var XNAT = getObject(XNAT);
             input$.addClass('array-list');
         }
         else if (inputName && isPlainObject(value)) {
-            if (inputName in value) {
+            if (value.hasOwnProperty(inputName)) {
+                // setValue(input$, value[inputName]); //
                 val = value[inputName];
             }
             else {
@@ -105,6 +106,7 @@ var XNAT = getObject(XNAT);
         if (XNAT.parse.parseable(val)) {
             // --- RECURSIVE PARSE RETURN --- //
             XNAT.parse(val).done(function(result){
+                if (result === val) return;
                 setValue(input$, result);
             });
             ////////// RETURN //////////
@@ -116,7 +118,7 @@ var XNAT = getObject(XNAT);
 
         // add value to [data-value] attribute
         // (except for password fields, radio buttons, and textarea elements)
-        if (!/textarea/i.test(inputTag) && !/password|radio/i.test(inputType)){
+        if (!/TEXTAREA/i.test(inputTag) && !/password|radio/i.test(inputType)){
             input$.dataAttr('value', valString);
         }
 
@@ -128,31 +130,32 @@ var XNAT = getObject(XNAT);
             }
             else {
                 input0.checked = (inputValue && val && inputValueString === valString) || !!val;
-                if (input0.value === '') input0.value = val+'';
+                input0.value = (input0.value || val) + '';
             }
         }
         else if (/radio/i.test(inputType)){
             input0.checked = inputValueString === valString;
             //if (input0.checked) input$.trigger('change');
         }
-        else if (/select/i.test(inputTag) && input0.multiple) {
-            // if (stringable(val)) {
+        else if (/SELECT/i.test(inputTag)) {
+            if (stringable(val) && input0.multiple) {
                 val = valString.split(/\s*,\s*/);
-            // }
+            }
             // if (Array.isArray(val)) {
-                forEach(this.options, function(menuOption, index){
-                    if (val.indexOf(menuOption.value) > -1){
+                forEach(input0.options, function(menuOption, index){
+                    if ([].concat(val).indexOf(menuOption.value) > -1){
                         menuOption.selected = true;
                     }
                 });
             // }
         }
-        else if (/input|select|textarea/i.test(inputTag)) {
-            changeValue(input$, val);
+        else if (/INPUT|TEXTAREA/i.test(inputTag)) {
+            input$.val(val);
+            // changeValue(input$, val);
         }
         else {
             // lastly, if not an input element, try to set the innerHTML
-            if (input0.innerHTML) input0.innerHTML = val;
+            if (input0.hasOwnProperty('innerHTML')) input0.innerHTML = val;
         }
 
         return [inputName, val];
@@ -171,13 +174,13 @@ var XNAT = getObject(XNAT);
         }
         if (XNAT.parse.parseable(val)) {
             XNAT.parse(val).done(function(result){
+                var obj = this;
                 // if val === result, return since nothing was parsed
                 if (val === result) return;
                 if (++count > 100) {
                     console.warn('XNAT.parse().done() called too many times (> 100)');
                     debugger;
                 }
-                var obj = this;
                 if (jsdebug) console.log('setValues > parsed');
                 if (obj.inputName) {
                     if (jsdebug) console.log(obj.inputName);
@@ -196,6 +199,12 @@ var XNAT = getObject(XNAT);
     }
 
 
+    /**
+     *
+     * @param inputs
+     * @param data
+     * @returns {{}}
+     */
     function setFieldValues(inputs, data){
         // create data object to use for js2form()
         var obj = {};
@@ -218,7 +227,7 @@ var XNAT = getObject(XNAT);
 
     /**
      * Set values for inputs/form(s) with [values]
-     * @param inputs {HTMLFormElement|Array}
+     * @param inputs {HTMLElement|HTMLCollection|Array|$}
      * @param values {Object|String} - data object or 'parseable' string
      * @param [count] {Number} - hack to prevent infinite recursion
      */
@@ -244,7 +253,7 @@ var XNAT = getObject(XNAT);
         var form$, form0;
 
         // if [inputs] is a form, gather all inputs from the form
-        if (/form/i.test(inputs$[0].nodeName)) {
+        if (/FORM/i.test(inputs$[0].nodeName)) {
             form$ = inputs$;
             form0 = form$[0];
             inputs_ = form0.elements;
@@ -261,7 +270,7 @@ var XNAT = getObject(XNAT);
         if (isPlainObject(values)) {
             try {
                 // use js2form() for easier setting of array values to multiple inputs
-                // js2form(form0, values, '.', null, 'data-name');
+                // js2form(form0, values, '.', null, 'data-name'); //
                 setFieldValues(inputs_, values);
             }
             catch (e) {
@@ -283,28 +292,40 @@ var XNAT = getObject(XNAT);
 
 
 
-
-
     /**
      * Setup constructor for XNAT.form()
-     * @param formElement {HTMLFormElement|Array|String}
+     * @param formElement {HTMLElement|Object|String}
      * @constructor
      */
     function Form(formElement){
 
-        if (formElement instanceof HTMLFormElement) {
-            this.form = formElement;
-            this.form$ = $(formElement);
-        }
-        // pass a spawn() arg array to spawn a new form
-        else if (Array.isArray(formElement)) {
-            this.form$ = $.spawn.apply(null, [].concat('form', formElement));
-            this.form = this.form$[0];
-        }
-        else if (formElement) {
+        // pass a selector string to select an existing form
+        if (typeof formElement === 'string') {
             this.form$ = $$(formElement);
             this.form = this.form$[0];
         }
+        // pass a spawn() config object to create a NEW form
+        else if (isPlainObject(formElement)) {
+            this.form = spawn('form', formElement)
+        }
+
+        this.getForm = function(formEl){
+            formEl = formEl || this.form || formElement || spawn('form');
+            if (formEl instanceof HTMLFormElement) {
+                this.form = formEl;
+                this.form$ = $(formEl);
+            }
+            else if (formEl.nodeName && /INPUT|SELECT|TEXTAREA/i.test(formEl.nodeName)) {
+                this.form = formEl.form || formEl.parentElement;
+                this.form$ = $(this.form);
+            }
+            else {
+                this.form$ = $$(formEl);
+                this.form = this.form$[0];
+            }
+        };
+
+        this.getForm();
 
         // every instance gets a UID
         this.uid = randomID('formx', false);
@@ -328,13 +349,12 @@ var XNAT = getObject(XNAT);
 
 
     /**
-     * Spawn *NEW* form with optional [opts] and [children]
-     * @param [opts] {Object|Array|String} - config object; array of spawn() arrays, elements, or strings; or HTML string
+     * Spawn child elements into form
      * @param [children] {Array|String} -  array of spawn() arrays, elements, or strings; or HTML string
      * @returns {Form}
      */
-    Form.fn.spawn = function(opts, children){
-        this.form$ = $.spawn('form', opts, children);
+    Form.fn.spawn = function(children){
+        this.form$ = this.form$.spawn(children);
         this.form = this.form$[0];
         return this;
     };
@@ -489,7 +509,7 @@ var XNAT = getObject(XNAT);
             return form2js(this.form);
         }
         var obj = {};
-        this.getInputs();
+        this.getInputs(inputs);
         forOwn(this.formElement, function(name, el){
             obj[name] = el.value || '';
         });
@@ -554,7 +574,7 @@ var XNAT = getObject(XNAT);
      * @returns {Object} - AJAX instance
      */
     Form.fn.submitJSON = function(opts){
-        return XNAT.xhr.form(this.form, opts);
+        return XNAT.xhr.submitJSON(this.form, opts);
     };
 
 
@@ -564,7 +584,7 @@ var XNAT = getObject(XNAT);
      * @param formElement
      * @returns {Form}
      */
-    form = function _form(formElement){
+    form = function(formElement){
         var newForm = new Form(formElement);
         if (formElement) {
             return newForm.getElements();
@@ -578,6 +598,33 @@ var XNAT = getObject(XNAT);
     form.setValue = setValue;
     form.setValues = setValues;
 
+    // make globally accessible through $
+    $.setValues = setValues;
+
+    // add as a jQuery method
+    $.fn.setValues = function(dataObj){
+        setValues(this, dataObj);
+        return this;
+    };
+
+
+
+    form.getValues = function(inputs){
+        return inputs !== undef ? form(inputs).getValues() : {};
+    };
+
+    // make globally accessible through $
+    $.getValues = form.getValues;
+
+    // get values of selected form elements
+    $.fn.getValues = function(callback){
+        var values = form.getValues(this);
+        if (typeof callback === 'function') {
+            callback.call(this, values);
+        }
+        return values;
+    };
+
 
 
     /**
@@ -587,13 +634,50 @@ var XNAT = getObject(XNAT);
      * @param [inputs] {Array} - spawn() content array for child elements
      * @param [obj] {Object} - object map with values for form elements
      */
-    form.init = form.spawn = function _spawn(opts, inputs, obj){
+    form.spawn = function formSpawn(opts, inputs, obj){
         var spawnedForm = spawn('form', opts, [].concat(inputs));
         var newForm = new Form(spawnedForm);
         if (obj !== undef) {
             newForm.setValues(obj);
         }
         return newForm;
+    };
+
+
+
+    /**
+     * XNAT.form.init() will get called when processing 'form' Spawner elements
+     * @param opts {Object}
+     * @returns {{form, element, spawned, get: get, render: render}}
+     */
+    form.init = function formInit(opts){
+        // ??
+        console.log('XNAT.form.init()');
+        var spawnedForm = form.spawn(opts);
+        return {
+            form: spawnedForm,
+            element: spawnedForm.form,
+            spawned: spawnedForm.form,
+            get: function(){
+                return spawnedForm.form
+            },
+            render: function(container, callback){
+                var $container;
+                if (container !== undef) {
+                    $container = $$(container);
+                    $container.append(spawnedForm.form);
+                }
+                if (isFunction(callback)) {
+                    try {
+                        return callback.call(spawnedForm, spawnedForm.form, $container)
+                    }
+                    catch (e) {
+                        console.warn(e)
+                    }
+                }
+                return spawnedForm.form;
+            }
+        }
     };
 
 

@@ -1027,7 +1027,7 @@ var XNAT = getObject(XNAT);
                 errors += 1
             }
         });
-        return errors;
+        return errors === 0;
     };
 
     // validate a value on its ow

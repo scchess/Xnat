@@ -63,6 +63,7 @@ $navigation.setTemplate("/BaseJS.vm")
                 #if (!$projectName)
                     #set ($projectName = $project.getName())
                 #end
+                #set($projectName = $turbineUtils.escapeHTML($turbineUtils.escapeJS($!projectName)))
                 #set($projectID = $turbineUtils.getProjectDisplayID($om, $project))
                 siteName: "$!systemName",
                 projectName: "$!projectName",
@@ -103,10 +104,11 @@ $navigation.setTemplate("/BaseJS.vm")
 
     XNAT.data.siteConfig = getObject(XNAT.data.siteConfig);
 
-    if (XNAT.data.context.projectName === "") {
-        #set ($projectName = $turbineUtils.getProjectName($om, $project))
-        XNAT.data.context.projectName = "$!projectName";
-    }
+##    if (XNAT.data.context.projectName === "") {
+##        #set ($projectName = $turbineUtils.getProjectName($om, $project))
+##        #set ($projectName = $turbineUtils.escapeHTML($turbineUtils.escapeJS($!projectName)))
+##        XNAT.data.context.projectName = "$!projectName";
+##    }
 
     // 'page' object is same as 'context' - easier to remember?
     XNAT.data.page = XNAT.data.context;

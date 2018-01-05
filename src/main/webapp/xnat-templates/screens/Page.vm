@@ -13,8 +13,6 @@
 #set ($pg_path = "/screens/pages/${pg}.vm")
 #set ($theme_pg = "")
 
-##<script src="${SITE_ROOT}/scripts/xnat/app/customPage.js"></script>
-
 #if ($pg)
 
     #if ($theme && $theme != "none")
@@ -36,7 +34,7 @@
     ## if there's an active theme that contains the requested page as a
     ## Velocity template at '/themes/theme-name/pages/page-name.vm',
     ## load that...
-    #if ($theme_pg != "")
+    #if ($theme_pg != "" && $turbineUtils.resourceExists($theme_pg))
         <div id="view-page">
             #parse($theme_pg)
         </div>
@@ -65,7 +63,8 @@
             </script>
         #else
             <div id="view-page">page not found</div>
-            <script>console.log('"$turbineUtils.escapeJS($pg)" page not found')</script>
+            <!-- '$pg' not found -->
+            ##<script>console.log('"$turbineUtils.escapeJS($pg)" page not found')</script>
         #end
     #end
 

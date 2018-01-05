@@ -878,7 +878,7 @@ var XNAT = getObject(XNAT || {});
             }
 
             // submit data with XNAT's AJAX form submit method
-            XNAT.xhr.form($form, ajaxConfig);
+            XNAT.xhr.submitForm($form, ajaxConfig);
 
             return false;
 

@@ -194,8 +194,8 @@
 
     (function(){
 
-        var usersGroups;
         var topXNAT = window.top.XNAT;
+        var usersGroups = topXNAT.usersGroups;
         var USERNAME = '$!item.getProperty("login")';
         var isVerified = #if ($item.getBooleanProperty("verified")) true #else false #end;
         var isEnabled = #if ($item.getBooleanProperty("enabled")) true #else false #end;
@@ -206,10 +206,10 @@
         function setupSwitches(){
 
             var verifiedSwitch = usersGroups.userSwitchElement(USERNAME, 'verified', isVerified);
-            userVerifiedSwitch.append(verifiedSwitch);
+            verifiedSwitch.render(userVerifiedSwitch);
 
             var enabledSwitch = usersGroups.userSwitchElement(USERNAME, 'enabled', isEnabled);
-            userEnabledSwitch.append(enabledSwitch);
+            enabledSwitch.render(userEnabledSwitch);
 
             var userAccountDetailsTable = $('#user-account-details');
             userAccountDetailsTable.on('change', 'input.user-verified', usersGroups.setVerified);
