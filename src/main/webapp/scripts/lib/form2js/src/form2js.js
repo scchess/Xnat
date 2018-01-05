@@ -110,6 +110,7 @@
             value,
             nameParts,
             currResult,
+            arrayValue,
             arrNameFull,
             arrName,
             arrIdx,
@@ -124,6 +125,7 @@
             if (skipEmpty && (value === '' || value == null)) continue;
 
             name       = nameValues[i].name;
+
             _nameParts = name.split(delimiter);
 
             nameParts   = [];
@@ -256,7 +258,11 @@
     function extractNodeValues(node, nodeCallback, useAttribute, getDisabled){
         if (node.disabled && !getDisabled) return [];
 
-        var callbackResult, fieldValue, arrayDelim, result, fieldName = getFieldName(node, useAttribute);
+        var callbackResult, fieldValue, arrayDelim, result;
+        var parsedFieldName = getFieldName(node, useAttribute);
+        var fieldName = parsedFieldName.name;
+        var fieldDelim = parsedFieldName.delim;
+        var fieldDataFormat = parsedFieldName.dataFormat;
 
         callbackResult = nodeCallback && nodeCallback(node);
 
@@ -266,11 +272,11 @@
         else if (fieldName !== '' && node.nodeName.match(/INPUT|TEXTAREA/i)) {
             fieldValue = getFieldValue(node, getDisabled);
 
-            arrayDelim = node.getAttribute('data-delim') || node.getAttribute('data-delimeter') || ',';
+            arrayDelim = node.getAttribute('data-delim') || node.getAttribute('data-delimeter') || fieldDelim;
 
             // convert items with 'array-list' class to an actual array
             if (/array-list|list-array/i.test(node.className) && !Array.isArray(fieldValue)) {
-                fieldValue = fieldValue.split(arrayDelim);
+                fieldValue = fieldValue.split(arrayDelim).map(function(item){ return item.trim() });
             }
 
             if (fieldValue == null) {
@@ -292,15 +298,19 @@
     }
 
     function getFieldName(node, useAttribute){
+        var name = '';
         if (node.name) {
-            return node.name;
+            name = node.name;
         }
         else if (useAttribute && node[useAttribute]) {
-            return node[useAttribute];
+            name = node[useAttribute];
         }
-        else {
-            return '';
-        }
+        var parts = name.split(/[\[|\]]/);
+        return {
+            name: parts[1] || parts[0],
+            delim: parts[2] || ',',
+            dataFormat: parts.length > 1 ? 'array' : null
+        };
     }
 
 
@@ -352,7 +362,7 @@
                     default:
                         arrayDelim = fieldNode.getAttribute('data-delim') || fieldNode.getAttribute('data-delimeter') || ',';
                         return /array-list|list-array/i.test(fieldNode.className) ?
-                            fieldNode.value.split(arrayDelim) :
+                            fieldNode.value.split(arrayDelim).map(function(item){ return item.trim() }) :
                             fieldNode.value;
                         break;
                 }

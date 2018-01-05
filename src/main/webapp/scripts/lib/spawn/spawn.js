@@ -103,7 +103,12 @@
                 el.className = val;
                 return;
             }
-            el.setAttribute(key, val);
+            try {
+                el.setAttribute(key, val);
+            }
+            catch (e) {
+                console.warn(e);
+            }
         });
     }
 

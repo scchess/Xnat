@@ -97,10 +97,14 @@ var XNAT = getObject(XNAT);
         var _templ, _spawn, _spawned, _html;
         opts = cloneObject(opts);
         addClassName(opts, 'panel-element');
-        opts.name = (opts.name||'').replace(/^:*/,'');
+        var nameParts = opts.name.split(/[\[|\]]/);
+        var _name = (nameParts[0]||nameParts[1]||'').replace(/^:*/,'');
         _templ = [
-            'div|data-name='+opts.name,
-            { className: opts.className },
+            'div',
+            {
+                data: { name: _name },
+                className: opts.className
+            },
             [].concat(content, spawn('div.clear'))
         ];
         _spawn = function(){

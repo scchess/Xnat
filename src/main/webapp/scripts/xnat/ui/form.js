@@ -51,6 +51,18 @@ var XNAT = getObject(XNAT);
     }
 
 
+    var ARRAYLIST_TEST_REGEX = /^\[.*]$/;
+    // ARRAYLIST_TEST_REGEX.test('[foo]')
+    // --> true
+
+    var ARRAYLIST_SPLIT_REGEX = /[\[|\]]/;
+    // '[foo|;]'.split(ARRAYLIST_SPLIT_REGEX)
+    // --> ["", "foo", ";", ""]
+
+    var ARRAYLIST_TRIM_REGEX = /^\[|]$/g;
+    // '[foo]'.replace(ARRAYLIST_TRIM_REGEX, '')
+    // --> 'foo'
+
 
     /**
      * Set the value for a single form element
@@ -72,7 +84,12 @@ var XNAT = getObject(XNAT);
 
         var inputTag = input0.tagName;
         var inputType = input0.type;
-        var inputName = input0.name || input0.title || input0.id;
+
+        // handle names for array lists - like '[foo|;]'
+        var nameParts = (input0.name || input0.title || input0.id).split(ARRAYLIST_SPLIT_REGEX);
+        var inputName = nameParts[0] || nameParts[1];
+        var listDelim = input0.getAttribute('data-delim') || (nameParts[2] || ',');
+
         var inputValue = input$.val();
         var val = value || '';
 
@@ -82,11 +99,7 @@ var XNAT = getObject(XNAT);
             return val;
         }
 
-        if (Array.isArray(value)) {
-            val = value.join(', ');
-            input$.addClass('array-list');
-        }
-        else if (inputName && isPlainObject(value)) {
+        if (inputName && isPlainObject(value)) {
             if (value.hasOwnProperty(inputName)) {
                 // setValue(input$, value[inputName]); //
                 val = value[inputName];
@@ -97,10 +110,15 @@ var XNAT = getObject(XNAT);
                 return [inputName, val];
             }
         }
-        else {
-            val = stringable(value) ? value+'' : JSON.stringify(value);
-        }
 
+        if (Array.isArray(val)) {
+            val = val.join(listDelim + ' ');
+            input$.addClass('array-list');
+            input$.dataAttr('delim', listDelim);
+        }
+        else {
+            val = stringable(val) ? val+'' : JSON.stringify(val);
+        }
 
         // recursively parse values?
         if (XNAT.parse.parseable(val)) {
@@ -214,7 +232,9 @@ var XNAT = getObject(XNAT);
                     input.title.split(':')[0].trim() ||
                     input.getAttribute['data-name'] ||
                     input.id;
+            var nameParts = name.split(ARRAYLIST_SPLIT_REGEX);
             if (name) {
+                name = nameParts[0] || nameParts[1];
                 obj[name] = (isPlainObject(data)) ? data[name] || '' : data;
                 parseInputValue(input, obj);
                 // setValue(input, data[name]);

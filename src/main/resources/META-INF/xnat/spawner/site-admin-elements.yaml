@@ -518,8 +518,10 @@ userLoginsSessionControls:
               How often to check user accounts for inactivity (0 0 1 * * * means it runs at 1AM every day). Uses basic
               <a target="_blank" href="http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/scheduling/support/CronSequenceGenerator.html">Cron notation</a> (lists and ranges aren't supported).
         interactiveAgentIds:
-            kind: panel.input.text
+            kind: panel.input.textList
+            size: 60
             name: interactiveAgentIds
+            delim: ","
             label: Interactive Agent IDs
             placeholder: .*MSIE.*, .*Mozilla.*, .*AppleWebKit.*, .*Opera.*
             description: >
@@ -527,8 +529,10 @@ userLoginsSessionControls:
               request comes from an interactive agent (e.g. a browser) or some other kind of tool, such as curl or other
               scriptable or automatable client. Separate multiple agent IDs with commas.
         dataPaths:
-            kind: panel.input.text
+            kind: panel.input.textList
+            size: 60
             name: dataPaths
+            delim: ","
             label: Data Paths
             placeholder: /xapi/**, /data/**, /REST/**, /fs/**
             description: >
