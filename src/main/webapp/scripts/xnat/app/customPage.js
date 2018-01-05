@@ -101,10 +101,15 @@ var XNAT = getObject(XNAT);
             name = name[0] || '';
         }
 
+        // if (name && name === currentPage) {
+        //     ///// RETURN /////
+        //     return currentPage;
+        // }
+
         name = name || customPage.getName(end);
 
-        // don't even bother if there's no name
-        if (!name) {
+        // return if there's no name or it's '!'
+        if (!name || name === '!') {
             ///// RETURN /////
             return currentPage;
         }
@@ -147,6 +152,7 @@ var XNAT = getObject(XNAT);
         }
 
         function getPage(path){
+            $container.html('');
             return XNAT.xhr.get({
                 url: XNAT.url.rootUrl(path + window.location.search),
                 dataType: 'html',
@@ -179,7 +185,7 @@ var XNAT = getObject(XNAT);
         var currentPage = customPage.name;
         var newPage = XNAT.app.customPage.getName();
         //only get a new page if the page part has changed
-        if (newPage !== currentPage) {
+        if (newPage !== '!' && newPage !== currentPage) {
             e.preventDefault();
             XNAT.app.customPage.getPage(newPage);
         }

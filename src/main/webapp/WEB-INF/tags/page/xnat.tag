@@ -257,11 +257,7 @@ ${bodyTop}
                         You can reset the timer without reloading thepage by clicking "renew."
                     </span>
                 </span>
-                Auto-logout in:
-                <b id="timeLeft">-:--:--</b> -
-                <a id="timeLeftRenew" href="#!">renew</a>
-                <b>|</b>
-                <a id="logout_user" href="${SITE_ROOT}/app/action/LogoutUser">Logout</a>
+                Auto-logout in: <b id="timeLeft">-:--:--</b> - <a href="#!" class="renew-session">renew</a> <b>|</b> <a href="#!logout" id="logout_user" data-action="${SITE_ROOT}/app/action/LogoutUser">Logout</a>
             </span>
             <script>
                 window.loggedIn = true;

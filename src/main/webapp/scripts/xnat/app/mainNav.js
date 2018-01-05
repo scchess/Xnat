@@ -98,7 +98,8 @@ var XNAT = getObject(XNAT);
             e.preventDefault();
             XNAT.cookie.set('WARNING_BAR', 'OPEN');
             XNAT.cookie.set('NOTIFICATION_MESSAGE', 'OPEN');
-            window.location.replace(window.logoutUrl);
+            XNAT.app.timeout.logout();
+            // window.location.replace(window.logoutUrl);
         });
 
     };
@@ -106,7 +107,7 @@ var XNAT = getObject(XNAT);
 
 
     // initialize on dom ready
-    // $(document).ready(mainNav.init);
+    $(document).ready(mainNav.init);
 
 
 

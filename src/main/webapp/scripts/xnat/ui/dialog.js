@@ -681,7 +681,7 @@ window.xmodal = getObject(window.xmodal);
     Dialog.fn.setFocus = function(callback){
 
         // this.dialog$.focus();
-        document.activeElement.blur();
+        // document.activeElement.blur();
         // document.activeElement = this.dialog0;
 
         if (isFunction(this.onFocus)) {
