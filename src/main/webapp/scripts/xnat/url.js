@@ -73,7 +73,7 @@ var XNAT = getObject(XNAT||{});
 
     url.getProtocol = function(URL){
         var docUrl = URL || document.URL;
-        if (!URL && window.location.protocol) {
+        if (!URL && 'protocol' in window.location) {
             return window.location.protocol;
         }
         return /^(https:)/.test(docUrl) ? 'https:' : 'http:'
@@ -82,25 +82,51 @@ var XNAT = getObject(XNAT||{});
     url.protocol = url.getProtocol();
 
     url.getDomain = function(){
-        if (window.location.hostname) {
+        if ('hostname' in window.location) {
             return window.location.hostname;
         }
         if (document.domain) {
-            return document.domain
+            return document.domain;
         }
     };
 
     url.domain = url.getDomain();
 
-    url.getPort = function(){
-        return window.location.port;
+    url.getPort = function(sep){
+        if (window.location.port) {
+            return (sep || '') + window.location.port;
+        }
+        else {
+            return '';
+        }
     };
 
+    url.port = url.getPort();
+
+    url.getPath = function(){
+        if ('pathname' in window.location) {
+            return window.location.pathname;
+        }
+        var server = url.port ? url.domain + ':' + url.port : url.domain;
+        return window.location.href.split(server)[1];
+    };
+
+    url.path = url.getPath();
+
+    url.getSiteUrl = function(){
+        if ('origin' in window.location) {
+            return window.location.origin;
+        }
+        return url.getProtocol() + '//' + url.getDomain() + url.getPort(':') + '/';
+    };
+
+    url.siteUrl = url.getSiteUrl();
+
     url.fullUrl = function(_url){
-        if (window.location.origin) {
+        if ('origin' in window.location) {
             return window.location.origin + rootUrl(_url);
         }
-        return url.getProtocol() + '//' + url.getDomain() + ':' + url.getPort() + rootUrl(_url);
+        return url.getProtocol() + '//' + url.getDomain() + url.getPort(':') + rootUrl(_url);
     };
 
     // better encodeURIComponent() that catches

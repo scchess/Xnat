@@ -46,14 +46,14 @@ function diddly(){}
 (function(){
 
     function escapeHtml(str, regex) {
-        return (str + '').replace(regex || /[&<>"'\/]/g, function(s){
+        return (str + '').replace(regex || /[&<>"']/g, function(s){
             var entityMap = {
                 '&': '&amp;',
                 '<': '&lt;',
                 '>': '&gt;',
                 '"': '&quot;',
                 "'": '&#39;',
-                '/': '&#x2F;',
+                // '/': '&#x2F;',
                 '---': '---'
             };
             return entityMap[s] || s;
@@ -100,7 +100,7 @@ function getQueryStringValue( param ){
         split('&')[0].
         split('#')[0].
         replace(/\/*$/,''); // remove any 'bonus' trailing slashes
-    return escapeHtml(val, /[&<>"']/g);
+    return escapeHtml(val);
 }
 
 function getParameterByName( name ){
@@ -117,7 +117,7 @@ function getHashValue(hash, start, end){
     //     part = hash.split(start||'#')[2]||'';
     // }
     part = part.split(end||/\/#|#/)[0]||'';
-    return escapeHtml(part, /[&<>"']/g);
+    return escapeHtml(part);
 }
 
 // get the url hash string without the '#'

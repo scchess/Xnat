@@ -100,7 +100,7 @@ function MinProjectsList(_div, _options){
 
 			var p = projects[pC];
 
-            var project_name = p.name;
+            var project_name = escapeHtml(p.name);
 
             // if there are no spaces in the first 42 characters, then chop it off
             if (project_name.length > 42 && project_name.substring(0,41).indexOf(' ') === -1){
@@ -128,7 +128,7 @@ function MinProjectsList(_div, _options){
                 "<b>" + XNAT.app.displayNames.singular.project + " ID: " + p.id +"</b>";
 
             if ( p.pi != undefined && p.pi != ""){
-				row.innerHTML+="&nbsp;&nbsp;&nbsp;<b>PI: "+ p.pi +"</b>";
+				row.innerHTML+="&nbsp;&nbsp;&nbsp;<b>PI: "+ escapeHtml(p.pi) +"</b>";
 			}
 
             newDisplay.appendChild(row);
@@ -161,7 +161,6 @@ function MinProjectsList(_div, _options){
 				}
 			}
 			newDisplay.appendChild(row);
-			
 			display.appendChild(newDisplay);
 		}
 		//projList.menu=new YAHOO.widget.Menu(projList.div_id,{itemdata:items,visible:true, scrollincrement:5,position:"static"});

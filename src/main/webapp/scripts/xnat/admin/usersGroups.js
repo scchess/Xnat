@@ -591,12 +591,12 @@ var XNAT = getObject(XNAT);
 
         // full name column
         $row.find('a.full-name')
-            .text(escapeHtml(profile.lastName + ', ' + profile.firstName));
+            .html(escapeHtml(profile.lastName + ', ' + profile.firstName));
 
         // email column
         $row.find('a.send-email')
             .attr('title', profile.email + ': send email')
-            .text(escapeHtml(profile.email));
+            .html(escapeHtml(profile.email));
 
         // verified status column
         $row.find('td.verified')
@@ -1363,11 +1363,12 @@ var XNAT = getObject(XNAT);
                         apply: function(username, tr){
                             //console.log(tr);
                             // var _username = truncateText(username);
+                            var usernameEsc = escapeHtml(username);
                             return spawn('a.username.link.truncate.edit-user', {
                                 href: '#!',
-                                title: username + ': details',
+                                title: usernameEsc + ': details',
                                 // html: _username,
-                                html: username//,
+                                html: usernameEsc//,
                                 // style: { width: styles.username },
                                 // data: { username: username }
                             });
@@ -1379,11 +1380,11 @@ var XNAT = getObject(XNAT);
                         // td: { style: { width: styles.name }},
                         apply: function(){
                             // var _fullName = truncateText(this.lastName + ', ' + this.firstName);
-                            var _fullName = (this.lastName + ', ' + this.firstName);
+                            var fullNameEsc = escapeHtml(this.lastName + ', ' + this.firstName);
                             return spawn('a.full-name.link.truncate.edit-user', {
                                 href: '#!',
-                                title: this.username + ': project and security settings',
-                                html: _fullName//,
+                                title: escapeHtml(this.username) + ': project and security settings',
+                                html: fullNameEsc//,
                                 // style: { width: styles.name },
                                 // data: { username: this.username }
                             });
@@ -1395,14 +1396,14 @@ var XNAT = getObject(XNAT);
                         // th: { style: { width: styles.email }},
                         // td: { style: { width: styles.email }},
                         apply: function(email){
-                            // var _email = truncateText(email);
+                            var emailEsc = escapeHtml(email);
                             return spawn('a.send-email.link.truncate.edit-user', {
                                 href: '#!',
-                                title: email + ': send email',
+                                title: emailEsc + ': send email',
                                 // style: { width: styles.email },
                                 // title: 'Send email to: ' + email,
                                 // html: _email
-                                html: email
+                                html: emailEsc
                             })
                         }
                     },

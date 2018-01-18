@@ -538,6 +538,57 @@ $.fn.hidden = function(bool, speed){
 };
 
 
+// show or hide an element then execute optional callback
+$.fn.hiddenToo = function(bool, duration, callback){
+
+    var undef;
+    var argLen = arguments.length;
+    var speed = 0;
+    var method = 'hide';
+    var modClass = 'addClass';
+    var className = 'hidden';
+    var fn = function(){};
+
+    if (argLen === 0 || bool === undef) {
+        this.hide().addClass('hidden');
+        return this;
+    }
+
+    if (argLen >= 1) {
+        if (!bool) {
+            method = 'show';
+            modClass = 'removeClass';
+            className = 'hidden invisible';
+        }
+    }
+
+    if (argLen >= 2) {
+        // second arg *could* be a callback function
+        if ($.isFunction(duration)) {
+            fn = duration;
+            speed = 0;
+        }
+        else {
+            speed = duration + 0;
+            fn = callback || fn;
+        }
+    }
+
+    // put it all together
+    this[method](speed, function(){
+        $(this)[modClass](className);
+        try {
+            fn.call(this);
+        }
+        catch (e) {
+            // callback failed
+        }
+    });
+
+    return this;
+};
+
+
 // add or remove 'disabled' class
 // and set 'disabled' attribute and property
 $.fn.disabled = function(bool){
@@ -975,31 +1026,29 @@ function matchCellWidths(widths, table1, table2 /* etc... */){
 // force a jQuery object and allow use of
 // non-standard id names with special prefix:
 // $$('id=weird:id/that.XNAT.will[create]').addClass('cray-cray');
-function $$( el, id_prefix ){
+function $$(el, id_prefix){
     // use ONE of these to get element by id:
-    // id= | id: | @id= | #= | #: | #/
-    var QUERY      = /^!/,             // $$('!div.foo')  --> return FIRST raw 'div.foo' element
-        QUERY_ALL  = /^!\*/,           // $$('!*div.foo') --> return raw 'div.foo' element collection
-        BY_NAME    = /^!*\?/,          // $$('!?foo')     --> return raw elements with [name="foo"]
-        // NAME$      = /^\?/,            // $$('?foo')      --> return wrapped elements with [name="foo"]
-        TAGNAME    = /^!*~/,           // $$('!~div')     --> return all <DIV> elements
-        // TAG$       = /^~/,             // $$('~div')      --> return wrapped <DIV> elements
-        ATTR       = /^(!*@)/,         // $$('@disabled') --> return all elements with [disabled] attribute
-        CLASSNAME  = /^(!\.+|\.\.)/,   // $$('!.foo bar') --> return all elements with [class="foo bar"]
-        // CLASS$     = /^\.\./,          // $$('..foo.bar') --> return wrapped elements with [class="foo bar"]
-        // BY_ID      = /^!#/,            // $$('!#foo')     --> return (one) raw element with id 'foo'
-        BY_ID      = id_prefix || /^!*(id=|id:|@id=|#=|#:|#\/)/;
+    // id= | id: | @id= | #= | #: | #/ | #|
+    var QUERY     = /^!/,                // $$('!div.foo')  --> return FIRST raw 'div.foo' element
+        QUERY_ALL = /^![!*]/,            // $$('!*div.foo') --> return 'div.foo' element collection
+        BY_NAME   = /^!*\?/,             // $$('!?foo')     --> return raw elements with [name="foo"]
+        TAGNAME   = /^!*~/,              // $$('~div')      --> return wrapped <DIV> elements
+        ATTR      = /^!*@/,              // $$('@disabled') --> return wrapped elements with [disabled] attribute
+        CLASSNAME = /^(!\.+|\.\.|\.\|)/, // $$('!.foo bar') --> return elements with [class="foo bar"]
+        // $$('!#:foo.bar/baz') --> return (one) element with id 'foo.bar/baz'
+        // $$('#|foo.bar/baz')  --> return wrapped element with id 'foo:bar.baz'
+        BY_ID     = id_prefix || /^!*(id=|id:|@id=|#=|#:|#\/|#\|)/;
 
     var SPECIAL = /^((!*[*?@~])|!\.|\.\.)/;
     var selector = '';
     var use$ = true;
     var selected = null;
 
-    if (!el || el.jquery){
+    if (!el || el.jquery) {
         return el;
     }
 
-    if ( typeof el === 'string' && (SPECIAL.test(el) || BY_ID.test(el)) ){
+    if (typeof el === 'string') {
 
         selector = el.trim();
 
@@ -1014,35 +1063,31 @@ function $$( el, id_prefix ){
             use$ = false;
         }
 
+        // getElementById
         // pass empty string or null as the second argument
         // to get the bare element by id (no jQuery)
         if (id_prefix === '' || id_prefix === null || selector.search(BY_ID) === 0){
             selector = selector.replace(BY_ID, '').trim();
-            selected = document.getElementById(selector);
-        }
-        // getElementById
-        else if (selector.search(BY_ID) === 0){
-            selector = selector.replace(BY_ID, '').trim();
             selected = document.getElementById(selector)
         }
         // getElementsByName
-        else if (BY_NAME.test(selector)){
+        else if (BY_NAME.test(selector)) {
             selector = selector.replace(BY_NAME, '').trim();
             selected = document.getElementsByName(selector);
         }
         // getElementsByTagName
-        else if (TAGNAME.test(selector)){
+        else if (TAGNAME.test(selector)) {
             selector = selector.replace(TAGNAME, '').trim();
             selected = document.getElementsByTagName(selector);
         }
         // getElementsByClassName
-        else if (CLASSNAME.test(selector)){
-            selector = selector.replace(CLASSNAME, '').replace(/\s*\.\s*/, ' ').trim();
+        else if (CLASSNAME.test(selector)) {
+            selector = selector.replace(CLASSNAME, '').replace(/\s*\.\s*/g, ' ').trim();
             selected = document.getElementsByClassName(selector);
         }
         // querySelector
-        else if (QUERY.test(selector)){
-            selector = selector.replace(QUERY,'').trim();
+        else if (QUERY.test(selector)) {
+            selector = selector.replace(QUERY, '').trim();
             selected = document.querySelector(selector);
         }
         // querySelectorAll using attribute name/value
