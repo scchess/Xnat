@@ -287,12 +287,12 @@ var XNAT = getObject(XNAT);
                     footer: false,
                     contents: {
                         title: createInput('Title', 'title'),
-                        first: createInput('First Name', 'firstname', 'required'),
-                        last: createInput('Last Name', 'lastname', 'required'),
-                        institution: createInput('Institution', 'institution'),
-                        department: createInput('Department', 'department'),
-                        email: createInput('Email', 'email', 'email'),
-                        phone: createInput('Phone', 'phone', 'numeric-dash'),
+                        first: createInput('First Name', 'firstname', 'name-safe required'),
+                        last: createInput('Last Name', 'lastname', 'name-safe required'),
+                        institution: createInput('Institution', 'allow-empty institution'),
+                        department: createInput('Department', 'allow-empty department'),
+                        email: createInput('Email', 'email', 'allow-empty email'),
+                        phone: createInput('Phone', 'phone', 'allow-empty numeric-dash'),
                         primary: self.menu ? {
                             kind: 'panel.element',
                             label: false,
@@ -357,7 +357,13 @@ var XNAT = getObject(XNAT);
                                 return errors === 0;
                             },
                             success: function(data, status, xhrObj){
-                                var selected = data.xnatInvestigatordataId;
+                                var selected;
+                                // just close the dialog if saved but not modified
+                                if (status === "notmodified") {
+                                    dialog.close();
+                                    return;
+                                }
+                                selected = data.xnatInvestigatordataId;
                                 ui.banner.top(2000, 'Investigator data saved.', 'success');
                                 // update other menus, if specified
                                 if (self.menu) {
