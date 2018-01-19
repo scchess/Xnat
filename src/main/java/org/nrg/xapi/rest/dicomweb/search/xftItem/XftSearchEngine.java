@@ -106,7 +106,7 @@ public class XftSearchEngine implements SearchEngineI {
             response.setModality( scandata.getModality());
             response.setSeriesDescription( scandata.getSeriesDescription());
             response.setSeriesInstanceUID( scandata.getUid());
-            response.setSeriesNumber( scandata.getId());
+            response.setSeriesNumber( (scandata.getSeriesNumber() != null)? scandata.getSeriesNumber().toString(): "");
             response.setPerformedProcedureStepStartDate( scandata.getStartDate());
             response.setPerformedProcedureStepStartTime( scandata.getStarttime());
             response.setNumberOfSeriesRelatedInstances( scandata.getInstanceCount());
@@ -209,7 +209,7 @@ public class XftSearchEngine implements SearchEngineI {
             response.setModality( scandata.getModality());
             response.setSeriesDescription( scandata.getSeriesDescription());
             response.setSeriesInstanceUID( scandata.getUid());
-            response.setSeriesNumber( scandata.getId());
+            response.setSeriesNumber( (scandata.getSeriesNumber() != null)? scandata.getSeriesNumber().toString(): "");
             response.setPerformedProcedureStepStartDate( scandata.getStartDate());
             response.setPerformedProcedureStepStartTime( scandata.getStarttime());
             response.setNumberOfSeriesRelatedInstances( scandata.getInstanceCount());
@@ -248,7 +248,7 @@ public class XftSearchEngine implements SearchEngineI {
                 response.setModality(scan.getModality());
                 response.setSeriesDescription(scan.getSeriesDescription());
                 response.setSeriesInstanceUID(scan.getUid());
-                response.setSeriesNumber(scan.getId());
+                response.setSeriesNumber((scan.getSeriesNumber() != null)? scan.getSeriesNumber().toString(): "");
                 response.setPerformedProcedureStepStartDate(scan.getStartDate());
                 response.setPerformedProcedureStepStartTime(scan.getStarttime());
                 response.setNumberOfSeriesRelatedInstances(scan.getInstanceCount());
