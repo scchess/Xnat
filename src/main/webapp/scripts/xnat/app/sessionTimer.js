@@ -487,7 +487,8 @@ var XNAT = getObject(XNAT);
                 okAction: function(){
                     // window.location.href = XNAT.url.rootUrl('/');
                     cookie.SESSION_REDIRECT.update(lastPageEnc.X, lastPageEnc.P);
-                    window.location.reload();
+                    timeout.logout('timeout=' + END);
+                    // window.location.reload();
                 }
             });
             cookie.SESSION_DIALOG_OPEN.set('false');
@@ -504,13 +505,12 @@ var XNAT = getObject(XNAT);
                     XNAT.dialog.loadingBar.show();
                 }
                 window.setTimeout(function(){
-                    var redirectUrl = XNAT.url.restUrl('/app/template/Login.vm', { timeout: END }, false);
                     // by going to the site root after timing out,
                     // this script will handle redirection
                     cookie.SESSION_REDIRECT.update(lastPageEnc.X, lastPageEnc.P);
                     // window.location.href = XNAT.url.rootUrl('/#timeout=' + NOW);
                     // window.location.reload();
-                    window.location.replace(redirectUrl)
+                    timeout.logout('timeout=' + END);
                 }, 2000);
             }, 20000)
         }
@@ -576,10 +576,14 @@ var XNAT = getObject(XNAT);
 
 
         // manually log out
-        timeout.logout = function(){
+        timeout.logout = function(status){
             // var curr = eRedir(UN, LOC);
             cookie.SESSION_REDIRECT.update(curr.X, curr.P);
-            window.location.replace(window.logoutUrl);
+            XNAT.xhr.get(window.logoutUrl, function(){
+                var loginRedirectUrl = XNAT.url.rootUrl('/app/template/Login.vm' + (status ? '#' + status : ''));
+                window.location.replace(loginRedirectUrl);
+                return false;
+            });
         };
 
 

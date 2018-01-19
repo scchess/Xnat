@@ -8,7 +8,7 @@ $navigation.setTemplate("/bodyOpen.vm")
 <div id="xnat-login">
     <script>
         window.isLoginPage = true;
-        window.location.hash = '#!';
+        // window.location.hash = '#!';
     </script>
     $navigation.setTemplate("/NoMenuTop.vm")
     <div id="layout_content2" style="display:none;">Loading...</div>
