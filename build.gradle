@@ -16,7 +16,8 @@ import org.gradle.internal.jvm.Jvm
 
 buildscript {
     ext {
-        vXnat = "1.7.5-SNAPSHOT"
+        vXnat = "dcmWebApi-1.0-SNAPSHOT"
+        vParent = "dcmWebApi-1.0-SNAPSHOT"
     }
     repositories {
         mavenLocal()
@@ -86,6 +87,10 @@ repositories {
     maven {
         url "https://nrgxnat.jfrog.io/nrgxnat/ext-release"
         name "XNAT External Release Repository"
+    }
+    maven {
+        url "https://mvnrepository.com/artifact"
+        name "Java Advanced Imaging"
     }
 }
 
@@ -199,7 +204,7 @@ configurations {
 }
 
 dependencyManagement.imports {
-    mavenBom "org.nrg:parent:${vXnat}"
+    mavenBom "org.nrg:parent:${vParent}"
 }
 
 dependencies {
@@ -248,10 +253,23 @@ dependencies {
     implementation "dcm4che:dcm4che-iod:2.0.29"
     implementation "dcm4che:dcm4che-net:2.0.29"
 
-    compile "org.dcm4che:dcm4che-core:3.3.8"
-    compile "org.dcm4che:dcm4che-json:3.3.8"
-    compile "com.github.pgelinas:jackson-javax-json:0.9.0"
-//    compile "javax.xml.bind:jaxb-api:2.2.11"
+    implementation "org.dcm4che:dcm4che-all:3.3.8"
+
+//    implementation "org.dcm4che:dcm4che-core:3.3.8"
+//    implementation "org.dcm4che:dcm4che-json:3.3.8"
+//    implementation "org.dcm4che:dcm4che-image:3.3.8"
+//    implementation "org.dcm4che:dcm4che-imageio:3.3.8"
+//    implementation "org.dcm4che:dcm4che-imageio-rle:3.3.8"
+//    implementation "com.sun.media:jai_imageio:1.2-pre-dr-b04"
+
+//    implementation "org.dcm4che.tool:dcm4che-tool-common:3.3.8"
+//    implementation "org.dcm4che.tool:dcm4che-tool-dcm2dcm:3.3.8"
+    implementation "com.github.pgelinas:jackson-javax-json:0.9.0"
+//// https://mvnrepository.com/artifact/com.github.jai-imageio/jai-imageio-core
+//////    compile group: 'com.github.jai-imageio', name: 'jai-imageio-core', version: '1.3.1'
+//    api "com.github.jai-imageio:jai-imageio-core:1.3.1"
+////    api "com.sun.media:jai-codec:1.1.3"
+//// https://mvnrepository.com/artifact/com.sun.media/jai_imageio
 
     implementation "org.springframework:spring-aop"
     implementation "org.springframework:spring-beans"

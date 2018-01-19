@@ -9,6 +9,8 @@
 
 package org.nrg.xnat.configuration;
 
+import org.nrg.xapi.model.dicomweb.TransCoder;
+import org.nrg.xapi.model.dicomweb.dcm4che3.TransCoderChe3;
 import org.nrg.xapi.rest.dicomweb.Dicom2XmlMessageConverter;
 import org.nrg.xapi.rest.dicomweb.MultipartDicomFileMessageConverter;
 import org.nrg.xapi.rest.dicomweb.MultipartDicomMessageConverter;
@@ -121,6 +123,11 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     @Bean
     public HttpMessageConverter<?> multipartDicomFileMessageConverter() {
         return new MultipartDicomFileMessageConverter( );
+    }
+
+    @Bean
+    public TransCoder transCoder() {
+        return new TransCoderChe3();
     }
 
     @Bean

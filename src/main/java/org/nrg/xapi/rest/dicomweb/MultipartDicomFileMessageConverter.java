@@ -1,19 +1,29 @@
 package org.nrg.xapi.rest.dicomweb;
 
 import org.dcm4che3.data.Attributes;
+import org.dcm4che3.data.UID;
+import org.dcm4che3.imageio.codec.TransferSyntaxType;
 import org.nrg.xapi.model.dicomweb.DicomObjectI;
+import org.nrg.xapi.model.dicomweb.TransCoder;
+import org.nrg.xapi.model.dicomweb.TransCoderException;
+import org.nrg.xapi.model.dicomweb.UnsupportedTransferSyntaxException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.AbstractHttpMessageConverter;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.http.converter.HttpMessageNotWritableException;
+import org.springframework.http.converter.*;
+import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.stereotype.Component;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
 
+import javax.imageio.ImageIO;
+import javax.imageio.spi.IIORegistry;
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -23,6 +33,8 @@ import java.util.Map;
 @Component
 @Lazy
 public class MultipartDicomFileMessageConverter extends AbstractHttpMessageConverter< List<DicomObjectI>> {
+
+    public static final String DEFAULT_DICOM_TSUID = "1.2.840.10008.1.2.1";  // Explicit VR Little Endian.
 
     private List<HttpMessageConverter<?>> _converters;
     private final static Map<String, String> DICOM_XML_TYPE = createMediaTypes();
@@ -34,7 +46,11 @@ public class MultipartDicomFileMessageConverter extends AbstractHttpMessageConve
     private final static MediaType MULTIPART_MIXED = new MediaType("multipart", "mixed");
     private final static MediaType MULTIPART_RELATED = new MediaType("multipart", "related");
     private final static MediaType APPLICATION_DICOM = new MediaType("application", "dicom");
+    private final static MediaType APPLICATION_JPEG = new MediaType("application", "jpeg");
     private final static MediaType APPLICATION_DICOM_XML = new MediaType("application", "dicom+xml");
+
+    @Autowired
+    private TransCoder transCoder;
 
     public MultipartDicomFileMessageConverter() {
         super( MULTIPART_MIXED, MULTIPART_RELATED);
@@ -46,21 +62,32 @@ public class MultipartDicomFileMessageConverter extends AbstractHttpMessageConve
     protected List<DicomObjectI> readInternal(Class<? extends List<DicomObjectI>> arg0, HttpInputMessage arg1) throws IOException, HttpMessageNotReadableException {
         return null;
     }
-    @Override
 
+    @Override
     protected void writeInternal( List<DicomObjectI> dicomParts, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
-        
+
         try {
+
+//            IIORegistry.getDefaultInstance().registerServiceProvider( com.sun.media.imageioimpl.plugins.jpeg.CLibJPEGImageWriter.class., javax.imageio.spi.ImageWriterSpi.class);
+//            ImagingServiceProviderUtils.register();
+
+            HttpHeaders defaultHeaders = outputMessage.getHeaders();
+            MediaType defaultMediaType = MediaType.parseMediaType( defaultHeaders.getFirst("Content-Type"));
+            String tsuid = defaultMediaType.getParameter("transfer-syntax");
+            tsuid = (tsuid == null)? DEFAULT_DICOM_TSUID: tsuid;
+
+            if( ! transCoder.isSupportedTransferSyntax( tsuid)) {
+                throw new UnsupportedTransferSyntaxException( tsuid);
+            }
 
             HttpHeaders headers = new HttpHeaders();
             Map<String,String> contentTypeArgs = new HashMap<>(1);
-//            contentTypeArgs.put("type", "application/dicom+xml");
             String boundary = getBoundary();
             contentTypeArgs.put("boundary", boundary);
             MediaType mediaType = new MediaType( "multipart", "related", contentTypeArgs );
             headers.setContentType( mediaType);
 
-            outputMessage.getBody().write( ("Content-Type: " + headers.getContentType().toString() + "\r\n").getBytes());
+//            outputMessage.getBody().write( ("Content-Type: " + headers.getContentType().toString() + "\r\n").getBytes());
 
             // write preamble
             outputMessage.getBody().write( "\r\n".getBytes());
@@ -78,13 +105,18 @@ public class MultipartDicomFileMessageConverter extends AbstractHttpMessageConve
                 outputMessage.getBody().write( ("\r\n--"+ boundary + "\r\n").getBytes());
                 outputMessage.getBody().write( ("Content-Type: application/dicom\r\n\r\n").getBytes());
 
-                converter.write( dicomPart, APPLICATION_DICOM, outputMessage);
+//                converter.write( dicomPart, APPLICATION_DICOM, outputMessage);
+                transCoder.transcode( dicomPart, tsuid, outputMessage.getBody());
+//                transCoder.transcode( dicomPart, "1.2.840.10008.1.2.1", outputMessage.getBody());
             }
             outputMessage.getBody().write( ("\r\n--"+ boundary + "--\r\n\r\n").getBytes());
 
 
         } catch (IOException e) {
-            e.printStackTrace();
+            String msg = "Error streaming dicom.";
+            throw new IOException(msg, e);
+        } catch( TransCoderException e) {
+            throw new HttpMessageNotWritableException(e.getMessage(), e);
         }
     }
 
@@ -115,6 +147,11 @@ public class MultipartDicomFileMessageConverter extends AbstractHttpMessageConve
                 type = type.replaceAll("^\"|\"$", "");
                 MediaType partMediaType = MediaType.parseMediaType( type);
                 if( APPLICATION_DICOM.isCompatibleWith( partMediaType)) {
+                    // don't test the tsuid here. let it go so writer can return helpful error message.
+//                    String tsuid = mediaType.getParameter("transfer-syntax");
+//                    tsuid = (tsuid == null)? UID.ExplicitVRLittleEndian: tsuid;
+//
+//                    return transCoder.isSupportedTransferSyntax( tsuid);
                     return true;
                 }
             }

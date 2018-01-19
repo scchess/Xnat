@@ -21,4 +21,6 @@ public interface DicomObjectI {
     InputStream getInputStream() throws IOException;
 
     File getFile() ;
+
+    String getTransferSyntaxUID();
 }

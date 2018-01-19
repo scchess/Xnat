@@ -18,6 +18,8 @@ import org.nrg.framework.exceptions.NrgServiceException;
 import org.nrg.xapi.exceptions.NoContentException;
 import org.nrg.xapi.model.dicomweb.DicomObjectI;
 import org.nrg.xapi.model.dicomweb.QIDOResponse;
+import org.nrg.xapi.model.dicomweb.TransCoderException;
+import org.nrg.xapi.model.dicomweb.UnsupportedTransferSyntaxException;
 import org.nrg.xapi.rest.AbstractXapiProjectRestController;
 import org.nrg.xapi.rest.XapiRequestMapping;
 import org.nrg.xapi.rest.dicomweb.search.SearchEngineI;
@@ -71,7 +73,7 @@ public class DicomWebApi extends AbstractXapiProjectRestController {
         UserI user = super.getSessionUser();
         if( user == null) {
             if( ! _preferences.getRequireLogin()) {
-                    user = getUserManagementService().getGuestUser();
+                user = getUserManagementService().getGuestUser();
             }
             else {
                 throw new IllegalAccessError();
@@ -200,7 +202,9 @@ public class DicomWebApi extends AbstractXapiProjectRestController {
     @ApiResponses({@ApiResponse(code = 200, message = "Successfully performed WADO-RS retrieve instance."),
             @ApiResponse(code = 403, message = "Insufficient permissions to perform the request."),
             @ApiResponse(code = 500, message = "An unexpected error occurred.")})
-    @XapiRequestMapping(value = "studies/{studyInstanceUID}/series/{seriesInstanceUID}/instances/{sopInstanceUID}", produces = {"multipart/related;type=\"application/dicom\""}, method = RequestMethod.GET, restrictTo = Read)
+    @XapiRequestMapping(value = "studies/{studyInstanceUID}/series/{seriesInstanceUID}/instances/{sopInstanceUID}",
+                        produces = {"multipart/related;type=\"application/dicom\""},
+                        method = RequestMethod.GET, restrictTo = Read)
     @ResponseBody
     public ResponseEntity<List<DicomObjectI>> doRetrieveInstance( @PathVariable("studyInstanceUID") String studyInstanceUID,
                                                                   @PathVariable("seriesInstanceUID") String seriesInstanceUID,
@@ -225,6 +229,22 @@ public class DicomWebApi extends AbstractXapiProjectRestController {
             _log.error(msg, e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @ExceptionHandler(UnsupportedTransferSyntaxException.class)
+    public ResponseEntity<String> handleUnsupportedTSUIDException(UnsupportedTransferSyntaxException ex) {
+
+        ResponseEntity<String> responseEntity = new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_ACCEPTABLE);
+
+        return responseEntity;
+    }
+
+    @ExceptionHandler(TransCoderException.class)
+    public ResponseEntity<String> handleTransCoderException(TransCoderException ex) {
+
+        ResponseEntity<String> responseEntity = new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+
+        return responseEntity;
     }
 
 

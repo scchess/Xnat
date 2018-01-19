@@ -28,6 +28,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.*;
 
 @Component
@@ -108,7 +109,7 @@ public class XftSearchEngine implements SearchEngineI {
             response.setSeriesNumber( scandata.getId());
             response.setPerformedProcedureStepStartDate( scandata.getStartDate());
             response.setPerformedProcedureStepStartTime( scandata.getStarttime());
-            response.setNumberOfSeriesRelatedInstances( scandata.getFrames());
+            response.setNumberOfSeriesRelatedInstances( scandata.getInstanceCount());
             responses.add( response);
         }
         return responses;
@@ -211,7 +212,7 @@ public class XftSearchEngine implements SearchEngineI {
             response.setSeriesNumber( scandata.getId());
             response.setPerformedProcedureStepStartDate( scandata.getStartDate());
             response.setPerformedProcedureStepStartTime( scandata.getStarttime());
-            response.setNumberOfSeriesRelatedInstances( scandata.getFrames());
+            response.setNumberOfSeriesRelatedInstances( scandata.getInstanceCount());
 
             response.setStudyDate( scandata.getImageSessionData().getExperimentdata().getDate());
             response.setStudyTime( scandata.getImageSessionData().getExperimentdata().getTime());
@@ -250,7 +251,7 @@ public class XftSearchEngine implements SearchEngineI {
                 response.setSeriesNumber(scan.getId());
                 response.setPerformedProcedureStepStartDate(scan.getStartDate());
                 response.setPerformedProcedureStepStartTime(scan.getStarttime());
-                response.setNumberOfSeriesRelatedInstances(scan.getFrames());
+                response.setNumberOfSeriesRelatedInstances(scan.getInstanceCount());
 
                 response.setStudyDate(session.getExperimentdata().getDate());
                 response.setStudyTime(session.getExperimentdata().getTime());
@@ -292,12 +293,25 @@ public class XftSearchEngine implements SearchEngineI {
         return imagescandata.size();
     }
 
+    /**
+     * Returns the sum of instances in each scan in the provided session in which the user has access.
+     *
+     * @param user
+     * @param session
+     * @return number of instances in the session to which the user has access.
+     * @throws RuntimeException if a scan does not have a valid instance count database entry.
+     */
     private int countInstances( UserI user, XnatImagesessiondata session) {
         ArrayList<XnatImagescandata> imagescandata = XnatImagescandata.getXnatImagescandatasByField("xnat:imagescandata/image_session_id", session.getId(), user, false);
 
         int count = 0;
         for( XnatImagescandata scan: imagescandata) {
-            count += scan.getFrames();
+            Integer n = scan.getInstanceCount();
+            if( n == null) {
+                String msg = MessageFormat.format("Scan {0} in session {1} does not have instance count.", scan.getId(), session.getId());
+                throw new RuntimeException(msg);
+            }
+            count += n;
         }
         return count;
     }

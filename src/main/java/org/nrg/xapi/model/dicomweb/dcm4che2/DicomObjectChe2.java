@@ -61,4 +61,9 @@ public class DicomObjectChe2 implements DicomObjectI {
     public File getFile() {
         return _file;
     }
+
+    @Override
+    public String getTransferSyntaxUID() {
+        return null;
+    }
 }
