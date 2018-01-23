@@ -1,4 +1,3 @@
-<!-- BEGIN xnat-templates/screens/Login.vm -->
 #* @vtlvariable name="method" type="java.lang.String" *#
 #* @vtlvariable name="login_methods" type="java.util.List" *#
 #* @vtlvariable name="turbineUtils" type="org.nrg.xdat.turbine.utils.TurbineUtils" *#
@@ -8,19 +7,15 @@
 #* @vtlvariable name="ui" type="org.apache.turbine.services.pull.util.UIManager" *#
 #* @vtlvariable name="data" type="org.apache.turbine.util.RunData" *#
 #* @vtlvariable name="link" type="org.apache.turbine.services.pull.tools.TemplateLink" *#
+
+<!-- BEGIN /xnat-templates/screens/Login.vm -->
+
 #set ($siteId = $siteConfig.siteId)
 $page.setTitle("$siteId - Please Login")
     $page.setBgColor($ui.bgcolor)
     $page.addAttribute("onLoad", "document.getElementById('username').focus();")
 
 <script src="$content.getURI("scripts/lib/epicEditor/js/epiceditor.js")"></script>
-
-<script>
-//    XNAT.cookie.set('SESSION_ACTIVE', 'false');
-//    XNAT.cookie.set('SESSION_LOGOUT_REDIRECT', 'true');
-</script>
-
-<div id="login_area">
 
     <!--[if lte IE 8]>
     <div id="ie8_error" class="error" style="display:none;margin-bottom:4em;background-image:none;z-index:9">
@@ -34,12 +29,49 @@ $page.setTitle("$siteId - Please Login")
     </div>
     <![endif]-->
 
+## define this once
+#define($userLoginFields)
+    <p>
+        <label for="username">User</label>
+        <input type="text"
+               id="username"
+               name="username"
+               title="User"
+               class="validate onblur"
+               data-validate="not-empty"
+               data-message="Username field cannot be blank.">
+    </p>
+    <p>
+        <label for="password">Password</label>
+        <input type="password"
+               name="password"
+               autocomplete="off"
+               title="Password"
+               class="validate onblur"
+               data-validate="not-empty"
+               data-message="Password field cannot be blank.">
+    </p>
+    <p class="form-submit">
+        <label class="pull-left" style="padding-top:6px;">
+            <input type="checkbox" id="continue-from-last-page" class="skip">
+            <i>Continue from last visited page?</i>
+        </label>
+        <button class="submit btn pull-right" id="loginButton" type="submit" name="login">Login</button>
+        <span class="clearfix"></span>
+    </p>
+    <span class="clearfix"></span>
+#end
+
+
+<div id="login_area">
+
 #if($siteConfig.siteWideAlertStatus != "0" && $siteConfig.siteWideAlertStatus != "off")
     <div class="$siteConfig.siteWideAlertType" style="margin-bottom: 2em;" data-status="$siteConfig.siteWideAlertStatus">$siteConfig.siteWideAlertMessage</div>
 #end
 
+
 #if($turbineUtils.GetPassedParameter("par",$data))
-## create custom layout when parameters are passed to the login page from an external link.
+    ## create custom layout when parameters are passed to the login page from an external link.
     <div id="login_welcome">
         #if($siteConfig.siteDescriptionType == "Text")
             <div id="siteDescription"></div>
@@ -88,44 +120,32 @@ $page.setTitle("$siteId - Please Login")
                         #end
                     </select>
                 #end
-                <p>
-                    <label for="username">User</label>
-                    <input type="text"
-                           id="username"
-                           name="username"
-                           title="User"
-                           class="validate onblur"
-                           data-validate="not-empty"
-                           data-message="Username cannot be blank.">
-                </p>
-                <p>
-                    <label for="password">Password</label>
-                    <input type="password"
-                           name="password"
-                           autocomplete="off"
-                           title="Password"
-                           class="validate onblur"
-                           data-validate="not-empty"
-                           data-message="Password cannot be blank.">
-                </p>
 
-                <p class="form-submit">
-                        <span id="register_forgot">
-                            <a href="$link.setPage("ForgotLogin.vm")#if($turbineUtils.GetPassedParameter('par',$data))/par/$turbineUtils.GetPassedParameter('par',$data)#end">Forgot login or password?</a>
-                        </span>
-                    <button class="submit btn" id="loginButton" type="submit" name="login">Login</button>
-                </p>
+
+                ${userLoginFields}
+
 
                 #foreach($key in $!turbineUtils.GetDataParameterHash($data).keySet())
                     #if ($key!="action" && $key!="template" &&$key!="password" &&!$key.startsWith("xdat:user") &&$key!="username" &&$key!="exception" &&$key!="username" &&$key!="exception")
                         <input type="hidden" name="$key" value="$!turbineUtils.escapeHTML($!turbineUtils.GetPassedParameter($key,$data))">
                     #end
                 #end
+
             </form>
         </div>
+
+        <span class="clearfix"></span>
+        <br>
+
+        <p id="register_forgot" class="pull-right text-right" style="width:400px;margin-right:20px;">
+            <a class="link btn-hover" href="$link.setPage("ForgotLogin.vm")#if($turbineUtils.GetPassedParameter('par',$data))/par/$turbineUtils.GetPassedParameter('par',$data)#end"><u>Forgot login or password?</u></a>
+        </p>
+
+        <span class="clearfix"></span>
+
     </div>
 
-    <div class="clear"></div>
+    <span class="clearfix"></span>
 
     <script>
         function showLogin() {
@@ -174,42 +194,46 @@ $page.setTitle("$siteId - Please Login")
                     #end
                 </select>
             #end
-            <p>
-                <label for="username">User</label>
-                <input type="text"
-                       id="username"
-                       name="username"
-                       title="User"
-                       data-validate="not-empty"
-                       data-message="Username cannot be blank.">
-            </p>
-            <p>
-                <label for="password">Password</label>
-                <input type="password"
-                       id="password"
-                       name="password"
-                       autocomplete="off"
-                       title="Password"
-                       data-validate="not-empty"
-                       data-message="Password cannot be blank.">
-            </p>
 
-            <p class="form-submit">
-                <span id="register_forgot">
-                    <a href="$link.setPage("Register.vm")#if($turbineUtils.GetPassedParameter('par',$data))/par/$turbineUtils.GetPassedParameter('par',$data)#end">Register</a>
-                    <a href="$link.setPage("ForgotLogin.vm")#if($turbineUtils.GetPassedParameter('par',$data))/par/$turbineUtils.GetPassedParameter('par',$data)#end">Forgot login or password?</a>
-                </span>
-                <button class="submit btn" id="loginButton" type="submit" name="login">Login</button>
-            </p>
+
+            ${userLoginFields}
+
 
             <input type="hidden" name="XNAT_CSRF" value="">
         </form>
     </div>
 
-    <div class="clear"></div>
+    <span class="clearfix"></span>
+    <br>
 
-    #end
-</div>
+    <p id="register_forgot" class="pull-right text-right" style="width:400px;margin-right:20px;">
+        <a class="link btn-hover" href="$link.setPage("Register.vm")#if($turbineUtils.GetPassedParameter('par',$data))/par/$turbineUtils.GetPassedParameter('par',$data)#end"><u>Register</u></a>
+        &nbsp;
+        <a class="link btn-hover" href="$link.setPage("ForgotLogin.vm")#if($turbineUtils.GetPassedParameter('par',$data))/par/$turbineUtils.GetPassedParameter('par',$data)#end"><u>Forgot login or password?</u></a>
+        <span class="clearfix"></span>
+    </p>
+
+#end
+
+</div><!-- /#login_area -->
+
+<script>
+    (function(){
+        var continueChkbx = $('#continue-from-last-page');
+        if (/#continue/i.test(window.location.hash) || /continue=true/i.test(window.location.search)) {
+            continueChkbx[0].checked = true;
+            XNAT.cookie.set('continue_session', true);
+        }
+        else {
+            continueChkbx[0].checked = false;
+            // XNAT.cookie.set('continue_session', false);
+            XNAT.cookie.remove('continue_session');
+        }
+        // continueChkbx.on('change', function(){
+        //     XNAT.cookie.set('continue_session', $(this)[0].checked);
+        // });
+    })()
+</script>
 
 <script>
     $(function(){
@@ -222,24 +246,7 @@ $page.setTitle("$siteId - Please Login")
 
             var errorCount = 0;
 
-//            var messages = [];
-//            var _form = $(this);
-//            var _username = _form.find('[name="username"]');
-//            var _password = _form.find('[name="password"]');
-//
-//            XNAT.validate(_username).minLength(1).failure(function(){
-//                errors += 1;
-//                messages.push('Username field cannot be blank')
-//            });
-//
-//            XNAT.validate(_username).minLength(1).failure(function(){
-//                errors += 1;
-//                messages.push('Password field cannot be blank')
-//            });
-//
-//            if (errors) {
-//                xmodal.message('<ul><li>' + messages.join('</li><li>') + '</li></ul>')
-//            }
+            XNAT.cookie.set('continue_session', $$('!#:continue-from-last-page').checked);
 
             XNAT.xhr.submit(this, {
                 invalid: function(form, ers){
@@ -268,9 +275,6 @@ $page.setTitle("$siteId - Please Login")
 </script>
 
 
-<!-- END xnat-templates/screens/Login.vm -->
-
-
 <!--[if lte IE 8]>
 <script>
     // detect IE8, prevent user logon. From http://stackoverflow.com/a/15983064
@@ -284,3 +288,5 @@ $page.setTitle("$siteId - Please Login")
     }
 </script>
 <![endif]-->
+
+<!-- END /xnat-templates/screens/Login.vm -->
