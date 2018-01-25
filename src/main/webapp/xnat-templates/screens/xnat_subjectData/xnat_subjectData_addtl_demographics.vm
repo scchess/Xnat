@@ -18,7 +18,7 @@
 
     #set ($fieldName = $demoProp[0])
     #set ($fieldLabel = $demoProp[1])
-    #set ($demoDataType = "xnat:subjectData/demographics[@xsi:type=xnat:demographicData]/$fieldName")
+    #set ($demoDataType = "xnat:subjectData/demographics[@xsi:type=xnat:demographicData]/${fieldName}")
 
     #if($subject.getProperty($demoDataType))
     <tr>
@@ -27,9 +27,9 @@
         <td>
         ## special handling of employment field
         #if ($fieldName == "employment")
-            #renderEmployment($turbineUtils.escapeHTML($subject.getProperty($demoDataType)))
+            #renderEmployment($!turbineUtils.escapeHTML("$subject.getProperty(${demoDataType})"))
         #else
-            $turbineUtils.escapeHTML($subject.getProperty($demoDataType))
+            $!turbineUtils.escapeHTML("$subject.getProperty(${demoDataType})")
         #end
         </td>
     </tr>
