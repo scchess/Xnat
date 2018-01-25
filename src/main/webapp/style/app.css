@@ -1018,6 +1018,19 @@ a.link {
     text-decoration: underline !important;
 }
 
+/* nicer-looking link styling */
+/* use 'ulink' class or <a><u>Link</u></a> */
+a.ulink,
+a > u {
+    text-decoration: none !important;
+    border-bottom: 1px solid #becad9;
+}
+
+a.ulink:hover,
+a:hover > u {
+    border-color: #084fab;
+}
+
 /* force links to look like links by adding the 'link' class */
 a,
 a:link,
@@ -2883,7 +2896,8 @@ td.quality-unusable {
 }
 
 img.scan-snapshot {
-    max-width: 500px;
+    /*max-width: 650px;*/
+    max-width: 100%;
 }
 
 /* not sure what these spacers do but pretty sure they should go away - let's see what breaks */
