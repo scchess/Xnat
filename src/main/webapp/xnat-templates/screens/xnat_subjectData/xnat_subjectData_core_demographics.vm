@@ -4,7 +4,7 @@
 
 #if($subject.DOBDisplay)
 <tr>
-    <td align="left">Birth year</td>
+    <th align="left">Birth year</th>
     <td>$turbineUtils.escapeHTML($!subject.DOBDisplay)</td>
 </tr>
 #end
