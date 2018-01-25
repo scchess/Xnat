@@ -20,6 +20,7 @@ $page.setBgColor($ui.bgcolor)
                 if (window.isLoginPage) {
                     $('#user_info').hide();
                 }
+                window.isGuest = true;
             </script>
         #else
             #set($username = $user.getUsername())
@@ -28,6 +29,7 @@ $page.setBgColor($ui.bgcolor)
                 <span id="user_info">Logged in as: &nbsp;<a href="$link.setPage("XDATScreen_UpdateUser.vm")">$!username</a> <b>|</b> <a href="$link.setAction("LogoutUser")">Logout</a></span>
                 <script>
                     window.loggedIn = true;
+                    window.isGuest = false;
                 </script>
             #end
         #end

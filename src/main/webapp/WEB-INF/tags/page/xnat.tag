@@ -3,6 +3,7 @@
 <%@ tag description="Document Skeleton" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
+<%@ taglib prefix="vel" uri="http://velocity.apache.org/velocity-view" %>
 <%@ taglib prefix="pg" tagdir="/WEB-INF/tags/page" %>
 
 <%--
@@ -65,11 +66,12 @@
 
         var XNAT = {};
         var serverRoot = '${SITE_ROOT}';
-        var csrfToken = '${csrfToken}';
+        var csrfToken  = '${csrfToken}';
         //var showReason = typeof false != 'undefined' ? false : null;
         //var requireReason = typeof false != 'undefined' ? false : null;
 
         window.loggedIn = realValue(${sessionScope.loggedIn});
+        window.requestMethod = realValue('${pageContext.request.method}');
 
         XNAT.theme = {};
         XNAT.theme.name = '${themeService.theme.name}';
@@ -79,36 +81,9 @@
 
     </script>
 
-    <!-- required libraries -->
-    <script src="${SITE_ROOT}/scripts/lib/loadjs/loadjs.js"></script>
-    <script src="${SITE_ROOT}/scripts/lib/jquery/jquery.${js}"></script>
-    <script src="${SITE_ROOT}/scripts/lib/jquery/jquery-migrate.${js}"></script>
-    <script type="text/javascript">
-        // use 'jq' to avoid _possible_ conflicts with Velocity
-        var jq = jQuery;
-    </script>
-
-    <!-- jQuery plugins -->
-    <link rel="stylesheet" type="text/css" href="${SITE_ROOT}/scripts/lib/jquery-plugins/chosen/chosen.min.css?${versionString}">
-    <script src="${SITE_ROOT}/scripts/lib/jquery-plugins/chosen/chosen.jquery.${js}"></script>
-    <script src="${SITE_ROOT}/scripts/lib/jquery-plugins/jquery.maskedinput.${js}"></script>
-    <script src="${SITE_ROOT}/scripts/lib/jquery-plugins/jquery.hasClasses.js"></script>
-    <script src="${SITE_ROOT}/scripts/lib/jquery-plugins/jquery.dataAttr.js"></script>
-    <script src="${SITE_ROOT}/scripts/lib/jquery-plugins/jquery.form.js"></script>
-
-    <!-- other libraries -->
-    <script src="${SITE_ROOT}/scripts/lib/spawn/spawn.js"></script>
-    <script src="${SITE_ROOT}/scripts/lib/js.cookie.js"></script>
-    <script src="${SITE_ROOT}/scripts/lib/yamljs/dist/yaml.js"></script>
-    <script src="${SITE_ROOT}/scripts/lib/form2js/src/form2js.js"></script>
-    <script src="${SITE_ROOT}/scripts/lib/form2js/src/js2form.js"></script>
-    <script src="${SITE_ROOT}/scripts/lib/x2js/xml2json.js"></script>
-    <script src="${SITE_ROOT}/scripts/lib/DefiantJS/dist/defiant.${js}"></script>
-    <script src="${SITE_ROOT}/scripts/lib/jsonpath/jsonpath.js"></script>
-    <script src="${SITE_ROOT}/scripts/lib/ace/ace.js"></script>
-
-    <!-- XNAT utility functions -->
-    <script src="${SITE_ROOT}/scripts/utils.js"></script>
+    <%-- js files have been consolidated into template below --%>
+    <%@ include file="/xnat-templates/navigations/jsLib.vm" %>
+    <%--<vel:view template="/xnat-templates/navigations/jsLib.vm"/>--%>
 
     <script type="text/javascript">
 
@@ -262,8 +237,7 @@ ${bodyTop}
             <script>
                 window.loggedIn = true;
             </script>
-            <%--<script src="${SITE_ROOT}/scripts/xnat/app/timeout.js"></script>--%>
-            <script src="${SITE_ROOT}/scripts/xnat/app/sessionTimer.js"></script>
+            <script src="${SITE_ROOT}/scripts/xnat/app/userSession.js"></script>
 
         </c:if>
 

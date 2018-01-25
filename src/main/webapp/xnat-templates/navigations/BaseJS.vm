@@ -1,3 +1,4 @@
+#* @vtlvariable name="data" type="org.apache.turbine.util.RunData" *#
 ## Base JavaScript files
 
 <!-- START BaseJS.vm -->
@@ -31,6 +32,8 @@
         var requireReason = realValue('$!requireReason');
         var logoutUrl = '$link.setAction("LogoutUser")';
 
+        window.requestMethod = '$!data.request.method';
+
     </script>
     ## separate script tags so not everything breaks if showReason or requireReason blows up
 
@@ -43,36 +46,7 @@
     </script>
     #end
 
-    <!-- required libraries -->
-    <script src="${SITE_ROOT}/scripts/lib/loadjs/loadjs.js"></script>
-    <script src="${SITE_ROOT}/scripts/lib/jquery/jquery.${js}"></script>
-    <script src="${SITE_ROOT}/scripts/lib/jquery/jquery-migrate.${js}"></script>
-    <script>
-        // alias jQuery to jq
-        var jq = jQuery;
-    </script>
-
-    <!-- jQuery plugins -->
-    <link rel="stylesheet" type="text/css" href="${SITE_ROOT}/scripts/lib/jquery-plugins/chosen/chosen.min.css?${versionString}">
-    <script src="${SITE_ROOT}/scripts/lib/jquery-plugins/chosen/chosen.jquery.${js}"></script>
-    <script src="${SITE_ROOT}/scripts/lib/jquery-plugins/jquery.maskedinput.${js}"></script>
-    <script src="${SITE_ROOT}/scripts/lib/jquery-plugins/jquery.hasClasses.js"></script>
-    <script src="${SITE_ROOT}/scripts/lib/jquery-plugins/jquery.dataAttr.js"></script>
-    <script src="${SITE_ROOT}/scripts/lib/jquery-plugins/jquery.form.js"></script>
-
-    <!-- other libraries -->
-    <script src="${SITE_ROOT}/scripts/lib/spawn/spawn.js"></script>
-    <script src="${SITE_ROOT}/scripts/lib/js.cookie.js"></script>
-    <script src="${SITE_ROOT}/scripts/lib/yamljs/dist/yaml.js"></script>
-    <script src="${SITE_ROOT}/scripts/lib/form2js/src/form2js.js"></script>
-    <script src="${SITE_ROOT}/scripts/lib/form2js/src/js2form.js"></script>
-    <script src="${SITE_ROOT}/scripts/lib/x2js/xml2json.js"></script>
-    <script src="${SITE_ROOT}/scripts/lib/DefiantJS/dist/defiant.${js}"></script>
-    <script src="${SITE_ROOT}/scripts/lib/jsonpath/jsonpath.js"></script>
-    <script src="${SITE_ROOT}/scripts/lib/ace/ace.js"></script>
-
-    <!-- XNAT utility functions -->
-    <script src="${SITE_ROOT}/scripts/utils.js"></script>
+    #parse('/xnat-templates/navigations/jsLib.vm')
 
     #set ($baseJS = true)
 

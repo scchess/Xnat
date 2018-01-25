@@ -1,0 +1,90 @@
+<!--
+<%--
+#*
+This comment structure will prevent parsing in BOTH .vm and .jsp templates
+*#
+--%>
+-->
+
+<!--
+<%--
+This comment structure will prevent parsing in .jsp templates
+--%>
+-->
+
+<!--
+#*
+This comment structure will prevent parsing in .vm templates
+*#
+-->
+
+
+<!--
+<%--
+
+#* @vtlvariable name="content" type="org.apache.turbine.services.pull.tools.ContentTool" *#
+#* @vtlvariable name="data" type="org.apache.turbine.util.RunData" *#
+
+## set vars for Velocity
+#set ($SITE_ROOT = $content.getURI(""))
+#set ($versionString = '1.7.5a')
+#set ($debugParam = $data.getParameters().getString('debug'))
+#set ($jsDebugParam = $data.getParameters().getString('jsdebug'))
+#set ($DEBUG = ($debugParam == 'true' || $jsDebugParam == 'true'))
+
+#if ($DEBUG)
+    #set ($js = "js")
+#else
+    #set ($js = "min.js")
+#end
+
+--%>
+-->
+
+<!--
+#*
+    <%-- set vars for JSP --%>
+    <c:set var="SITE_ROOT" value="${sessionScope.siteRoot}"/>
+    <c:set var="js" value="min.js"/>
+    <c:if test="${param.debug == true || param.jsdebug == true}">
+        <c:set var="DEBUG" value="true"/>
+        <c:set var="js" value="js"/>
+    </c:if>
+*#
+-->
+
+<!-- required libraries -->
+<script src="${SITE_ROOT}/scripts/lib/loadjs/loadjs.js"></script>
+<script src="${SITE_ROOT}/scripts/lib/jquery/jquery.${js}"></script>
+<script src="${SITE_ROOT}/scripts/lib/jquery/jquery-migrate.${js}"></script>
+<script>
+    // alias jQuery to jq
+    var jq = jQuery;
+    console.log('jsLib.vm');
+</script>
+
+<!-- jQuery plugins -->
+<link rel="stylesheet" type="text/css" href="${SITE_ROOT}/scripts/lib/jquery-plugins/chosen/chosen.min.css?${versionString}">
+<script src="${SITE_ROOT}/scripts/lib/jquery-plugins/chosen/chosen.jquery.${js}"></script>
+<script src="${SITE_ROOT}/scripts/lib/jquery-plugins/jquery.maskedinput.${js}"></script>
+<script src="${SITE_ROOT}/scripts/lib/jquery-plugins/jquery.hasClasses.js"></script>
+<script src="${SITE_ROOT}/scripts/lib/jquery-plugins/jquery.dataAttr.js"></script>
+<script src="${SITE_ROOT}/scripts/lib/jquery-plugins/jquery.form.js"></script>
+
+<!-- other libraries -->
+<script src="${SITE_ROOT}/scripts/lib/localForage/localforage.${js}"></script>
+<script src="${SITE_ROOT}/scripts/lib/localForage/localforage-getitems.js"></script>
+<script src="${SITE_ROOT}/scripts/lib/localForage/localforage-setitems.js"></script>
+<script src="${SITE_ROOT}/scripts/lib/localForage/localforage-removeitems.js"></script>
+<script src="${SITE_ROOT}/scripts/lib/spawn/spawn.js"></script>
+<script src="${SITE_ROOT}/scripts/lib/js.cookie.js"></script>
+<script src="${SITE_ROOT}/scripts/lib/yamljs/dist/yaml.js"></script>
+<script src="${SITE_ROOT}/scripts/lib/form2js/src/form2js.js"></script>
+<script src="${SITE_ROOT}/scripts/lib/form2js/src/js2form.js"></script>
+<script src="${SITE_ROOT}/scripts/lib/x2js/xml2json.js"></script>
+<script src="${SITE_ROOT}/scripts/lib/DefiantJS/dist/defiant.${js}"></script>
+<script src="${SITE_ROOT}/scripts/lib/jsonpath/jsonpath.js"></script>
+<script src="${SITE_ROOT}/scripts/lib/ace/ace.js"></script>
+
+<!-- XNAT utility functions -->
+<script src="${SITE_ROOT}/scripts/utils.js"></script>

@@ -115,9 +115,9 @@ var XNAT = getObject(XNAT||{});
 
     url.getSiteUrl = function(){
         if ('origin' in window.location) {
-            return window.location.origin;
+            return window.location.origin + rootUrl('/');
         }
-        return url.getProtocol() + '//' + url.getDomain() + url.getPort(':') + '/';
+        return url.getProtocol() + '//' + url.getDomain() + url.getPort(':') + rootUrl('/');
     };
 
     url.siteUrl = url.getSiteUrl();

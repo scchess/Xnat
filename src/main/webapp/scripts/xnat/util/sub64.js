@@ -224,15 +224,15 @@ var XNAT = getObject(XNAT);
         // thing initially - they will be modified later
         this.encodeInput = (str !== undef) ? (str + '') : '';
         this.decodeInput = (str !== undef) ? (str + '') : '';
-        this.encoded = '';
-        this.decoded = '';
+        this.encoded = this.enc = '';
+        this.decoded = this.dec = '';
         this.output = '';
     }
 
     Sub64.prototype.encode = function(str){
         this.encodeInput = (str !== undef) ? (str + '') : (this.encodeInput || '');
         this.output =
-            this.encoded =
+            this.encoded = this.enc =
                 this.encodeInput ?
                     Base64.encode(this.encodeInput) :
                     '';
@@ -242,7 +242,7 @@ var XNAT = getObject(XNAT);
     Sub64.prototype.decode = function(str){
         this.decodeInput = (str !== undef) ? (str + '') : (this.decodeInput || '');
         this.output =
-            this.decoded =
+            this.decoded = this.dec =
                 this.decodeInput ?
                     Base64.decode(this.decodeInput || this.encoded) :
                     '';
@@ -254,7 +254,7 @@ var XNAT = getObject(XNAT);
     // subInstance.get()  --  still returns ENCODED string
     // subInstance.decode().get() returns the DECODED string
     // subInstance.get()  --  now returns the DECODED string, since that was the last operation
-    // 
+    //
     Sub64.prototype.get = function(which){
         return which ? this[which] : this.output;
     };
