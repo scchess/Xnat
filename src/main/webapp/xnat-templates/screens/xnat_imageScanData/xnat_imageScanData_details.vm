@@ -4,61 +4,56 @@
 <!-- START /xnat-templates/screens/xnat_mrScanData/xnat_imageScanData_details.vm -->
 <table class="xnat-table clean compact scan-details" style="border: none;">
     <tr>
-        <td> </td>
-        <td>Image </td>
-        <td align="left">
+        <th>Image</th>
+        <td>
             #scanSnapshotImage($content $om $scan)
         </td>
-
     </tr>
 	#if($scan.getProperty("quality"))
         <tr>
-            <td></td>
-            <td>Quality</td>
+            <th>Quality</th>
             <td align="left">$!scan.getProperty("quality")</td>
         </tr>
 	#end
 	#if($scan.getProperty("startTime"))
         <tr>
-            <td></td>
-            <td>Start Time</td>
+            <th>Start Time</th>
             <td align="left">$!scan.getProperty("startTime")</td>
         </tr>
 	#end
 	#if($scan.getProperty("condition"))
         <tr>
-            <td></td>
-            <td>Condition</td>
+            <th>Condition</th>
             <td align="left">$!scan.getProperty("condition")</td>
         </tr>
 	#end
 	#if($scan.getProperty("series_description"))
         <tr>
-            <td></td>
-            <td>Series Desc</td>
+            <th>Series Desc</th>
             <td align="left">$!scan.getProperty("series_description")</td>
         </tr>
 	#end
 	#if($scan.getProperty("modality"))
         <tr>
-            <td></td>
-            <td>Modality</td>
+            <th>Modality</th>
             <td align="left">$!scan.getProperty("modality")</td>
         </tr>
 	#end
 	#if($scan.getProperty("frames"))
         <tr>
-            <td></td>
-            <td>Frames</td>
+            <th>Frames</th>
             <td align="left">$!scan.getProperty("frames")</td>
         </tr>
 	#end
 
 	#if($scan.getUid())
     <tr>
-        <td> </td>
-        <td colspan="2">
-			<a target="_blank" class="view-dicom-headers" href="$content.getURI("/REST/services/dicomdump?src=/archive/projects/$om.getProject()/experiments/$om.getId()/scans/$scan.getId()&format=html&requested_screen=DicomScanTable.vm")">View DICOM Headers</a>
+        <td></td>
+        <td>
+            <br>
+			<a target="_blank" class="view-dicom-headers" href="$content.getURI("/REST/services/dicomdump?src=/archive/projects/$om.getProject()/experiments/$om.getId()/scans/$scan.getId()&format=html&requested_screen=DicomScanTable.vm")">
+                <u>View DICOM Headers</u>
+            </a>
 		</td>
 	#end
 </table>

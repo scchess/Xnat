@@ -185,6 +185,14 @@
                 font-size: 13px;
             }
 
+            div.scan-details > table th {
+                text-align: left;
+                white-space: nowrap;
+                background: none;
+                border: none;
+                font-weight: bold;
+            }
+
             div.scan-details > table td {
                 padding: 3px 8px;
             }
