@@ -1,30 +1,19 @@
-<!--
-<%--
-#*
+<!-- <%-- #*
 This comment structure will prevent parsing in BOTH .vm and .jsp templates
-*#
---%>
--->
+*# --%> -->
 
-<!--
-<%--
-This comment structure will prevent parsing in .jsp templates
---%>
--->
+<!-- <%-- -->
+<!-- This comment structure will prevent parsing in .jsp templates -->
+<!-- --%> -->
 
-<!--
-#*
-This comment structure will prevent parsing in .vm templates
-*#
--->
+<!-- #* -->
+<!-- This comment structure will prevent parsing in .vm templates -->
+<!-- *# -->
 
 
-<!--
-<%--
-
+<!-- <%-- -->
 #* @vtlvariable name="content" type="org.apache.turbine.services.pull.tools.ContentTool" *#
 #* @vtlvariable name="data" type="org.apache.turbine.util.RunData" *#
-
 ## set vars for Velocity
 #set ($SITE_ROOT = $content.getURI(""))
 #set ($versionString = '1.7.5a')
@@ -37,12 +26,9 @@ This comment structure will prevent parsing in .vm templates
 #else
     #set ($js = "min.js")
 #end
+<!-- --%> -->
 
---%>
--->
-
-<!--
-#*
+<!-- #* -->
     <%-- set vars for JSP --%>
     <c:set var="SITE_ROOT" value="${sessionScope.siteRoot}"/>
     <c:set var="js" value="min.js"/>
@@ -50,8 +36,7 @@ This comment structure will prevent parsing in .vm templates
         <c:set var="DEBUG" value="true"/>
         <c:set var="js" value="js"/>
     </c:if>
-*#
--->
+<!-- *# -->
 
 <!-- required libraries -->
 <script src="${SITE_ROOT}/scripts/lib/loadjs/loadjs.js"></script>

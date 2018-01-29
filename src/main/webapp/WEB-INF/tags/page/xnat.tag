@@ -3,7 +3,7 @@
 <%@ tag description="Document Skeleton" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
-<%@ taglib prefix="vel" uri="http://velocity.apache.org/velocity-view" %>
+<%@ taglib prefix="velocity" uri="http://velocity.apache.org/velocity-view" %>
 <%@ taglib prefix="pg" tagdir="/WEB-INF/tags/page" %>
 
 <%--
@@ -83,7 +83,7 @@
 
     <%-- js files have been consolidated into template below --%>
     <%@ include file="/xnat-templates/navigations/jsLib.vm" %>
-    <%--<vel:view template="/xnat-templates/navigations/jsLib.vm"/>--%>
+    <%--<velocity:view template="/xnat-templates/navigations/jsLib.vm"/>--%>
 
     <script type="text/javascript">
 
