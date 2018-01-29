@@ -78,6 +78,7 @@ var XNAT = getObject(XNAT);
             $frag = $(frag),
             template$, template$$, tmplId,
             callbacks = [],
+            configObj = getObject(obj),
             undef;
 
         try {
@@ -91,7 +92,13 @@ var XNAT = getObject(XNAT);
 
         spawner.counter++;
 
-        forOwn(obj, function(item, prop){
+        // tolerate malformed element config (not using a top-level 'parent' property)
+        // must have one of these properties:
+        if (obj.kind || obj.tag || obj.html || obj.before || obj.after || obj.template || obj.page || obj.type) {
+            configObj[randomID('spawnerE', false)] = obj;
+        }
+
+        forOwn(configObj, function(item, prop){
 
             var show, hide, kind, element, method, spawnedElement, $spawnedElement, _spwnd;
 

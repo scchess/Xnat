@@ -152,6 +152,7 @@
 
     function appendChildren(el, children, fn){
         [].concat(children).forEach(function(child){
+            var appended = false;
             if (!child) return;
             // each 'child' can be an array of
             // spawn arrays...
@@ -161,6 +162,27 @@
             // ...or an HTML string (or number)...
             else if (stringable(child)){
                 el.innerHTML += child;
+            }
+            // ...or a spawn() config object...
+            else if (isPlainObject(child) && !child.jquery) {
+                if (child.hasOwnProperty('tag')) {
+                    child.html = child.html || child.content || '';
+                    el.appendChild(fn.call(el, child.tag, child))
+                }
+                else {
+                    try {
+                        forOwn(child, function(key, val){
+                            if (!appended && val.tag) {
+                                val.html = val.html || val.content || '';
+                                el.appendChild(fn.call(el, val.tag, val));
+                                appended = true;
+                            }
+                        })
+                    }
+                    catch(e) {
+                        console.log(e)
+                    }
+                }
             }
             // ...or 'appendable' nodes
             else {
