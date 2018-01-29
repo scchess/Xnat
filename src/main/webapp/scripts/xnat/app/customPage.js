@@ -69,7 +69,7 @@ var XNAT = getObject(XNAT);
             pageName = urlParts[1].split(end || /\/#|#/)[0];
         }
         return customPage.pageName =
-            escapeHtml(pageName.replace(/^\/|\/$/g, ''), /[&<>"']/g);
+            escapeHtml(pageName.replace(/^\/|\/$/g, ''));
     };
 
     customPage.getName = function(end){
@@ -78,7 +78,7 @@ var XNAT = getObject(XNAT);
                 getUrlHashValue('#view=', end) ||
                 getUrlHashValue('#/', end) ||
                 getUrlHash();
-        return customPage.name = escapeHtml(name, /[&<>"']/g);
+        return customPage.name = escapeHtml(name);
     };
 
     // cache name of current page on load

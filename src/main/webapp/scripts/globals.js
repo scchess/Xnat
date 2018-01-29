@@ -94,9 +94,9 @@ function diddly(){}
 function getQueryStringValue( param ){
     var search = window.location.search;
     if (!param || !search) { return '' }
-    if (search.indexOf(param) === -1) { return '' }
+    if (search.indexOf(param + '=') === -1) { return '' }
     var val = search.
-        split(param+'=')[1].
+        split(param + '=')[1].
         split('&')[0].
         split('#')[0].
         replace(/\/*$/,''); // remove any 'bonus' trailing slashes
@@ -1018,9 +1018,9 @@ function debugMode(){
             getQueryStringValue('debug') ||
             getQueryStringValue('js') ||
             '').toLowerCase();
-    if (/(debug=off|debug=false)/.test(hash)) return false;
-    if (/(debug|true|on)/.test(debug)) return true;
-    if (/(debug)/.test(hash)) return true;
+    if (/(js)*debug=(off|false)/.test(hash)) return false;
+    if (/debug|true|on/.test(debug)) return true;
+    if (/debug|jsdebug/.test(hash)) return true;
     return false;
 }
 
@@ -1194,12 +1194,15 @@ function insertScript( url, min, name ){
 // returns new <script> DOM ELEMENT
 function scriptElement( src, title, body ){
     var script = document.createElement('script');
+    var parts = (src || '').split('|');
+    var scriptSrc = (parts[0] || '').trim();
+    var scriptMin = (parts[1] || '').trim();
     script.type = "text/javascript";
     if (title){
         script.title = title;
     }
-    if (src){
-        script.src = src;
+    if (scriptSrc){
+        script.src = scriptMin ? scriptSrc.replace(/\.js$/i, setMin(scriptMin + '.js')) : scriptSrc;
     }
     else {
         script.innerHTML = body || '';

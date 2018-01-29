@@ -72,9 +72,9 @@ var XNAT = getObject(XNAT);
     function setValue(input, value){
 
         // don't bother if there's no value
-        if (value === undef) {
-            return;
-        }
+        // if (value === undef) {
+        //     return;
+        // }
 
         var input$ = $$(input);
         var input0 = input$[0];
@@ -91,7 +91,7 @@ var XNAT = getObject(XNAT);
         var listDelim = input0.getAttribute('data-delim') || (nameParts[2] || ',');
 
         var inputValue = input$.val();
-        var val = value || '';
+        var val = firstDefined(value, '');
 
         // skip buttons (?)
         if (isButton(input0)) {
@@ -144,15 +144,16 @@ var XNAT = getObject(XNAT);
         if (/checkbox/i.test(inputType)) {
             if (/true|false|1|0/i.test(val)) {
                 input0.checked = !!realValue(val);
-                input0.value = val;
+                input0.value = valString;
             }
             else {
                 input0.checked = (inputValue && val && inputValueString === valString) || !!val;
-                input0.value = (input0.value || val) + '';
+                input0.value = (input0.value || valString) + '';
             }
         }
         else if (/radio/i.test(inputType)){
             input0.checked = inputValueString === valString;
+            input0.value = valString;
             //if (input0.checked) input$.trigger('change');
         }
         else if (/SELECT/i.test(inputTag)) {
@@ -227,6 +228,7 @@ var XNAT = getObject(XNAT);
         // create data object to use for js2form()
         var obj = {};
         forEach(inputs, function(input, i){
+            var val = '';
             var name =
                     input.name ||
                     input.title.split(':')[0].trim() ||
@@ -235,7 +237,8 @@ var XNAT = getObject(XNAT);
             var nameParts = name.split(ARRAYLIST_SPLIT_REGEX);
             if (name) {
                 name = nameParts[0] || nameParts[1];
-                obj[name] = (isPlainObject(data)) ? data[name] || '' : data;
+                val = data[name] !== undef ? data[name] : '';
+                obj[name] = isPlainObject(data) ? val : data;
                 parseInputValue(input, obj);
                 // setValue(input, data[name]);
             }
@@ -604,7 +607,7 @@ var XNAT = getObject(XNAT);
      * @param formElement
      * @returns {Form}
      */
-    form = function(formElement){
+    form = function XNATform(formElement){
         var newForm = new Form(formElement);
         if (formElement) {
             return newForm.getElements();
@@ -622,14 +625,14 @@ var XNAT = getObject(XNAT);
     $.setValues = setValues;
 
     // add as a jQuery method
-    $.fn.setValues = function(dataObj){
+    $.fn.setValues = function $fnSetValues(dataObj){
         setValues(this, dataObj);
         return this;
     };
 
 
 
-    form.getValues = function(inputs){
+    form.getValues = function formGetValues(inputs){
         return inputs !== undef ? form(inputs).getValues() : {};
     };
 
@@ -637,7 +640,7 @@ var XNAT = getObject(XNAT);
     $.getValues = form.getValues;
 
     // get values of selected form elements
-    $.fn.getValues = function(callback){
+    $.fn.getValues = function $fnGetValues(callback){
         var values = form.getValues(this);
         if (typeof callback === 'function') {
             callback.call(this, values);

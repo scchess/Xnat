@@ -714,7 +714,7 @@ var XNAT = getObject(XNAT || {});
                     valid = true;
 
                 // validate inputs before moving on
-                $form.find(':input[data-validate]').not('.ignore').each(function(){
+                $form.find(':input[data-validate]').not('.ignore, .skip').each(function(){
                     valid = XNAT.validate(this);
                     if (!valid.check()) {
                         errorCount++;

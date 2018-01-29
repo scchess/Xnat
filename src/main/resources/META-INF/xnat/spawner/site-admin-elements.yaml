@@ -1433,7 +1433,7 @@ investigatorsOld:
                     label: ~!
                     call: XNAT.admin.investigatorProjectList
 
-scanTypeMapping:
+setScanTypeMapping:
     kind: panel.form
     label: Scan Type Mapping
     method: POST
@@ -1521,10 +1521,10 @@ root:
             group: xnatSetup
             contents:
                 ${notifications}
-        themesAndFeatures:
+        manageThemes:
             kind: tab
-            name: themesAndFeatures
-            label: Themes & Features
+            name: manageThemes
+            label: Themes
             group: xnatSetup
             contents:
                 ${themeManagement}

@@ -80,19 +80,29 @@
                         XNAT.tabs.container = $('#admin-config-tabs').find('div.content-tabs');
                         XNAT.tabs.layout = 'left';
 
-                        var adminTabs =
-                                XNAT.spawner
-                                    .resolve('siteAdmin/root')
-                                    .ok(function(){
-                                        this.render(XNAT.tabs.container, 200, function(){
-                                            //initInfoLinks();
-                                            // SAVE THE UI JSON
-                                            XNAT.app.adminTabs = adminTabs;
-                                        });
-                                        this.done(function(){
-                                            XNAT.tab.activate(XNAT.tab.active, XNAT.tabs.container);
-                                        })
+                        var gotTabs = false;
+                        var spawnerIds = ['root', 'adminPage'];
+
+                        function findAdminTabs(idIndex){
+                            if (gotTabs || idIndex >= spawnerIds.length) return;
+                            var spawnerNS = 'siteAdmin/' + spawnerIds[idIndex];
+                            XNAT.spawner
+                                .resolve(spawnerNS)
+                                .ok(function(){
+                                    gotTabs = true;
+                                    this.render(XNAT.tabs.container, 200, function(){
+                                        //initInfoLinks();
                                     });
+                                    this.done(function(){
+                                        XNAT.tab.activate(XNAT.tab.active, XNAT.tabs.container);
+                                    })
+                                })
+                                .fail(function(){
+                                    findAdminTabs(idIndex += 1)
+                                })
+                        }
+
+                        findAdminTabs(0);
 
                     })();
 
