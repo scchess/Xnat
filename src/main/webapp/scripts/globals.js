@@ -565,14 +565,18 @@ function once(func, args) {
 // array(-like) object with a length property
 // works like native Array.forEach();
 function forEach(arr, fn, context){
-    var i = -1, len;
-    if (!arr || !arr.length) { return }
+    var i = -1, len, out;
+    if (!arr || !arr.length) { return [] }
+    out = new Array(arr.length);
     len = arr.length;
-    if (isFunction(fn)) {
-        while (++i < len) {
+    fn = (fn && isFunction(fn)) ? fn : null;
+    while (++i < len) {
+        out[i] = arr[i];
+        if (fn) {
             fn.call(context || arr[i], arr[i], i);
         }
     }
+    return out;
 }
 
 function forIn(obj, fn, context){

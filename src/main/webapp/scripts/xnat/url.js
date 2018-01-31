@@ -103,12 +103,27 @@ var XNAT = getObject(XNAT||{});
 
     url.port = url.getPort();
 
-    url.getPath = function(){
+    // get path INCLUDING site context
+    url.getFullPath = function(){
+        var server = '';
         if ('pathname' in window.location) {
             return window.location.pathname;
         }
-        var server = url.port ? url.domain + ':' + url.port : url.domain;
-        return window.location.href.split(server)[1];
+        else {
+            server = url.port ? url.domain + ':' + url.port : url.domain;
+            return window.location.href.split(server)[1];
+        }
+    };
+
+    url.fullPath = url.getFullPath();
+
+    // get path WITHOUT site context
+    url.getPath = function(){
+        var pathname = url.getFullPath();
+        var context = rootUrl();
+        var pathParts = pathname.split(context);
+        pathParts.shift();
+        return '/' + pathParts.join(context);
     };
 
     url.path = url.getPath();

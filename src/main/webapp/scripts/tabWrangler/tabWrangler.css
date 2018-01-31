@@ -33,7 +33,7 @@
     flippers
 ////////////////////////////////////////////////// */
 .flipper_box {
-    display: block !important ; width: 200px ; /* height: 28px !important ; */ margin: 0 !important ;
+    display: block !important ; width: 360px ; height: 34px !important ; margin: 0 !important ;
     padding-top: 0 !important ; padding-right: 0 !important ; /* padding-left: 40px !important ; */
     position: absolute !important ; right: 0 !important ; top: 0 !important ;
     text-align: right !important ; vertical-align: middle !important ; font-size: 11px ; font-weight: normal ;
@@ -49,12 +49,12 @@
     border: 1px solid #686868 !important ;
     /* box-shadow: 0 0 10px rgba(0,0,0,1) ; */
 }
-.flipper_box .flippers .flipper.left { width: 45px ; border-right: none !important ; }
-.flipper_box .flippers .flipper.right { width: 45px ; }
-.flipper_box .flippers .flipper.first { width: 28px ; /* border-top-left-radius: 5px ; */ border-right: none !important ; }
-.flipper_box .flippers .flipper.last { width: 28px ; /* border-top-right-radius: 5px ; */ border-left: none !important ; }
+.flipper_box .flippers .flipper-left { width: 45px ; border-right: none !important ; }
+.flipper_box .flippers .flipper-right { width: 45px ; }
+.flipper_box .flippers .flipper-first { width: 28px ; /* border-top-left-radius: 5px ; */ border-right: none !important ; }
+.flipper_box .flippers .flipper-last { width: 28px ; /* border-top-right-radius: 5px ; */ border-left: none !important ; }
 .flipper_box .flippers .flipper.disabled { color: #aaa !important ; background: #808080 !important ; }
-.flipper_box .flippers .flipper.disabled:hover { cursor: default ; }
+.flipper_box .flippers .flipper.disabled:hover { cursor: not-allowed ; }
 .flipper_box .flippers .flipper.disabled:active { color: #999 ; background: #787878 ; cursor: default ; }
 .flipper_box .flippers .flipper:active { background: /* #e0e0e0 */ /* rgb(229, 242, 255) */ #808080 !important ; color: #fff !important ; outline: none ; }
 .flipper_box .flippers .flipper img { display: block ; padding: 3px 6px !important ; border: none !important ; }
