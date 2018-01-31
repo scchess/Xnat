@@ -350,21 +350,21 @@ $(function(){
         });
 
         // click 'left' flipper
-        if ($flipper.hasClass('left')){
+        if ($flipper.hasClass('flipper-left')){
             $prev_tab.trigger('click');
         }
         // click 'right' flipper
-        if ($flipper.hasClass('right')){
+        if ($flipper.hasClass('flipper-right')){
             $next_tab.trigger('click');
         }
 
         // click 'first' flipper
-        if ($flipper.hasClass('first')){
+        if ($flipper.hasClass('flipper-first')){
             $first_tab.trigger('click');
         }
 
         // click 'last' flipper
-        if ($flipper.hasClass('last')){
+        if ($flipper.hasClass('flipper-last')){
             $last_tab.trigger('click');
         }
     });
