@@ -153,7 +153,7 @@ var XNAT = getObject(XNAT);
         }
         else if (/radio/i.test(inputType)){
             input0.checked = inputValueString === valString;
-            input0.value = valString;
+            // input0.value = valString;
             //if (input0.checked) input$.trigger('change');
         }
         else if (/SELECT/i.test(inputTag)) {
