@@ -95,12 +95,12 @@ function renderFlippers(_$wrapper){
 
         // then enable ONLY the ones we need
         //
-        // disable the left flippers if we're on the first tab
+        // enable only the right flippers if we're on the first tab
         if ($tabs_ul.find('li').first().attr('title') !== 'active'){
             _$wrapper.find('.flipper-first, .flipper-left').disabled(false);
         }
         //
-        // disable the right flippers if we're on the last tab
+        // enable only the left flippers if we're on the last tab
         if ($tabs_ul.find('li').not('.phantom').last().attr('title') !== 'active'){
             _$wrapper.find('.flipper-last, .flipper-right').disabled(false);
         }
