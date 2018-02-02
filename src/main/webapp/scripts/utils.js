@@ -434,7 +434,7 @@ jQuery.loadScript = function (url, arg1, arg2) {
             if (attr.specified) {
                 obj[attr.name] =
                     obj[toCamelCase(attr.name)] =
-                        attr;
+                        attr.value;
             }
         }
         return obj;
