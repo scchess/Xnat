@@ -47,11 +47,11 @@ function renderAddTabSelect(_$wrapper,_val){
 
     if ($select_add_tab.length){
 
-        _$wrapper.find('.flipper_box').css('width','310px');
+        // _$wrapper.find('.flipper_box').css('width','310px');
 
         if (!_$wrapper.find('.flippers .selector').length){
             _$wrapper.find('.flippers').prepend('' +
-                '<span class="selector" style="width:122px;border-right:none;">' +
+                '<span class="selector" style="width:150px;border-right:none;">' +
                 //'   <ul class="proxy" style="width:110px;margin:2px;padding:3px 0;font-size:11px;"></ul>' +
                 '</span>' +
                 '');
@@ -63,7 +63,7 @@ function renderAddTabSelect(_$wrapper,_val){
 
         // need to figure out how to disable <select> if there's no more data types to load into tabs
         if (_$wrapper.find('.flippers .selector select option').length === 0){
-            _$wrapper.find('.flippers .selector select').prop('disabled',true).attr('disabled','disabled').addClass('disabled');
+            _$wrapper.find('.flippers .selector select').disabled(true);
         }
 
     }
@@ -76,39 +76,39 @@ function renderFlippers(_$wrapper){
     var $tabs = $tabs_ul.find('li').not('.phantom');
     var $select_add_tab = _$wrapper.find('.select_add_tab');
     if ($tabs.length > 1 || $select_add_tab.length){
-        var has_flippers = !!_$wrapper.find('.flipper_box').length;
-        var $flipper_box ;
-        var $content_wrapper = _$wrapper.find('.yui-content');
-        if (has_flippers === false){
-            $content_wrapper.after('<div class="flipper_box"></div>');
-            $flipper_box = $content_wrapper.next('div.flipper_box');
+        var $flipper_box = _$wrapper.find('.flipper_box');
+        if (!$flipper_box.length){
+            $flipper_box = $('<div class="flipper_box"/>');
             $flipper_box.html('' +
                 '<span class="flippers">' +
-                '<a href="##" class="flipper first"><b>&laquo;</b></a>' +
-                '<a href="##" class="flipper left"><b>&lsaquo;</b> prev </a>' +
-                '<a href="##" class="flipper right">next <b>&rsaquo;</b></a>' +
-                '<a href="##" class="flipper last"><b>&raquo;</b></a>' +
+                '<a href="#!" class="flipper flipper-first"><b>&laquo;</b></a>' +
+                '<a href="#!" class="flipper flipper-left"><b>&lsaquo;</b> prev </a>' +
+                '<a href="#!" class="flipper flipper-right">next <b>&rsaquo;</b></a>' +
+                '<a href="#!" class="flipper flipper-last"><b>&raquo;</b></a>' +
                 '</span>' +
                 '');
+            _$wrapper.find('.yui-content').after($flipper_box);
         }
-        // disable the left flippers if we're on the first tab
-        if ($tabs_ul.find('li').first().attr('title') === 'active'){
-            $('.flipper.first,.flipper.left').addClass('disabled');
+
+        // first disable ALL flippers
+        _$wrapper.find('.flippers > a').disabled(true);
+
+        // then enable ONLY the ones we need
+        //
+        // enable only the right flippers if we're on the first tab
+        if ($tabs_ul.find('li').first().attr('title') !== 'active'){
+            _$wrapper.find('.flipper-first, .flipper-left').disabled(false);
         }
-        else {
-            $('.flipper.first,.flipper.left').removeClass('disabled');
+        //
+        // enable only the left flippers if we're on the last tab
+        if ($tabs_ul.find('li').not('.phantom').last().attr('title') !== 'active'){
+            _$wrapper.find('.flipper-last, .flipper-right').disabled(false);
         }
-        // disable the right flippers if we're on the last tab
-        if ($tabs_ul.find('li').not('.phantom').last().attr('title') === 'active'){
-            $('.flipper.last,.flipper.right').addClass('disabled');
-        }
-        else {
-            $('.flipper.last,.flipper.right').removeClass('disabled');
-        }
+
     }
     // disable all flippers if there are NO tabs
     if (!$tabs.length){
-        $('.flipper').addClass('disabled');
+        $tabs_ul.find('.flipper').disabled(true);
     }
     renderAddTabSelect(_$wrapper,'');
 }
@@ -350,21 +350,21 @@ $(function(){
         });
 
         // click 'left' flipper
-        if ($flipper.hasClass('left')){
+        if ($flipper.hasClass('flipper-left')){
             $prev_tab.trigger('click');
         }
         // click 'right' flipper
-        if ($flipper.hasClass('right')){
+        if ($flipper.hasClass('flipper-right')){
             $next_tab.trigger('click');
         }
 
         // click 'first' flipper
-        if ($flipper.hasClass('first')){
+        if ($flipper.hasClass('flipper-first')){
             $first_tab.trigger('click');
         }
 
         // click 'last' flipper
-        if ($flipper.hasClass('last')){
+        if ($flipper.hasClass('flipper-last')){
             $last_tab.trigger('click');
         }
     });

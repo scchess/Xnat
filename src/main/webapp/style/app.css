@@ -89,14 +89,16 @@ input[type="number"] {
     border: 1px solid #c0c0c0;
 }
 
-[disabled],
-.disabled {
-    opacity: 0.75;
+[disabled]:hover,
+.disabled:hover {
     cursor: not-allowed;
 }
 
 input[disabled],
-input.disabled {
+input.disabled,
+textarea[disabled],
+textarea.disabled {
+    opacity: 0.75;
     background: #ddd;
 }
 
@@ -117,7 +119,11 @@ textarea:focus {
 
 select:focus { outline: none; }
 
-select {  }
+select[disabled],
+select.disabled {
+    opacity: 0.75;
+    cursor: not-allowed;
+}
 
 /* xnat.css */
 /***********************************************/
