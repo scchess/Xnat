@@ -69,7 +69,27 @@ public class QIDOResponseStudy extends QIDOResponse {
     public void setPatientsBirthDate(String value) { setString( 0x00100030, ElementDictionary.vrOf(0x00100030, null), value ); }
 
     public String getPatientsSex() { return getString(0x00100040); }
-    public void setPatientsSex(String value) { setString( 0x00100040, ElementDictionary.vrOf(0x00100040, null), value ); }
+    public void setPatientsSex(String value) {
+        String gender = null;
+        if( value == null || "".equals(value)) {
+            gender = value;
+        }
+        else {
+            switch (value.toLowerCase()) {
+                case "male":
+                case "m":
+                    gender = "M";
+                    break;
+                case "female":
+                case "f":
+                    gender = "F";
+                    break;
+                default:
+                    gender = "O";
+            }
+        }
+        setString( 0x00100040, ElementDictionary.vrOf(0x00100040, null), gender );
+    }
 
     public String getStudyInstanceUID() { return getString(0x0020000D); }
     public void setStudyInstanceUID(String value) { setString( 0x0020000D, ElementDictionary.vrOf(0x0020000D, null), value ); }
