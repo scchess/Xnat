@@ -1626,7 +1626,7 @@ root:
             kind: tab
             label: Miscellaneous
             contents:
-                ${scanTypeMapping}
+                ${setScanTypeMapping}
                 ${developmentUtilities}
 
 
