@@ -70,6 +70,7 @@
         //var requireReason = typeof false != 'undefined' ? false : null;
 
         window.loggedIn = realValue(${sessionScope.loggedIn});
+        window.isGuest = realValue(${sessionScope.isGuest});
 
         XNAT.theme = {};
         XNAT.theme.name = '${themeService.theme.name}';
@@ -113,7 +114,7 @@
     <script type="text/javascript">
 
         if (window.loggedIn) {
-            Cookies.set('guest', 'false', { path: '/' });
+            Cookies.set('guest', 'false', { path: '${SITE_ROOT}' });
         }
 
         /*
