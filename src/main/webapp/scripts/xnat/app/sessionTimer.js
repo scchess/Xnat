@@ -674,7 +674,8 @@ var XNAT = getObject(XNAT);
         }
 
         // attach event handler to elements with 'renew-session' class
-        $(document).on('click', '#timeLeftRenew, .renew-session', function(){
+        $(document).on('click', '#timeLeftRenew, .renew-session', function(e){
+            e.preventDefault();
             timeout.renew();
         });
 
