@@ -22,6 +22,7 @@
     tabs
 ////////////////////////////////////////////////// */
 .yui-navset ul.yui-nav { white-space: nowrap ; }
+/*.yui-navset.wangled .wrangler { width: 100%; border-left: 1px solid #aaa; border-bottom: 5px solid #1A75BB; overflow: hidden; }*/
 .yui-navset.wrangled ul.yui-nav { height: 34px ; position: relative !important ; overflow: visible !important ; white-space: nowrap ; border: none !important ; }
 .yui-navset.wrangled ul.yui-nav li { height: 34px !important ; }
 .yui-navset.wrangled ul.yui-nav li.selected { height: 34px !important ; }
@@ -33,19 +34,34 @@
     flippers
 ////////////////////////////////////////////////// */
 .flipper_box {
-    display: block !important ; width: 360px ; height: 29px !important ; margin: 0 !important ;
+    display: block !important ; width: 320px ; height: 34px !important ; margin: 0 !important ;
     padding-top: 0 !important ; padding-right: 0 !important ; /* padding-left: 40px !important ; */
-    position: absolute !important ; right: 0 !important ; top: 5px !important ;
+    position: absolute !important ; right: 0 !important ; top: 0 !important ;
     text-align: right !important ; vertical-align: middle !important ; font-size: 11px ; font-weight: normal ;
-    /* color: #000 ; */ background: /* rgba(205,0,0,0.5) */ url('images/fade_right_white_40w.png') left center repeat-y ; /* border-color: #fff */ ;
+    /* color: #000 ; */
+    /*background-color: rgba(205,0,0,0.5) ; */
+    /*background-image: url('images/fade_right_white_40w.png') left center repeat-y ;*/
+    background-image: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDEgMSIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSI+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkLXVjZ2ctZ2VuZXJhdGVkIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMCUiPgogICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2ZmZmZmZiIgc3RvcC1vcGFjaXR5PSIwIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjEwJSIgc3RvcC1jb2xvcj0iI2ZmZmZmZiIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNmZmZmZmYiIHN0b3Atb3BhY2l0eT0iMSIvPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0idXJsKCNncmFkLXVjZ2ctZ2VuZXJhdGVkKSIgLz4KPC9zdmc+);
+    background-image: -moz-linear-gradient(left, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 10%, rgba(255,255,255,1) 100%);
+    background-image: -webkit-gradient(linear, left top, right top, color-stop(0%,rgba(255,255,255,0)), color-stop(10%,rgba(255,255,255,1)), color-stop(100%,rgba(255,255,255,1)));
+    background-image: -webkit-linear-gradient(left, rgba(255,255,255,0) 0%,rgba(255,255,255,1) 10%,rgba(255,255,255,1) 100%);
+    background-image: -o-linear-gradient(left, rgba(255,255,255,0) 0%,rgba(255,255,255,1) 10%,rgba(255,255,255,1) 100%);
+    background-image: -ms-linear-gradient(left, rgba(255,255,255,0) 0%,rgba(255,255,255,1) 10%,rgba(255,255,255,1) 100%);
+    background-image: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 10%, rgba(255,255,255,1) 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ffffff', endColorstr='#ffffff',GradientType=1 );
+    /* border-color: #fff */ ;
     white-space: nowrap ;
 }
-.flipper_box .flippers { display: block ; /* width: 143px ; */ /* height: 28px ; */ text-align: right ; }
+.flipper_box .flippers { display: block ; position: relative; top: 5px; text-align: right ; }
 .flipper_box .flippers .flipper,
 .flipper_box .flippers .selector {
     display: inline-block ; margin: 0 !important ; padding: 0 !important ; height: 27px ;
     font-weight: normal ; line-height: 20px ; vertical-align: middle ; text-align: center ; text-decoration: none ;
-    color: #fff !important ; background: #808080 url('images/tab_flipper_bkgd_dark.png') center top repeat-x !important ;
+    color: #fff !important ;
+    background-color:  #808080;
+    background-image: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDEgMSIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSI+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkLXVjZ2ctZ2VuZXJhdGVkIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPgogICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzYwNjA2MCIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNhMGEwYTAiIHN0b3Atb3BhY2l0eT0iMSIvPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0idXJsKCNncmFkLXVjZ2ctZ2VuZXJhdGVkKSIgLz4KPC9zdmc+);
+    background-image: linear-gradient(#a0a0a0, #606060);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#606060', endColorstr='#a0a0a0',GradientType=0 );
     border: 1px solid #686868 !important ;
     /* box-shadow: 0 0 10px rgba(0,0,0,1) ; */
 }
@@ -70,4 +86,4 @@
 /* //////////////////////////////////////////////////
     add tab <select> menu
 ////////////////////////////////////////////////// */
-.yui-navset.wrangled .flipper_box .select_add_tab { display: inline ; width: 140px ; position: relative ; top: 3px ; left: 1px ; }
+.yui-navset.wrangled .flipper_box .select_add_tab { display: inline ; width: 114px ; position: relative ; top: 3px ; left: 1px ; }

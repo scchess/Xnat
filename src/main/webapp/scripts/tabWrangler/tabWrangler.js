@@ -51,7 +51,7 @@ function renderAddTabSelect(_$wrapper,_val){
 
         if (!_$wrapper.find('.flippers .selector').length){
             _$wrapper.find('.flippers').prepend('' +
-                '<span class="selector" style="width:150px;border-right:none;">' +
+                '<span class="selector" style="width:122px;border-right:none;">' +
                 //'   <ul class="proxy" style="width:110px;margin:2px;padding:3px 0;font-size:11px;"></ul>' +
                 '</span>' +
                 '');
@@ -153,12 +153,10 @@ function moveToTab(_$wrapper,_$tab,_n,_x){
     // how much visible space do we have to show the tabs? (need to ensure they are viewable inside this space)
     var width_limit = parseInt(content_width - flipper_box_width);
 
-    var move_x ;
+    var move_x = 0;
+
     if (parseInt(all_tabs_width) > parseInt(width_limit)){
         move_x = _x || parseInt(content_width - all_tabs_width - flipper_box_width);
-    }
-    else {
-        move_x = 0;
     }
 
     _$wrapper.find('ul.yui-nav').animate({
@@ -178,7 +176,7 @@ function wrangleTabs(_wrapper,_force){  // initialize the wrangler
     var $tabs_ul = $(tabs_ul);
 
     if (!$tabs_ul.parent('div.wrangler').length){
-        $tabs_ul.wrap('<div class="wrangler" style="width:100%;overflow:hidden;border-bottom:5px solid #1A75BB"></div>');
+        $tabs_ul.wrap('<div class="wrangler" style="width:100%;overflow:hidden;border-left:1px solid #aaa;border-bottom:5px solid #1A75BB"></div>');
     }
 
     $tabs_wrapper.addClass('wrangled');
@@ -318,7 +316,7 @@ $(function(){
             $flipper = $(this),
             $flippers = $flipper.closest('.flippers'),
             $this_navset = $flippers.closest('.yui-navset'),
-            $this_tab_ul = $this_navset.find('ul.yui-nav'),
+            $this_tab_ul = $this_navset.find('ul.yui-nav').css('margin-left', '-1px'),
             $these_tabs = $this_tab_ul.find('li:not(.phantom)'),
             $active_tab = $this_tab_ul.find('li[title="active"]') || $this_tab_ul.find('li.selected'), // check title="active" first
             $prev_tab = $active_tab.prev('li'),
