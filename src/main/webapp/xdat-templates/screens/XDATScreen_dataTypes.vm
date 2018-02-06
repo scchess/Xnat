@@ -17,18 +17,18 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
 
     <div class="header">
         <b>Data Types</b>
-        <i>|</i>
         <button id="setup-data-type" type="button"
             ##data-url="$url"
             ##onclick="return popupCentered('$url','Edit',960,720,3);"
             onclick="XNAT.app.adminPopupDialog('$url')"
-            class="btn1 btn-sm">Setup Additional Data Type</button>
+            class="btn1 btn-sm pull-right">Setup Additional Data Type</button>
+        <div class="clearfix clear"></div>
     </div>
 
     <form name="form1" method="post" action="$link.setAction("ManageDataTypes")">
 
         <div class="data-table" style="margin-bottom:15px;">
-            <table id="data-type-table" class="xnat-table clean sortable">
+            <table id="data-type-table" class="xnat-table clean sortable" style="width: 100%">
             <tr>
                 <th class="sort"><b>Element</b></th>
                 <th class="sort name-singular">
@@ -51,9 +51,6 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                 </th>
                 <th class="sort">
                     <span title="Whether or not data of this type should be browseable.">Browseable</span>
-                </th>
-                <th class="sort">
-                    <span title="The order in which data types will show up in listings.">Sequence</span>
                 </th>
             </tr>
             #set($dt_count=0)
@@ -121,17 +118,10 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                             name="xdat:security/element_security_set/element_security[$dt_count]/browse"
                             value="true">
                 </td>
-                <td class="center">
-                    <i class="hidden">$!data_type.getProperty("sequence")</i>
-                    <input type="text" value="$!data_type.getProperty("sequence")"
-                            id="xdat:security/element_security_set/element_security[$dt_count]/sequence"
-                            name="xdat:security/element_security_set/element_security[$dt_count]/sequence"
-                            size="2" maxlength="2">
-                    <input type="hidden" value="$!data_type.getProperty("element_name")"
-                            id="xdat:security/element_security_set/element_security[$dt_count]/element_name"
-                            name="xdat:security/element_security_set/element_security[$dt_count]/element_name">
-                    #set($dt_count=$dt_count + 1)
-                </td>
+                <input type="hidden" value="$!data_type.getProperty("element_name")"
+                       id="xdat:security/element_security_set/element_security[$dt_count]/element_name"
+                       name="xdat:security/element_security_set/element_security[$dt_count]/element_name">
+                #set($dt_count=$dt_count + 1)
             </tr>
             #end
         </table>
@@ -158,4 +148,271 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
 
     //jq('#data-type-table').tableSort();
 
+</script>
+<script>
+    var XNAT = getObject(XNAT || {});
+
+    (function(factory){
+        if (typeof define === 'function' && define.amd) {
+            define(factory);
+        }
+        else if (typeof exports === 'object') {
+            module.exports = factory();
+        }
+        else {
+            return factory();
+        }
+    }(function() {
+
+        var datatypes, undefined;
+
+        XNAT.admin =
+                getObject(XNAT.admin || {});
+        XNAT.admin.datatypes = {};
+
+        // build datatype object
+        #foreach($data_type in $data_types)
+            XNAT.admin.datatypes['$!data_type.getProperty("element_name")'] = {
+                'xdat:element_security.element_name': '$!data_type.getProperty("element_name")',
+                'xdat:element_security.singular': '$!data_type.getProperty("singular")',
+                'xdat:element_security.plural': '$!data_type.getProperty("plural")',
+                'xdat:element_security.code': '$!data_type.getProperty("code")',
+                'xdat:element_security.accessible': '$!data_type.getBooleanProperty("accessible")',
+                'xdat:element_security.secure': '$!data_type.getBooleanProperty("secure")',
+                'xdat:element_security.searchable': '$!data_type.getBooleanProperty("searchable")',
+                'xdat:element_security.browse': '$!data_type.getBooleanProperty("browse")',
+                reportActions: [
+                    #set ($reportActions = $!data_type.getChildItems("xdat:element_security/element_actions/element_action"))
+                    #foreach($reportAction in $reportActions)
+                        {
+                            id: '$!reportAction.getStringProperty("id")',
+                            actionName: '$!reportAction.getStringProperty("element_action_name")',
+                            displayName: '$!reportAction.getStringProperty("display_name")',
+                            grouping: '$!reportAction.getStringProperty("grouping")',
+                            popup: '$!reportAction.getStringProperty("popup")',
+                            secureAccess: '$!reportAction.getStringProperty("secureAccess")',
+                            sequence: '$!reportAction.getStringProperty("sequence")',
+                            parameterString: '$!reportAction.getStringProperty("parameterString")'
+                        },
+                    #end
+                ],
+                listingActions: [
+                    #set ($listingActions = $!data_type.getChildItems("xdat:element_security/listing_actions/listing_action"))
+                    #foreach($listingAction in $listingActions)
+                        {
+                            id: '$!listingAction.getStringProperty("id")',
+                            actionName: '$!listingAction.getStringProperty("element_action_name")',
+                            displayName: '$!listingAction.getStringProperty("display_name")',
+                            grouping: '$!listingAction.getStringProperty("grouping")',
+                            popup: '$!listingAction.getStringProperty("popup")',
+                            secureAccess: '$!listingAction.getStringProperty("secureAccess")',
+                            sequence: '$!listingAction.getStringProperty("sequence")',
+                            parameterString: '$!listingAction.getStringProperty("parameterString")'
+                        },
+                    #end
+                ],
+                'xdat:element_security.secure_read': '$!data_type.getBooleanProperty("secure_read")',
+                'xdat:element_security.secure_create': '$!data_type.getBooleanProperty("secure_create")',
+                'xdat:element_security.secure_edit': '$!data_type.getBooleanProperty("secure_edit")',
+                'xdat:element_security.secure_delete': '$!data_type.getBooleanProperty("secure_delete")',
+                'xdat:element_security.secondary_password': '$!data_type.getBooleanProperty("secondary_password")',
+                'xdat:element_security.secure_ip': '$!data_type.getBooleanProperty("secure_ip")',
+                'xdat:element_security.quarantine': '$!data_type.getBooleanProperty("quarantine")',
+                securityFields: [
+                    #set ($securityFields = $!data_type.getChildItems("xdat:element_security/primary_security_fields/primary_security_field"))
+                    #foreach($securityField in $securityFields)
+                        '$!securityField.getStringProperty("primary_security_field")',
+                    #end
+                ]
+            }
+        #end
+
+        // build form objects
+        var editDatatypeFormObj = function(datatype) {
+            return {
+                kind: 'panel.form',
+                id: 'edit-xsitype-form',
+                header: false,
+                footer: false,
+                element: {
+                    style: { border: 'none', margin: '0' },
+                    action: XNAT.url.rootUrl('/app/action/ModifyItem'),
+                    method: 'POST'
+                },
+                contents: {
+                    xsitype: {
+                        kind: 'panel.input.hidden',
+                        name: 'xdat:element_security.element_name'
+                    },
+                    singular: {
+                        kind: 'panel.input.text',
+                        name: 'xdat:element_security.singular',
+                        label: 'Singular Name'
+                    },
+                    plural: {
+                        kind: 'panel.input.text',
+                        name: 'xdat:element_security.plural',
+                        label: 'Plural Name'
+                    },
+                    code: {
+                        kind: 'panel.input.text',
+                        name: 'xdat:element_security.code',
+                        label: 'Code'
+                    },
+                    category: {
+                        kind: 'panel.input.hidden',
+                        name: 'xdat:element_security.category',
+                        value: ''
+                    },
+                    accessible: {
+                        kind: 'panel.input.switchbox',
+                        name: 'xdat:element_security.accessible',
+                        label: 'Accessible',
+                        onText: 'Yes',
+                        offText: 'No'
+                    },
+                    secure: {
+                        kind: 'panel.input.switchbox',
+                        name: 'xdat:element_security.secure',
+                        label: 'Secure',
+                        onText: 'Yes',
+                        offText: 'No'
+                    },
+                    searchable: {
+                        kind: 'panel.input.switchbox',
+                        name: 'xdat:element_security.searchable',
+                        label: 'Searchable',
+                        onText: 'Yes',
+                        offText: 'No'
+                    },
+                    browse: {
+                        kind: 'panel.input.switchbox',
+                        name: 'xdat:element_security.browse',
+                        label: 'Browseable',
+                        onText: 'Yes',
+                        offText: 'No'
+                    },
+                    advanced: {
+                        tag: 'div#advanced-settings',
+                        contents: {
+                            advancedSeparator: {
+                                tag: 'hr',
+                                element: {
+                                    style: {
+                                        margin: '2em 0'
+                                    }
+                                }
+                            },
+                            advancedTitle: {
+                                tag: 'p',
+                                content: '<strong>Advanced Settings</strong>'
+                            },
+                            secureRead: {
+                                kind: 'panel.input.switchbox',
+                                name: 'xdat:element_security.secure_read',
+                                label: 'Secure Read',
+                                onText: 'Yes',
+                                offText: 'No'
+                            },
+                            secureCreate: {
+                                kind: 'panel.input.switchbox',
+                                name: 'xdat:element_security.secure_create',
+                                label: 'Secure Create',
+                                onText: 'Yes',
+                                offText: 'No'
+                            },
+                            secureEdit: {
+                                kind: 'panel.input.switchbox',
+                                name: 'xdat:element_security.secure_edit',
+                                label: 'Secure Edit',
+                                onText: 'Yes',
+                                offText: 'No'
+                            },
+                            secureDelete: {
+                                kind: 'panel.input.switchbox',
+                                name: 'xdat:element_security.secure_delete',
+                                label: 'Secure Delete',
+                                onText: 'Yes',
+                                offText: 'No'
+                            },
+                            secondaryPassword: {
+                                kind: 'panel.input.switchbox',
+                                name: 'xdat:element_security.secondary_password',
+                                label: 'Requires Secondary Password',
+                                onText: 'Yes',
+                                offText: 'No'
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        var formPresubmit = function(){
+            var junk = [
+                XNAT.ui.panel.input.hidden({
+                    name: 'edit_screen',
+                    value: 'XDATScreen_edit_xdat_element_security.vm'
+                }),
+                XNAT.ui.panel.input.hidden({
+                    name: 'ELEMENT_0',
+                    value: 'xdat:element_security'
+                })
+            ];
+            return junk;
+        }
+
+        XNAT.admin.datatypes.edit = function(xsiType){
+            var datatype = XNAT.admin.datatypes[xsiType];
+            if (!datatype || typeof datatype !== 'object') {
+                XNAT.ui.banner.top(2000,'Data type '+xsiType+ ' not recognized','error');
+                return false;
+            }
+
+            var url = XNAT.url.csrfUrl('/app/action/modifyItem/popup/false?popup=false');
+
+            XNAT.ui.dialog.open({
+                title: 'Edit '+ xsiType + ' Data Type',
+                width: 600,
+                content: '<div id="edit-xsitype-form-container"></div>',
+                beforeShow: function(obj){
+                    var container = obj.$modal.find('#edit-xsitype-form-container');
+                    XNAT.spawner.spawn({ form: editDatatypeFormObj(datatype) }).render(container);
+
+                    var form = obj.$modal.find('form');
+                    form.setValues(datatype);
+
+                    form.append(spawn('!', formPresubmit()));
+                },
+                buttons: [
+                    {
+                        label: 'Save Changes',
+                        isDefault: true,
+                        close: false,
+                        action: function(obj){
+                            var form = obj.$modal.find('form');
+                            form.submit();
+
+
+##                            var formData = JSON.stringify(obj.$modal.find('form'));
+##
+##                            XNAT.xhr.ajax({
+##                                url: url,
+##                                method: 'POST',
+##                                data: formData,
+##                                contentType: 'application/json',
+##                                success: function(data){
+##                                    console.log(data);
+##                                    XNAT.ui.banner.top(2000,'Data type updated','success');
+##                                },
+##                                fail: function(e){
+##                                    console.log(e);
+##                                }
+##                            })
+                        }
+                    }
+                ]
+            })
+        }
+    }));
 </script>
