@@ -10,8 +10,8 @@
 #* @vtlvariable name="link" type="org.apache.turbine.services.pull.tools.TemplateLink" *#
 #set ($siteId = $siteConfig.siteId)
 $page.setTitle("$siteId - Please Login")
-    $page.setBgColor($ui.bgcolor)
-    $page.addAttribute("onLoad", "document.getElementById('username').focus();")
+##    $page.setBgColor($ui.bgcolor)
+##    $page.addAttribute("onLoad", "document.getElementById('username').focus();")
 
 <script src="$content.getURI("scripts/lib/epicEditor/js/epiceditor.js")"></script>
 
@@ -19,8 +19,12 @@ $page.setTitle("$siteId - Please Login")
 //    XNAT.cookie.set('SESSION_ACTIVE', 'false');
 //    XNAT.cookie.set('SESSION_LOGOUT_REDIRECT', 'true');
 </script>
-
-<div id="login_area">
+<div id="logged-in" class="hidden">
+    <div class="message">
+        Already logged in. Redirecting to home page...
+    </div>
+</div>
+<div id="login_area" class="hidden">
 
     <!--[if lte IE 8]>
     <div id="ie8_error" class="error" style="display:none;margin-bottom:4em;background-image:none;z-index:9">
@@ -39,6 +43,7 @@ $page.setTitle("$siteId - Please Login")
 #end
 
 #if($turbineUtils.GetPassedParameter("par",$data))
+    <script>window.showPars = true</script>
 ## create custom layout when parameters are passed to the login page from an external link.
     <div id="login_welcome">
         #if($siteConfig.siteDescriptionType == "Text")
@@ -129,12 +134,12 @@ $page.setTitle("$siteId - Please Login")
 
     <script>
         function showLogin() {
-            jq('#register_box_container').addClass('hidden');
-            jq('#login_box_container').removeClass('hidden');
+            jq('#register_box_container').hidden(true);
+            jq('#login_box_container').hidden(false);
         }
         function showRegistration() {
-            jq('#register_box_container').removeClass('hidden');
-            jq('#login_box_container').addClass('hidden');
+            jq('#register_box_container').hidden(false);
+            jq('#login_box_container').hidden(true);
         }
     </script>
 
@@ -213,6 +218,19 @@ $page.setTitle("$siteId - Please Login")
 
 <script>
     $(function(){
+
+        if (window.loggedIn && !window.isGuest && !window.showPars) {
+            $('#logged-in').hidden(false);
+            setTimeout(function(){
+                window.location.href = XNAT.url.rootUrl();
+            }, 1000)
+            return;
+        }
+        else {
+            $('#login_area').hidden(false);
+        }
+
+        $('#username').focus();
 
         var mdtext = $('#siteDescriptionMd').text();
         var markedText = marked(mdtext);
