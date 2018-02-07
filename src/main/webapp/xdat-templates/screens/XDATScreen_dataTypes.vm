@@ -150,6 +150,8 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
 
 </script>
 <script>
+    console.log('datatypes.js');
+
     var XNAT = getObject(XNAT || {});
 
     (function(factory){
@@ -177,10 +179,10 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                 'xdat:element_security.singular': '$!data_type.getProperty("singular")',
                 'xdat:element_security.plural': '$!data_type.getProperty("plural")',
                 'xdat:element_security.code': '$!data_type.getProperty("code")',
-                'xdat:element_security.accessible': '$!data_type.getBooleanProperty("accessible")',
-                'xdat:element_security.secure': '$!data_type.getBooleanProperty("secure")',
-                'xdat:element_security.searchable': '$!data_type.getBooleanProperty("searchable")',
-                'xdat:element_security.browse': '$!data_type.getBooleanProperty("browse")',
+                'xdat:element_security.accessible': binaryBoolean('$!data_type.getBooleanProperty("accessible")'),
+                'xdat:element_security.secure': binaryBoolean('$!data_type.getBooleanProperty("secure")'),
+                'xdat:element_security.searchable': binaryBoolean('$!data_type.getBooleanProperty("searchable")'),
+                'xdat:element_security.browse': binaryBoolean('$!data_type.getBooleanProperty("browse")'),
                 reportActions: [
                     #set ($reportActions = $!data_type.getChildItems("xdat:element_security/element_actions/element_action"))
                     #foreach($reportAction in $reportActions)
@@ -211,13 +213,13 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                         },
                     #end
                 ],
-                'xdat:element_security.secure_read': '$!data_type.getBooleanProperty("secure_read")',
-                'xdat:element_security.secure_create': '$!data_type.getBooleanProperty("secure_create")',
-                'xdat:element_security.secure_edit': '$!data_type.getBooleanProperty("secure_edit")',
-                'xdat:element_security.secure_delete': '$!data_type.getBooleanProperty("secure_delete")',
-                'xdat:element_security.secondary_password': '$!data_type.getBooleanProperty("secondary_password")',
-                'xdat:element_security.secure_ip': '$!data_type.getBooleanProperty("secure_ip")',
-                'xdat:element_security.quarantine': '$!data_type.getBooleanProperty("quarantine")',
+                'xdat:element_security.secure_read': binaryBoolean('$!data_type.getBooleanProperty("secure_read")'),
+                'xdat:element_security.secure_create': binaryBoolean('$!data_type.getBooleanProperty("secure_create")'),
+                'xdat:element_security.secure_edit': binaryBoolean('$!data_type.getBooleanProperty("secure_edit")'),
+                'xdat:element_security.secure_delete': binaryBoolean('$!data_type.getBooleanProperty("secure_delete")'),
+                'xdat:element_security.secondary_password': binaryBoolean('$!data_type.getBooleanProperty("secondary_password")'),
+                'xdat:element_security.secure_ip': binaryBoolean('$!data_type.getBooleanProperty("secure_ip")'),
+                'xdat:element_security.quarantine': binaryBoolean('$!data_type.getBooleanProperty("quarantine")'),
                 securityFields: [
                     #set ($securityFields = $!data_type.getChildItems("xdat:element_security/primary_security_fields/primary_security_field"))
                     #foreach($securityField in $securityFields)
@@ -226,6 +228,10 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                 ]
             }
         #end
+
+        function binaryBoolean(bool){
+            return (bool === 'true') ? '1' : '0';
+        }
 
         // build form objects
         var editDatatypeFormObj = function(datatype) {
@@ -236,8 +242,8 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                 footer: false,
                 element: {
                     style: { border: 'none', margin: '0' },
-                    action: XNAT.url.rootUrl('/app/action/ModifyItem'),
-                    method: 'POST'
+                    action: '/app/action/ModifyItem',
+                    method: 'post'
                 },
                 contents: {
                     xsitype: {
@@ -269,28 +275,32 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                         name: 'xdat:element_security.accessible',
                         label: 'Accessible',
                         onText: 'Yes',
-                        offText: 'No'
+                        offText: 'No',
+                        values: '1|0'
                     },
                     secure: {
                         kind: 'panel.input.switchbox',
                         name: 'xdat:element_security.secure',
                         label: 'Secure',
                         onText: 'Yes',
-                        offText: 'No'
+                        offText: 'No',
+                        values: '1|0'
                     },
                     searchable: {
                         kind: 'panel.input.switchbox',
                         name: 'xdat:element_security.searchable',
                         label: 'Searchable',
                         onText: 'Yes',
-                        offText: 'No'
+                        offText: 'No',
+                        values: '1|0'
                     },
                     browse: {
                         kind: 'panel.input.switchbox',
                         name: 'xdat:element_security.browse',
                         label: 'Browseable',
                         onText: 'Yes',
-                        offText: 'No'
+                        offText: 'No',
+                        values: '1|0'
                     },
                     advanced: {
                         tag: 'div#advanced-settings',
@@ -312,43 +322,48 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                                 name: 'xdat:element_security.secure_read',
                                 label: 'Secure Read',
                                 onText: 'Yes',
-                                offText: 'No'
+                                offText: 'No',
+                                values: '1|0'
                             },
                             secureCreate: {
                                 kind: 'panel.input.switchbox',
                                 name: 'xdat:element_security.secure_create',
                                 label: 'Secure Create',
                                 onText: 'Yes',
-                                offText: 'No'
+                                offText: 'No',
+                                values: '1|0'
                             },
                             secureEdit: {
                                 kind: 'panel.input.switchbox',
                                 name: 'xdat:element_security.secure_edit',
                                 label: 'Secure Edit',
                                 onText: 'Yes',
-                                offText: 'No'
+                                offText: 'No',
+                                values: '1|0'
                             },
                             secureDelete: {
                                 kind: 'panel.input.switchbox',
                                 name: 'xdat:element_security.secure_delete',
                                 label: 'Secure Delete',
                                 onText: 'Yes',
-                                offText: 'No'
+                                offText: 'No',
+                                values: '1|0'
                             },
                             secondaryPassword: {
                                 kind: 'panel.input.switchbox',
                                 name: 'xdat:element_security.secondary_password',
                                 label: 'Requires Secondary Password',
                                 onText: 'Yes',
-                                offText: 'No'
+                                offText: 'No',
+                                values: '1|0'
                             }
                         }
-                    }
+                    },
                 }
             }
         }
 
-        var formPresubmit = function(){
+        var formPresubmit = function(psf){
             var junk = [
                 XNAT.ui.panel.input.hidden({
                     name: 'edit_screen',
@@ -357,8 +372,32 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                 XNAT.ui.panel.input.hidden({
                     name: 'ELEMENT_0',
                     value: 'xdat:element_security'
+                }),
+                XNAT.ui.panel.input.hidden({
+                    name: 'eventSubmit_doSetup',
+                    value: 'Submit'
+                }),
+                XNAT.ui.panel.input.hidden({
+                    name: 'popup',
+                    value: 'true'
                 })
             ];
+
+            psf.forEach(function(securityField,i){
+                junk.push(
+                    XNAT.ui.panel.input.hidden({
+                        name: 'xdat:element_security.primary_security_fields.primary_security_field__'+i+'.primary_security_field',
+                        value: securityField
+                    })
+                );
+                junk.push(
+                    XNAT.ui.panel.input.hidden({
+                        name: 'xdat:element_security.primary_security_fields.primary_security_field__'+i+'.xdat_primary_security_field_id',
+                        value: i+1
+                    })
+                );
+            })
+
             return junk;
         }
 
@@ -369,7 +408,7 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                 return false;
             }
 
-            var url = XNAT.url.csrfUrl('/app/action/modifyItem/popup/false?popup=false');
+            var url = XNAT.url.csrfUrl('/app/action/ModifyItem/popup/true?popup=true');
 
             XNAT.ui.dialog.open({
                 title: 'Edit '+ xsiType + ' Data Type',
@@ -382,7 +421,7 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                     var form = obj.$modal.find('form');
                     form.setValues(datatype);
 
-                    form.append(spawn('!', formPresubmit()));
+                    form.append(spawn('!', formPresubmit(datatype.securityFields)));
                 },
                 buttons: [
                     {
@@ -391,24 +430,22 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                         close: false,
                         action: function(obj){
                             var form = obj.$modal.find('form');
-                            form.submit();
+                            var formData = form.serialize();
 
-
-##                            var formData = JSON.stringify(obj.$modal.find('form'));
-##
-##                            XNAT.xhr.ajax({
-##                                url: url,
-##                                method: 'POST',
-##                                data: formData,
-##                                contentType: 'application/json',
-##                                success: function(data){
-##                                    console.log(data);
-##                                    XNAT.ui.banner.top(2000,'Data type updated','success');
-##                                },
-##                                fail: function(e){
-##                                    console.log(e);
-##                                }
-##                            })
+//                            form.submit();
+                            XNAT.xhr.ajax({
+                                url: url,
+                                method: 'POST',
+                                data: formData,
+                                cache: false,
+                                success: function(data){
+                                    console.log(data);
+                                    XNAT.ui.banner.top(2000,'Data type updated','success');
+                                },
+                                fail: function(e){
+                                    console.log(e);
+                                }
+                            })
                         }
                     }
                 ]
