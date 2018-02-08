@@ -136,6 +136,17 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
 
 </div>
 
+<style>
+    .xnat-table.narrow > tr > th,
+    .xnat-table.narrow > tr > td {
+        padding: 4px 0px;
+    }
+    .xnat-table.narrow > tr > th:first-child,
+    .xnat-table.narrow > tr > td:first-child {
+        padding-left: 4px;
+    }
+</style>
+
 <script type="text/javascript">
 
     jq('a.data-type-link').click(function(e){
@@ -171,63 +182,6 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
         XNAT.admin =
                 getObject(XNAT.admin || {});
         XNAT.admin.datatypes = {};
-
-        // build datatype object
-        #foreach($data_type in $data_types)
-            XNAT.admin.datatypes['$!data_type.getProperty("element_name")'] = {
-                'xdat:element_security.element_name': '$!data_type.getProperty("element_name")',
-                'xdat:element_security.singular': '$!data_type.getProperty("singular")',
-                'xdat:element_security.plural': '$!data_type.getProperty("plural")',
-                'xdat:element_security.code': '$!data_type.getProperty("code")',
-                'xdat:element_security.accessible': binaryBoolean('$!data_type.getBooleanProperty("accessible")'),
-                'xdat:element_security.secure': binaryBoolean('$!data_type.getBooleanProperty("secure")'),
-                'xdat:element_security.searchable': binaryBoolean('$!data_type.getBooleanProperty("searchable")'),
-                'xdat:element_security.browse': binaryBoolean('$!data_type.getBooleanProperty("browse")'),
-                reportActions: [
-                    #set ($reportActions = $!data_type.getChildItems("xdat:element_security/element_actions/element_action"))
-                    #foreach($reportAction in $reportActions)
-                        {
-                            id: '$!reportAction.getStringProperty("id")',
-                            actionName: '$!reportAction.getStringProperty("element_action_name")',
-                            displayName: '$!reportAction.getStringProperty("display_name")',
-                            grouping: '$!reportAction.getStringProperty("grouping")',
-                            popup: '$!reportAction.getStringProperty("popup")',
-                            secureAccess: '$!reportAction.getStringProperty("secureAccess")',
-                            sequence: '$!reportAction.getStringProperty("sequence")',
-                            parameterString: '$!reportAction.getStringProperty("parameterString")'
-                        },
-                    #end
-                ],
-                listingActions: [
-                    #set ($listingActions = $!data_type.getChildItems("xdat:element_security/listing_actions/listing_action"))
-                    #foreach($listingAction in $listingActions)
-                        {
-                            id: '$!listingAction.getStringProperty("id")',
-                            actionName: '$!listingAction.getStringProperty("element_action_name")',
-                            displayName: '$!listingAction.getStringProperty("display_name")',
-                            grouping: '$!listingAction.getStringProperty("grouping")',
-                            popup: '$!listingAction.getStringProperty("popup")',
-                            secureAccess: '$!listingAction.getStringProperty("secureAccess")',
-                            sequence: '$!listingAction.getStringProperty("sequence")',
-                            parameterString: '$!listingAction.getStringProperty("parameterString")'
-                        },
-                    #end
-                ],
-                'xdat:element_security.secure_read': binaryBoolean('$!data_type.getBooleanProperty("secure_read")'),
-                'xdat:element_security.secure_create': binaryBoolean('$!data_type.getBooleanProperty("secure_create")'),
-                'xdat:element_security.secure_edit': binaryBoolean('$!data_type.getBooleanProperty("secure_edit")'),
-                'xdat:element_security.secure_delete': binaryBoolean('$!data_type.getBooleanProperty("secure_delete")'),
-                'xdat:element_security.secondary_password': binaryBoolean('$!data_type.getBooleanProperty("secondary_password")'),
-                'xdat:element_security.secure_ip': binaryBoolean('$!data_type.getBooleanProperty("secure_ip")'),
-                'xdat:element_security.quarantine': binaryBoolean('$!data_type.getBooleanProperty("quarantine")'),
-                securityFields: [
-                    #set ($securityFields = $!data_type.getChildItems("xdat:element_security/primary_security_fields/primary_security_field"))
-                    #foreach($securityField in $securityFields)
-                        '$!securityField.getStringProperty("primary_security_field")',
-                    #end
-                ]
-            }
-        #end
 
         function binaryBoolean(bool){
             return (bool === 'true') ? '1' : '0';
@@ -356,6 +310,23 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                                 onText: 'Yes',
                                 offText: 'No',
                                 values: '1|0'
+                            },
+                            usage: {
+                                kind: 'panel.input.textarea',
+                                name: 'xdat:element_security.usage',
+                                label: 'Restricted Usage',
+                                description: 'Which projects can use this data type? (Specify a comma-separated list of project IDs)',
+                                element: {
+                                    rows: '2'
+                                }
+                            },
+                            restrictIp: {
+                                kind: 'panel.input.switchbox',
+                                name: 'xdat:element_security.secure_ip',
+                                label: 'Restrict By IP Address',
+                                onText: 'Yes',
+                                offText: 'No',
+                                values: '1|0'
                             }
                         }
                     },
@@ -364,7 +335,7 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
         }
 
         var formPresubmit = function(psf){
-            var junk = [
+            var formJunk = [
                 XNAT.ui.panel.input.hidden({
                     name: 'edit_screen',
                     value: 'XDATScreen_edit_xdat_element_security.vm'
@@ -376,29 +347,25 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                 XNAT.ui.panel.input.hidden({
                     name: 'eventSubmit_doSetup',
                     value: 'Submit'
-                }),
-                XNAT.ui.panel.input.hidden({
-                    name: 'popup',
-                    value: 'true'
                 })
             ];
 
             psf.forEach(function(securityField,i){
-                junk.push(
+                formJunk.push(
                     XNAT.ui.panel.input.hidden({
                         name: 'xdat:element_security.primary_security_fields.primary_security_field__'+i+'.primary_security_field',
                         value: securityField
                     })
                 );
-                junk.push(
+                formJunk.push(
                     XNAT.ui.panel.input.hidden({
                         name: 'xdat:element_security.primary_security_fields.primary_security_field__'+i+'.xdat_primary_security_field_id',
                         value: i+1
                     })
                 );
-            })
+            });
 
-            return junk;
+            return formJunk;
         }
 
         XNAT.admin.datatypes.edit = function(xsiType){
@@ -427,7 +394,7 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                     {
                         label: 'Save Changes',
                         isDefault: true,
-                        close: false,
+                        close: true,
                         action: function(obj){
                             var form = obj.$modal.find('form');
                             var formData = form.serialize();
@@ -441,6 +408,7 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                                 success: function(data){
                                     console.log(data);
                                     XNAT.ui.banner.top(2000,'Data type updated','success');
+                                    window.location.reload();
                                 },
                                 fail: function(e){
                                     console.log(e);
@@ -451,5 +419,190 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                 ]
             })
         }
+
+        XNAT.admin.datatypes.editActions = function(xsiType){
+            var datatype = XNAT.admin.datatypes[xsiType];
+            if (!datatype || typeof datatype !== 'object') {
+                XNAT.ui.banner.top(2000,'Data type '+xsiType+ ' not recognized','error');
+                return false;
+            }
+
+            var reportActionObj = {
+                id: 'xdat:element_security.element_actions.element_action__0.xdat_element_action_type_id',
+                displayName: 'xdat:element_security.element_actions.element_action__0.display_name',
+                actionName: 'xdat:element_security.element_actions.element_action__0.element_action_name',
+                grouping: 'xdat:element_security.element_actions.element_action__0.grouping',
+                popup: 'xdat:element_security.element_actions.element_action__0.popup',
+                secureAccess: 'xdat:element_security.element_actions.element_action__0.secureAccess',
+                parameterString: 'xdat:element_security.element_actions.element_action__0.parameterString'
+            };
+            var listingActionObj = {
+                id: 'xdat:element_security.listing_actions.listing_action__0.xdat_element_security_listing_action_id',
+                displayName: 'xdat:element_security.listing_actions.listing_action__0.display_name',
+                actionName: 'xdat:element_security.listing_actions.listing_action__0.element_action_name',
+                grouping: 'xdat:element_security.listing_actions.listing_action__0.grouping',
+                popup: 'xdat:element_security.listing_actions.listing_action__0.popup',
+                secureAccess: 'xdat:element_security.listing_actions.listing_action__0.secureAccess',
+                parameterString: 'xdat:element_security.listing_actions.listing_action__0.parameterString'
+            }
+
+            var actionTable = function(actions,inputobj){
+                var atTable = XNAT.table({
+                    className: 'xnat-table clean narrow',
+                    style: {
+                        width: '100%',
+                        'margin-top': '15px',
+                        'margin-bottom': '15px'
+                    }
+                });
+                atTable.tr()
+                        .th({ addClass: 'left' })
+                        .th({ addClass: 'left' }, '<b>Label</b>')
+                        .th({ addClass: 'left' }, '<b>Action Screen Name</b>')
+                        .th({ addClass: 'left' }, '<b>Grouping</b>')
+                        .th({ addClass: 'left' }, '<b>Popup</b>')
+                        .th({ addClass: 'left' }, '<b>Secure Access</b>')
+                        .th({ addClass: 'left' }, '<b>Additional Params</b>')
+
+                if (actions.length) {
+                    actions.forEach(function(action,i){
+                        function resolveName(name,i) {
+                            var arr = name.split('0');
+                            return arr[0] + i + arr[1];
+                        }
+                        function textInput(key,i,val){
+                            return spawn('input',{
+                                type: 'text',
+                                name: resolveName(inputobj[key],i),
+                                value: action[key]
+                            })
+                        }
+                        function hiddenInput(key,i,val){
+                            return spawn('input',{
+                                type: 'hidden',
+                                name: resolveName(inputobj[key],i),
+                                value: action[key]
+                            })
+                        }
+                        function deleteIcon(key,i){
+                            return spawn('button.btn.sm.delete', {
+                                onclick: function(){
+                                    jq(this).parents('tr').slideUp()
+                                            .find('input.delete').prop('disabled',false)
+                                },
+                                title: 'Delete Action'
+                            }, [
+                                spawn('i.fa.fa-trash'),
+                                spawn('input.delete', {
+                                    type: 'hidden',
+                                    disabled: 'disabled',
+                                    name: 'REMOVE__'+i+'=xdat:element_security_listing_action.xdat_element_security_listing_action_id',
+                                    value: action[key]
+                                })
+                            ]);
+                        }
+                        function selectAccess(key,i){
+                            function selectOpt(val) {
+                                return (val === action[key]) ? 'selected' : false
+                            }
+                            return spawn('select', {
+                                name: resolveName(inputobj[key],i)
+                            },[
+                                    spawn('option', { value: '', selected: selectOpt('') }),
+                                    spawn('option', { value: 'edit', selected: selectOpt('edit') }, 'edit'),
+                                    spawn('option', { value: 'delete', selected: selectOpt('delete') }, 'delete')
+                            ])
+                        }
+
+                        atTable.tr()
+                                .td([ deleteIcon('id',i) ])
+                                .td([ textInput('displayName',i), hiddenInput('id',i) ])
+                                .td([ textInput('actionName') ])
+                                .td([ textInput('grouping') ])
+                                .td(action.popup)
+                                .td([ selectAccess('secureAccess') ])
+                                .td([ textInput('parameterString') ])
+                    })
+
+                    return atTable.table;
+                }
+                else {
+                    return spawn('p',{ style: { 'padding-top': '10px', 'font-style': 'italic' }},'No Actions To Display');
+                }
+
+            }
+
+            XNAT.ui.dialog.open({
+                width: 960,
+                title: 'View Actions for '+datatype['xdat:element_security.plural'],
+                content: '<div id="action-table-container"></div>',
+                beforeShow: function(obj){
+                    var container = obj.$modal.find('#action-table-container');
+                    container.append( spawn('h3','Report Actions') );
+                    container.append( spawn('div',{style: { 'margin-bottom': '2em' }}, [ actionTable(datatype.reportActions, reportActionObj) ]) );
+
+                    container.append( spawn('h3','Listing Actions') );
+                    container.append( spawn('div',{style: { 'margin-bottom': '2em' }}, [ actionTable(datatype.listingActions, listingActionObj) ]) );
+                }
+            })
+        }
+
+        // build datatype object
+        #foreach($data_type in $data_types)
+            XNAT.admin.datatypes['$!data_type.getProperty("element_name")'] = {
+                'xdat:element_security.element_name': '$!data_type.getProperty("element_name")',
+                'xdat:element_security.singular': '$!data_type.getProperty("singular")',
+                'xdat:element_security.plural': '$!data_type.getProperty("plural")',
+                'xdat:element_security.code': '$!data_type.getProperty("code")',
+                'xdat:element_security.accessible': binaryBoolean('$!data_type.getBooleanProperty("accessible")'),
+                'xdat:element_security.secure': binaryBoolean('$!data_type.getBooleanProperty("secure")'),
+                'xdat:element_security.searchable': binaryBoolean('$!data_type.getBooleanProperty("searchable")'),
+                'xdat:element_security.browse': binaryBoolean('$!data_type.getBooleanProperty("browse")'),
+                reportActions: [
+                    #set ($reportActions = $!data_type.getChildItems("xdat:element_security/element_actions/element_action"))
+                    #foreach($reportAction in $reportActions)
+                        {
+                            id: '$!reportAction.getStringProperty("xdat_element_action_type_id")',
+                            actionName: '$!reportAction.getStringProperty("element_action_name")',
+                            displayName: '$!reportAction.getStringProperty("display_name")',
+                            grouping: '$!reportAction.getStringProperty("grouping")',
+                            popup: '$!reportAction.getStringProperty("popup")',
+                            secureAccess: '$!reportAction.getStringProperty("secureAccess")',
+                            sequence: '$!reportAction.getStringProperty("sequence")',
+                            parameterString: '$!reportAction.getStringProperty("parameterString")'
+                        },
+                    #end
+                ],
+                listingActions: [
+                    #set ($listingActions = $!data_type.getChildItems("xdat:element_security/listing_actions/listing_action"))
+                    #foreach($listingAction in $listingActions)
+                        {
+                            id: '$!listingAction.getStringProperty("xdat_element_security_listing_action_id")',
+                            actionName: '$!listingAction.getStringProperty("element_action_name")',
+                            displayName: '$!listingAction.getStringProperty("display_name")',
+                            grouping: '$!listingAction.getStringProperty("grouping")',
+                            popup: '$!listingAction.getStringProperty("popup")',
+                            secureAccess: '$!listingAction.getStringProperty("secureAccess")',
+                            sequence: '$!listingAction.getStringProperty("sequence")',
+                            parameterString: '$!listingAction.getStringProperty("parameterString")'
+                        },
+                    #end
+                ],
+                'xdat:element_security.secure_read': binaryBoolean('$!data_type.getBooleanProperty("secure_read")'),
+                'xdat:element_security.secure_create': binaryBoolean('$!data_type.getBooleanProperty("secure_create")'),
+                'xdat:element_security.secure_edit': binaryBoolean('$!data_type.getBooleanProperty("secure_edit")'),
+                'xdat:element_security.secure_delete': binaryBoolean('$!data_type.getBooleanProperty("secure_delete")'),
+                'xdat:element_security.secondary_password': binaryBoolean('$!data_type.getBooleanProperty("secondary_password")'),
+                'xdat:element_security.secure_ip': binaryBoolean('$!data_type.getBooleanProperty("secure_ip")'),
+                'xdat:element_security.quarantine': binaryBoolean('$!data_type.getBooleanProperty("quarantine")'),
+                securityFields: [
+                    #set ($securityFields = $!data_type.getChildItems("xdat:element_security/primary_security_fields/primary_security_field"))
+                    #foreach($securityField in $securityFields)
+                        '$!securityField.getStringProperty("primary_security_field")',
+                    #end
+                ]
+            }
+        #end
+
     }));
 </script>
