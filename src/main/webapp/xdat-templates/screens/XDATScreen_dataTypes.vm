@@ -137,12 +137,18 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
 </div>
 
 <style>
-    .xnat-table.narrow > tr > th,
-    .xnat-table.narrow > tr > td {
+    .xnat-table.narrow > thead > tr > th,
+    .xnat-table.narrow > tbody > tr > th,
+    .xnat-table.narrow > tbody > tr > td,
+    .xnat-table.narrow > tfoot > tr > th,
+    .xnat-table.narrow > tfoot > tr > td {
         padding: 4px 0px;
     }
-    .xnat-table.narrow > tr > th:first-child,
-    .xnat-table.narrow > tr > td:first-child {
+    .xnat-table.narrow > thead > tr > th:first-child,
+    .xnat-table.narrow > tbody > tr > th:first-child,
+    .xnat-table.narrow > tbody > tr > td:first-child,
+    .xnat-table.narrow > tfoot > tr > th:first-child,
+    .xnat-table.narrow > tfoot > tr > td:first-child {
         padding-left: 4px;
     }
 </style>
@@ -420,6 +426,31 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
             })
         }
 
+        XNAT.admin.datatypes.addActionRow = function(table){
+            var i = jq(table).data('action-count')-1;
+
+            var tr = jq(table).find('tbody').find('tr')[i];
+            var newTr = jq(tr).clone();
+
+            jq(newTr[0]).find('input').each(function(){
+                var name = jq(this).prop('name');
+                name = name.replace(i,i+1);
+                jq(this).prop('name',name);
+                jq(this).val('');
+            });
+
+            jq(table)
+                    .data('action-count',i+2)
+                    .find('tbody').append(newTr[0]);
+        }
+        XNAT.admin.datatypes.deleteActionRow = function(event){
+            event.preventDefault;
+            var row = jq(event.target).parents('tr');
+
+            jq(row).slideUp()
+                    .find('input.delete').prop('disabled',false);
+        }
+
         XNAT.admin.datatypes.editActions = function(xsiType){
             var datatype = XNAT.admin.datatypes[xsiType];
             if (!datatype || typeof datatype !== 'object') {
@@ -451,11 +482,14 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                     className: 'xnat-table clean narrow',
                     style: {
                         width: '100%',
-                        'margin-top': '15px',
+                        'margin-top': '5px',
                         'margin-bottom': '15px'
+                    },
+                    data: {
+                        'action-count': actions.length
                     }
                 });
-                atTable.tr()
+                atTable.thead().tr()
                         .th({ addClass: 'left' })
                         .th({ addClass: 'left' }, '<b>Label</b>')
                         .th({ addClass: 'left' }, '<b>Action Screen Name</b>')
@@ -463,73 +497,100 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                         .th({ addClass: 'left' }, '<b>Popup</b>')
                         .th({ addClass: 'left' }, '<b>Secure Access</b>')
                         .th({ addClass: 'left' }, '<b>Additional Params</b>')
+                atTable.tbody();
 
                 if (actions.length) {
-                    actions.forEach(function(action,i){
-                        function resolveName(name,i) {
+                    actions.forEach(function (action, i) {
+                        function resolveName(name, i) {
                             var arr = name.split('0');
                             return arr[0] + i + arr[1];
                         }
-                        function textInput(key,i,val){
-                            return spawn('input',{
+
+                        function textInput(key, i, val) {
+                            return spawn('input', {
                                 type: 'text',
-                                name: resolveName(inputobj[key],i),
+                                name: resolveName(inputobj[key], i),
                                 value: action[key]
                             })
                         }
-                        function hiddenInput(key,i,val){
-                            return spawn('input',{
+
+                        function hiddenInput(key, i, val) {
+                            return spawn('input', {
                                 type: 'hidden',
-                                name: resolveName(inputobj[key],i),
+                                name: resolveName(inputobj[key], i),
                                 value: action[key]
                             })
                         }
-                        function deleteIcon(key,i){
-                            return spawn('button.btn.sm.delete', {
-                                onclick: function(){
-                                    jq(this).parents('tr').slideUp()
-                                            .find('input.delete').prop('disabled',false)
-                                },
+
+                        function deleteIcon(key, i) {
+                            return spawn('button.btn.sm.delete.delete-action-row', {
                                 title: 'Delete Action'
                             }, [
                                 spawn('i.fa.fa-trash'),
                                 spawn('input.delete', {
                                     type: 'hidden',
                                     disabled: 'disabled',
-                                    name: 'REMOVE__'+i+'=xdat:element_security_listing_action.xdat_element_security_listing_action_id',
+                                    name: 'REMOVE__' + i + '=xdat:element_security_listing_action.xdat_element_security_listing_action_id',
                                     value: action[key]
                                 })
                             ]);
                         }
-                        function selectAccess(key,i){
+
+                        function selectPopup(key, i) {
                             function selectOpt(val) {
                                 return (val === action[key]) ? 'selected' : false
                             }
+
                             return spawn('select', {
-                                name: resolveName(inputobj[key],i)
-                            },[
-                                    spawn('option', { value: '', selected: selectOpt('') }),
-                                    spawn('option', { value: 'edit', selected: selectOpt('edit') }, 'edit'),
-                                    spawn('option', { value: 'delete', selected: selectOpt('delete') }, 'delete')
+                                name: resolveName(inputobj[key], i)
+                            }, [
+                                spawn('option', {value: '', selected: selectOpt('')}),
+                                spawn('option', {value: 'always', selected: selectOpt('always')}, 'always'),
+                                spawn('option', {value: 'sometimes', selected: selectOpt('sometimes')}, 'sometimes'),
+                                spawn('option', {value: 'never', selected: selectOpt('never')}, 'never')
                             ])
                         }
 
-                        atTable.tr()
-                                .td([ deleteIcon('id',i) ])
-                                .td([ textInput('displayName',i), hiddenInput('id',i) ])
-                                .td([ textInput('actionName') ])
-                                .td([ textInput('grouping') ])
-                                .td(action.popup)
-                                .td([ selectAccess('secureAccess') ])
-                                .td([ textInput('parameterString') ])
+                        function selectAccess(key, i) {
+                            function selectOpt(val) {
+                                return (val === action[key]) ? 'selected' : false
+                            }
+
+                            return spawn('select', {
+                                name: resolveName(inputobj[key], i)
+                            }, [
+                                spawn('option', {value: '', selected: selectOpt('')}),
+                                spawn('option', {value: 'edit', selected: selectOpt('edit')}, 'edit'),
+                                spawn('option', {value: 'delete', selected: selectOpt('delete')}, 'delete')
+                            ])
+                        }
+
+                        // use the toBody() selector rather than the tbody() selector
+                        // to specify that we want to add this row to the existing table body, not create a new one
+                        atTable.toBody().tr()
+                                .td([deleteIcon('id', i)])
+                                .td([textInput('displayName', i), hiddenInput('id', i)])
+                                .td([textInput('actionName', i)])
+                                .td([textInput('grouping', i)])
+                                .td([selectPopup('popup', i)])
+                                .td([selectAccess('secureAccess', i)])
+                                .td([textInput('parameterString', i)])
                     })
-
-                    return atTable.table;
-                }
-                else {
-                    return spawn('p',{ style: { 'padding-top': '10px', 'font-style': 'italic' }},'No Actions To Display');
                 }
 
+                function addRowButton(){
+                    return spawn('button.btn.sm',{
+                        onclick: function(){
+                            var table = jq(this).parents('table');
+                            XNAT.admin.datatypes.addActionRow(table)
+                        },
+                        html: '<i class="fa fa-plus"></i> Add Action'
+                    })
+                }
+                atTable.tfoot().tr({class: 'add-new-action-row'})
+                        .td({colSpan: '7'}, [ addRowButton()]);
+
+                return atTable.table;
             }
 
             XNAT.ui.dialog.open({
@@ -546,6 +607,10 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                 }
             })
         }
+
+        jq(document).on('click','.delete-action-row',function(e){
+            XNAT.admin.datatypes.deleteActionRow(e);
+        });
 
         // build datatype object
         #foreach($data_type in $data_types)
