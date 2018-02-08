@@ -298,18 +298,19 @@
     }
 
     function getFieldName(node, useAttribute){
-        var name = '';
-        if (node.name) {
-            name = node.name;
+
+        var nodeName = node.name;
+
+        if (useAttribute && node[useAttribute]) {
+            nodeName = node[useAttribute];
         }
-        else if (useAttribute && node[useAttribute]) {
-            name = node[useAttribute];
-        }
-        var parts = name.split(/[\[|\]]/);
+
+        var arrayDelim = node.getAttribute('data-delim') || node.getAttribute('data-delimeter');
+
         return {
-            name: parts[1] || parts[0],
-            delim: parts[2] || ',',
-            dataFormat: parts.length > 1 ? 'array' : null
+            name: nodeName,
+            delim: arrayDelim || ',',
+            dataFormat: arrayDelim ? 'array' : null
         };
     }
 
