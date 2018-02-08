@@ -206,10 +206,6 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                     method: 'post'
                 },
                 contents: {
-                    xsitype: {
-                        kind: 'panel.input.hidden',
-                        name: 'xdat:element_security.element_name'
-                    },
                     singular: {
                         kind: 'panel.input.text',
                         name: 'xdat:element_security.singular',
@@ -340,8 +336,12 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
             }
         }
 
-        var formPresubmit = function(psf){
-            var formJunk = [
+        var formPresubmit = function(datatype){
+            var formInit = [
+                XNAT.ui.panel.input.hidden({
+                    name: 'xdat:element_security.element_name',
+                    value: datatype['xdat:element_security.element_name']
+                }),
                 XNAT.ui.panel.input.hidden({
                     name: 'edit_screen',
                     value: 'XDATScreen_edit_xdat_element_security.vm'
@@ -356,22 +356,25 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                 })
             ];
 
-            psf.forEach(function(securityField,i){
-                formJunk.push(
-                    XNAT.ui.panel.input.hidden({
-                        name: 'xdat:element_security.primary_security_fields.primary_security_field__'+i+'.primary_security_field',
-                        value: securityField
-                    })
-                );
-                formJunk.push(
-                    XNAT.ui.panel.input.hidden({
-                        name: 'xdat:element_security.primary_security_fields.primary_security_field__'+i+'.xdat_primary_security_field_id',
-                        value: i+1
-                    })
-                );
-            });
+            var psf = datatype.securityFields;
+            if (psf){
+                psf.forEach(function(securityField,i){
+                    formInit.push(
+                            XNAT.ui.panel.input.hidden({
+                                name: 'xdat:element_security.primary_security_fields.primary_security_field__'+i+'.primary_security_field',
+                                value: securityField
+                            })
+                    );
+                    formInit.push(
+                            XNAT.ui.panel.input.hidden({
+                                name: 'xdat:element_security.primary_security_fields.primary_security_field__'+i+'.xdat_primary_security_field_id',
+                                value: i+1
+                            })
+                    );
+                });
+            }
 
-            return formJunk;
+            return formInit;
         }
 
         XNAT.admin.datatypes.edit = function(xsiType){
@@ -380,8 +383,6 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                 XNAT.ui.banner.top(2000,'Data type '+xsiType+ ' not recognized','error');
                 return false;
             }
-
-            var url = XNAT.url.csrfUrl('/app/action/ModifyItem/popup/true?popup=true');
 
             XNAT.ui.dialog.open({
                 title: 'Edit '+ xsiType + ' Data Type',
@@ -394,7 +395,7 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                     var form = obj.$modal.find('form');
                     form.setValues(datatype);
 
-                    form.append(spawn('!', formPresubmit(datatype.securityFields)));
+                    form.append(spawn('!', formPresubmit(datatype)));
                 },
                 buttons: [
                     {
@@ -403,24 +404,12 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                         close: true,
                         action: function(obj){
                             var form = obj.$modal.find('form');
-                            var formData = form.serialize();
-
-//                            form.submit();
-                            XNAT.xhr.ajax({
-                                url: url,
-                                method: 'POST',
-                                data: formData,
-                                cache: false,
-                                success: function(data){
-                                    console.log(data);
-                                    XNAT.ui.banner.top(2000,'Data type updated','success');
-                                    window.location.reload();
-                                },
-                                fail: function(e){
-                                    console.log(e);
-                                }
-                            })
+                            submitEditForm(form);
                         }
+                    },
+                    {
+                        label: 'Cancel',
+                        close: true
                     }
                 ]
             })
@@ -580,7 +569,8 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
 
                 function addRowButton(){
                     return spawn('button.btn.sm',{
-                        onclick: function(){
+                        onclick: function(e){
+                            e.preventDefault();
                             var table = jq(this).parents('table');
                             XNAT.admin.datatypes.addActionRow(table)
                         },
@@ -593,22 +583,63 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                 return atTable.table;
             }
 
+            // open & populate editor dialog
+            var url = XNAT.url.csrfUrl('/app/action/ModifyItem/popup/true?popup=true');
+
             XNAT.ui.dialog.open({
                 width: 960,
                 title: 'View Actions for '+datatype['xdat:element_security.plural'],
-                content: '<div id="action-table-container"></div>',
+                content: '<form id="action-table-form"></form>',
                 beforeShow: function(obj){
-                    var container = obj.$modal.find('#action-table-container');
-                    container.append( spawn('h3','Report Actions') );
-                    container.append( spawn('div',{style: { 'margin-bottom': '2em' }}, [ actionTable(datatype.reportActions, reportActionObj) ]) );
+                    var form = obj.$modal.find('#action-table-form');
+                    form.append( spawn('h3','Report Actions') );
+                    form.append( spawn('div',{style: { 'margin-bottom': '2em' }}, [ actionTable(datatype.reportActions, reportActionObj) ]) );
 
-                    container.append( spawn('h3','Listing Actions') );
-                    container.append( spawn('div',{style: { 'margin-bottom': '2em' }}, [ actionTable(datatype.listingActions, listingActionObj) ]) );
+                    form.append( spawn('h3','Listing Actions') );
+                    form.append( spawn('div',{style: { 'margin-bottom': '2em' }}, [ actionTable(datatype.listingActions, listingActionObj) ]) );
+
+                    form.append( spawn('!', formPresubmit(datatype)));
+                },
+                buttons: [
+                    {
+                        label: 'Save Changes',
+                        isDefault: true,
+                        close: true,
+                        action: function(obj){
+                            var form = obj.$modal.find('form');
+                            submitEditForm(form);
+                        }
+                    },
+                    {
+                        label: 'Cancel',
+                        close: true
+                    }
+                ]
+            })
+        }
+
+        function submitEditForm(form){
+            var url = XNAT.url.csrfUrl('/app/action/ModifyItem/popup/true?popup=true');
+            var formData = form.serialize();
+
+            XNAT.xhr.ajax({
+                url: url,
+                method: 'POST',
+                data: formData,
+                cache: false,
+                success: function(data){
+                    console.log(data);
+                    XNAT.ui.banner.top(2000,'Data type updated','success');
+//                    window.location.reload();
+                },
+                fail: function(e){
+                    console.log(e);
                 }
             })
         }
 
         jq(document).on('click','.delete-action-row',function(e){
+            e.preventDefault();
             XNAT.admin.datatypes.deleteActionRow(e);
         });
 
