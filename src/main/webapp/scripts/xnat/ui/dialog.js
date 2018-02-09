@@ -111,8 +111,8 @@ window.xmodal = getObject(window.xmodal);
     // update <body> className and window scroll position
     dialog.updateWindow = function(isModal){
         // only change scroll and position for modal dialogs
-        if (!firstDefined(isModal, false)) return;
-        if (!window.body$.find('div.xnat-dialog.open').length) {
+        // if (!firstDefined(isModal, false)) return;
+        if (!window.body$.find('div.xnat-dialog-mask.open').length) {
             window.html$.removeClass('xnat-dialog-open open');
             window.body$.removeClass('xnat-dialog-open open');
             window.body$.css('top', 0);
