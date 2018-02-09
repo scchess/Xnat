@@ -18,6 +18,14 @@
     #end
 #end
 
+#macro(escapeHtml $str)
+     $!turbineUtils.escapeHTML("$!str")
+#end
+
+#macro(escapeAll $str $aVar)
+    $aVar = $!turbineUtils.escapeHTML($!turbineUtils.escapeJS("$!str"))
+#end
+
 <div class="data-table-container" style="width: #if($siteConfig.uiDisplaySeriesDescription) 1089px #else 889px #end" id="selectable-table-scans">
     <div class="data-table-titlerow">
         <h3 class="data-table-title">Scans</h3>
@@ -79,11 +87,17 @@
                 <tbody>
 
                     #foreach($scan in $om.getSortedScans())
-                        #set ($scanID = $!scan.getProperty("ID"))
+
+                        #set ($scanID = $!turbineUtils.escapeHTML("$!scan.getProperty('ID')"))
+                        #set ($scanType = $!turbineUtils.escapeHTML("$!scan.getProperty('type')"))
+                        #set ($seriesDesc = $!turbineUtils.escapeHTML("$!scan.getProperty('series_description')"))
+                        #set ($scanQuality = $!turbineUtils.escapeHTML("$!scan.getProperty('quality')"))
+                        #set ($scanNote = $!turbineUtils.escapeHTML("$!scan.getProperty('note')"))
+
                     <tr valign="top" id="scan-$scanID" class="scan-data-row">
                         <td class="scan-actions-controls scan-selector center">
                             <script type="text/javascript">
-                                jsScanList.push({ id: '$scanID', series_description: '$!scan.getProperty("series_description")' });
+                                jsScanList.push({ id: '$scanID', series_description: '$seriesDesc' });
                             </script>
                             <input type="checkbox" class="selectable-select-one" name="scanAction" value="$scanID"/>
                         </td>
@@ -111,22 +125,22 @@
                             </a>
                         </td>
                         <td class="scan-${scanID}-type">
-                            <span title="$!scan.getProperty("type")">$!scan.getProperty("type")</span>
+                            <span title="$scanType">$scanType</span>
                         </td>
                         #if($siteConfig.uiDisplaySeriesDescription)
                             <td class="scan-${scanID}-description">
-                                <span title="$!scan.getProperty("series_description")">$!scan.getProperty("series_description")</span>
+                                <span title="$seriesDesc">$seriesDesc</span>
                             </td>
                         #end
-                        <td class="scan-${scanID}-quality left quality-$!scan.getProperty("quality")" style="font-weight:bold;">
-                            <span title="$!scan.getProperty("quality")">$!scan.getProperty("quality")</span>
+                        <td class="scan-${scanID}-quality left quality-$scanQuality" style="font-weight:bold;">
+                            <span title="$scanQuality">$scanQuality</span>
                         </td>
 
                         <td class="scan-${scanID}-files" style="overflow:visible;">
                             #if ($data.getSession().getAttribute("userHelper").canEdit($item))
-                            ##                                <span class="inline-actions">
-                            ##                                    <i class="fa fa-upload uploadLink" title="Upload Resource" data-type="xnat:imageScanData" data-props="$!scan.getType()" data-uri="$content.getURI("/data/experiments/$om.getId()/scans/$scan.getId()")"></i>
-                            ##                                </span>
+                            ## <span class="inline-actions">
+                            ##     <i class="fa fa-upload uploadLink" title="Upload Resource" data-type="xnat:imageScanData" data-props="$!scan.getType()" data-uri="$content.getURI("/data/experiments/$om.getId()/scans/$scan.getId()")"></i>
+                            ## </span>
                             #end
                             #if($scan.getFile().size()>0)
                             #set($stats = $!scan.getReadableFileStats())
@@ -144,8 +158,8 @@
                         #end
                         </td>
                         <td id="scan-${scanID}-note">
-                            <div class="scan-note-content pull-left text-left" style="width:85%;" title="$!scan.getProperty("note")">
-                                <span class="truncate">$!scan.getProperty("note")</span>
+                            <div class="scan-note-content pull-left text-left" style="width:85%;" title="$scanNote">
+                                <span class="truncate">$scanNote</span>
                             </div>
                             <div class="inline-actions pull-right text-right" style="display:block;width:15%;">
                                 <i class="fa fa-edit edit-scan-note" data-scan-id="$scanID" title="Edit Note"></i>
