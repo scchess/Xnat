@@ -12,6 +12,8 @@ package org.nrg.dcm.scp;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
+import java.util.concurrent.Future;
 
 import javax.inject.Provider;
 
@@ -155,19 +157,19 @@ public class CStoreService extends DicomService implements CStoreSCP {
 
     private final DicomObjectIdentifier<XnatProjectdata> identifier;
     private final Provider<UserI> userProvider;
+    private final GradualDicomImporter importer;
     private DicomFileNamer namer = null;
 
 
-    public CStoreService(final DicomObjectIdentifier<XnatProjectdata> identifier,
-            final Provider<UserI> userProvider) {
+    public CStoreService(final GradualDicomImporter importer, final DicomObjectIdentifier<XnatProjectdata> identifier, final Provider<UserI> userProvider) {
         super(CUIDS);
+        this.importer = importer;
         this.identifier = identifier;
         this.userProvider = userProvider;
     }
 
-    public CStoreService(final DicomObjectIdentifier<XnatProjectdata> identifier,
-            final UserI user) {
-        this(identifier, new Provider<UserI>() {
+    public CStoreService(final GradualDicomImporter importer, final DicomObjectIdentifier<XnatProjectdata> identifier, final UserI user) {
+        this(importer, identifier, new Provider<UserI>() {
             public UserI get() { return user; }
         });
     }
@@ -217,21 +219,12 @@ public class CStoreService extends DicomService implements CStoreSCP {
 
     private void doCStore(final Association as, final int pcid,
             final DicomObject rq, final PDVInputStream dataStream,
-            final String tsuid, final DicomObject rsp)
-    throws DicomServiceException {
+            final String tsuid, final DicomObject rsp) throws DicomServiceException {
         final FileWriterWrapperI fw = new StreamWrapper(dataStream);
         try {
             try {
-                final GradualDicomImporter importer = new GradualDicomImporter(this,
-                        userProvider.get(), fw,
-                        ImmutableMap.of(GradualDicomImporter.SENDER_ID_PARAM, identifySender(as),
-                                GradualDicomImporter.TSUID_PARAM, tsuid,
-                                GradualDicomImporter.SENDER_AE_TITLE_PARAM, as.getRemoteAET()));
-                importer.setIdentifier(identifier);
-                if (null != namer) {
-                    importer.setNamer(namer);
-                }
-                importer.call();
+                final ImmutableMap<String, Object> parameters = ImmutableMap.of(GradualDicomImporter.SENDER_ID_PARAM, identifySender(as), GradualDicomImporter.TSUID_PARAM, tsuid, GradualDicomImporter.SENDER_AE_TITLE_PARAM, as.getRemoteAET());
+                importer.doImport(this, userProvider.get(), fw, parameters, identifier, namer);
             } catch (final ClientException e) {
                 logger.error("C-STORE operation failed", e);
                 throw new DicomServiceException(rq, ERROR_CANNOT_UNDERSTAND,
@@ -246,8 +239,7 @@ public class CStoreService extends DicomService implements CStoreSCP {
         } catch (final Throwable e) {
             // Don't let mysterious unchecked exceptions and errors through.
             logger.error("C-STORE operation failed", e);
-            throw new DicomServiceException(rq, REFUSED_OUT_OF_RESOURCES,
-                    e.getMessage());
+            throw new DicomServiceException(rq, REFUSED_OUT_OF_RESOURCES, e.getMessage());
         }
     }
 
@@ -284,27 +276,30 @@ public class CStoreService extends DicomService implements CStoreSCP {
     public static final class Specifier {
         private final String aeTitle;
         private final Provider<UserI> userProvider;
+        private final GradualDicomImporter importer;
         private final DicomObjectIdentifier<XnatProjectdata> identifier;
         private final DicomFileNamer namer;
         
         public Specifier(final String aeTitle,
                 final Provider<UserI> userProvider,
+                final GradualDicomImporter importer,
                 final DicomObjectIdentifier<XnatProjectdata> identifier,
                 final DicomFileNamer namer) {
             this.aeTitle = aeTitle;
             this.userProvider = userProvider;
+            this.importer = importer;
             this.identifier = identifier;
             this.namer = namer;
         }
         
         public Specifier(final String aeTitle,
-                final Provider<UserI> userProvider,
-                final DicomObjectIdentifier<XnatProjectdata> identifier) {
-            this(aeTitle, userProvider, identifier, null);
+                         final GradualDicomImporter importer, final Provider<UserI> userProvider,
+                         final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer dicomFileNamer) {
+            this(aeTitle, userProvider, importer, identifier, null);
         }
         
         public CStoreService build() {
-            final CStoreService cstore = new CStoreService(identifier, userProvider);
+            final CStoreService cstore = new CStoreService(importer, identifier, userProvider);
             if (null != namer) {
                 cstore.setNamer(namer);
             }

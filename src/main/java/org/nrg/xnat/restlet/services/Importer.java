@@ -16,6 +16,8 @@ import org.nrg.action.ClientException;
 import org.nrg.action.ServerException;
 import org.nrg.framework.constants.PrearchiveCode;
 import org.nrg.framework.utilities.Reflection;
+import org.nrg.xnat.archive.GradualDicomImporter;
+import org.nrg.xnat.archive.operations.DicomImportOperation;
 import org.nrg.xnat.status.StatusList;
 import org.nrg.xdat.XDAT;
 import org.nrg.xdat.om.XnatProjectdata;
@@ -35,6 +37,7 @@ import org.nrg.xnat.restlet.actions.importer.ImporterNotFoundException;
 import org.nrg.xnat.restlet.resources.SecureResource;
 import org.nrg.xnat.restlet.util.FileWriterWrapperI;
 import org.nrg.xnat.restlet.util.XNATRestConstants;
+import org.python.core.util.importer;
 import org.restlet.Context;
 import org.restlet.data.*;
 import org.restlet.resource.Representation;
@@ -48,15 +51,13 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Importer extends SecureResource {
-	private static final String CRLF = "\r\n";
-	private static final String HTTP_SESSION_LISTENER = "http-session-listener";
-	private final Logger logger = LoggerFactory.getLogger(Importer.class);
+	private static final String         CRLF                       = "\r\n";
+	private static final String         HTTP_SESSION_LISTENER      = "http-session-listener";
+	public static final List<MediaType> GRADUAL_IMPORT_MEDIA_TYPES = Arrays.asList(APPLICATION_DICOM, APPLICATION_XMIRC, APPLICATION_XMIRC_DICOM);
+	private final Logger                logger                     = LoggerFactory.getLogger(Importer.class);
 
 	public Importer(Context context, Request request, Response response) {
 		super(context, request, response);
@@ -148,18 +149,23 @@ public class Importer extends SecureResource {
 		    }
 		    
 			Representation entity = request.getEntity();
+			final MediaType mediaType = entity.getMediaType();
 
 			fw=this.getFileWriters();
 
 			//maintain parameters
 			loadQueryVariables();
-			
-			ImporterHandlerA importer;
-			
+
+			if (StringUtils.isBlank(handler) && entity != null) {
+				if (GRADUAL_IMPORT_MEDIA_TYPES.contains(mediaType)) {
+					handler = ImporterHandlerA.GRADUAL_DICOM_IMPORTER;
+				}
+			}
+
 			// Set the overwrite flag if we are uploading directly to the archive (prearchive_code = 1)
 			String prearchive_code = (String)params.get("prearchive_code");
 			if("1".equals(prearchive_code)){ // User has selected archive option
-				
+
 				// If the overwrite flag has been set by the user, make sure it is a valid option
 				if(params.containsKey("overwrite")){
 					String ow = (String)params.get("overwrite");
@@ -185,31 +191,27 @@ public class Importer extends SecureResource {
 			}
 			
 			if(fw.size()==0 && handler != null && !HANDLERS_ALLOWING_CALLS_WITHOUT_FILES.contains(handler)) {
-				
 				this.getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unable to identify upload format.");
 				return;
-				
 			} else if (handler != null && fw.size() == 0) {
-				
-				try {				
-					importer = ImporterHandlerA.buildImporter(handler, 
-															  listenerControl, 
-															  user, 
-															  null, // FileWriterWrapperI is null because no files should have been uploaded. 
-															  params);
-				}
-				catch (Exception e) {
+				final Map<String, ImporterHandler> handlers = XDAT.getContextService().getBeansOfType(ImporterHandler.class);
+				try {
+					if (handlers.containsKey(handler)) {
+						final ImporterHandlerA importer = (ImporterHandlerA) handlers.get(handler);
+						final DicomImportOperation operation  = importer.getOperation(listenerControl, user, null, params);
+
+						if (storeStatusList(operation)) {
+							return;
+						}
+
+						response = importer.doImport(operation).get();
+					}
+				} catch (Exception e) {
 					logger.error("",e);
 					throw new ServerException(e.getMessage(),e);
 				}
 
-				if (storeStatusList(importer)) {
-					return;
-				}
-
-				response= importer.call();
-							
-				if(entity!=null && APPLICATION_XMIRC.equals(entity.getMediaType())){
+				if(entity!=null && APPLICATION_XMIRC.equals(mediaType)){
 					returnString("OK", Status.SUCCESS_OK);
 					return;
 				}
@@ -224,38 +226,11 @@ public class Importer extends SecureResource {
 				
 			}
 
-			if(handler==null && entity!=null){
-				if(APPLICATION_DICOM.equals(entity.getMediaType()) || 
-						APPLICATION_XMIRC.equals(entity.getMediaType()) || 
-						APPLICATION_XMIRC_DICOM.equals(entity.getMediaType())){
-					handler=ImporterHandlerA.GRADUAL_DICOM_IMPORTER;
-				}
-			}
-			
-			try {
-				importer = ImporterHandlerA.buildImporter(handler, listenerControl, user, fw.get(0), params);
-			} catch (SecurityException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
-				logger.error("",e);
-				throw new ServerException(e.getMessage(),e);
-			} catch (IllegalArgumentException | NoSuchMethodException e) {
-				logger.error("",e);
-				throw new ClientException(Status.CLIENT_ERROR_BAD_REQUEST,e.getMessage(),e);
-			} catch (ImporterNotFoundException e) {
-				logger.error("",e);
-				throw new ClientException(Status.CLIENT_ERROR_NOT_FOUND,e.getMessage(),e);
-				}
-
-			if (storeStatusList(importer)) {
-				return;
-			}
-
-			response= importer.call();
-						
-			if(entity!=null && APPLICATION_XMIRC.equals(entity.getMediaType())){
+			if(entity!=null && APPLICATION_XMIRC.equals(mediaType)){
 				returnString("OK", Status.SUCCESS_OK);
 				return;
 			}
-			
+
 			returnDefaultRepresentation();
 		} catch (ClientException e) {
 			respondToException(e,(e.status!=null)?e.status:Status.CLIENT_ERROR_BAD_REQUEST);
@@ -263,18 +238,19 @@ public class Importer extends SecureResource {
 			respondToException(e,(e.status!=null)?e.status:Status.SERVER_ERROR_INTERNAL);
 		}catch (IllegalArgumentException | FileUploadException e) {
 			respondToException(e,Status.CLIENT_ERROR_BAD_REQUEST);
+		} catch (Exception e) {
+			respondToException(e,Status.SERVER_ERROR_INTERNAL);
 		}
 	}
 
-	public boolean storeStatusList(final ImporterHandlerA importer) {
+	public boolean storeStatusList(final DicomImportOperation operation) {
 		if(httpSessionListener){
             if(StringUtils.isEmpty(listenerControl)){
                 getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "'" + XNATRestConstants.TRANSACTION_RECORD_ID + "' is required when requesting '" + HTTP_SESSION_LISTENER + "'.");
 				return true;
             }
             final StatusList sq = new StatusList();
-            importer.addStatusListener(sq);
-
+            operation.addStatusListener(sq);
             storeStatusList(listenerControl, sq);
         }
 		return false;

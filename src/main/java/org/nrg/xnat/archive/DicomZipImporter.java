@@ -9,66 +9,35 @@
 
 package org.nrg.xnat.archive;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import org.nrg.action.ClientException;
-import org.nrg.action.ServerException;
+import org.apache.commons.lang3.ObjectUtils;
+import org.nrg.dcm.DicomFileNamer;
+import org.nrg.dicom.mizer.service.MizerService;
+import org.nrg.dicomtools.filters.DicomFilterService;
+import org.nrg.xdat.om.XnatProjectdata;
 import org.nrg.xft.security.UserI;
-import org.nrg.xnat.helpers.ZipEntryFileWriterWrapper;
+import org.nrg.xnat.DicomObjectIdentifier;
+import org.nrg.xnat.archive.operations.DicomImportOperation;
+import org.nrg.xnat.archive.operations.ZipDicomImportOperation;
+import org.nrg.xnat.archive.processors.ArchiveProcessor;
 import org.nrg.xnat.restlet.actions.importer.ImporterHandler;
 import org.nrg.xnat.restlet.actions.importer.ImporterHandlerA;
 import org.nrg.xnat.restlet.util.FileWriterWrapperI;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
+@Service
 @ImporterHandler(handler = ImporterHandlerA.DICOM_ZIP_IMPORTER)
-public final class DicomZipImporter extends ImporterHandlerA {
-    public DicomZipImporter(final Object listenerControl,
-                            final UserI u,
-                            final FileWriterWrapperI fw,
-                            final Map<String, Object> params)
-            throws ClientException, IOException {
-        super(listenerControl, u, fw, params);
-        this.listenerControl = listenerControl;
-        this.u = u;
-        this.params = params;
-        this.in = fw.getInputStream();
+public class DicomZipImporter extends ImporterHandlerA {
+    @Autowired
+    public DicomZipImporter(final List<ArchiveProcessor> processors, final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer, final MizerService mizer) {
+        super(identifier, namer, processors, filterService, mizer);
     }
 
-    /* (non-Javadoc)
-     * @see org.nrg.xnat.restlet.actions.importer.ImporterHandlerA#call()
-     */
     @Override
-    public List<String> call() throws ClientException, ServerException {
-        try {
-            try (final ZipInputStream zin = new ZipInputStream(in)) {
-                final Set<String> uris = Sets.newLinkedHashSet();
-                ZipEntry ze;
-                while (null != (ze = zin.getNextEntry())) {
-                    if (!ze.isDirectory()) {
-                        final GradualDicomImporter importer = new GradualDicomImporter(listenerControl, u, new ZipEntryFileWriterWrapper(ze, zin), params);
-                        importer.setIdentifier(getIdentifier());
-                        if (null != getNamer()) {
-                            importer.setNamer(getNamer());
-                        }
-                        uris.addAll(importer.call());
-                    }
-                }
-                return Lists.newArrayList(uris);
-            }
-        } catch (IOException e) {
-            throw new ClientException("unable to read data from zip file", e);
-        }
+    public DicomImportOperation getOperation(final Object listenerControl, final UserI user, final FileWriterWrapperI writer, final Map<String, Object> params, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer) {
+        return new ZipDicomImportOperation(listenerControl, user, writer, params, getProcessors(), getFilterService(), ObjectUtils.defaultIfNull(identifier, getIdentifier()), getMizer(), ObjectUtils.defaultIfNull(namer, getNamer()));
     }
-
-    private final InputStream         in;
-    private final Object              listenerControl;
-    private final UserI               u;
-    private final Map<String, Object> params;
 }

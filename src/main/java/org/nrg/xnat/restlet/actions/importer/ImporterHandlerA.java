@@ -9,44 +9,62 @@
 
 package org.nrg.xnat.restlet.actions.importer;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
-import org.nrg.action.ClientException;
-import org.nrg.action.ServerException;
+import lombok.extern.slf4j.Slf4j;
 import org.nrg.dcm.DicomFileNamer;
 import org.nrg.dcm.xnat.SOPHashDicomFileNamer;
-import org.nrg.framework.services.ContextService;
-import org.nrg.framework.status.StatusProducer;
+import org.nrg.dicom.mizer.service.MizerService;
+import org.nrg.dicomtools.filters.DicomFilterService;
 import org.nrg.framework.utilities.Reflection;
 import org.nrg.xdat.XDAT;
 import org.nrg.xdat.om.XnatProjectdata;
 import org.nrg.xdat.turbine.utils.PropertiesHelper;
 import org.nrg.xft.security.UserI;
 import org.nrg.xnat.DicomObjectIdentifier;
+import org.nrg.xnat.archive.operations.DicomImportOperation;
+import org.nrg.xnat.archive.processors.ArchiveProcessor;
 import org.nrg.xnat.restlet.util.FileWriterWrapperI;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 
 @SuppressWarnings({"rawtypes", "unchecked", "deprecation"})
-public abstract class ImporterHandlerA extends StatusProducer implements Callable<List<String>> {
-    public ImporterHandlerA(final Object listenerControl, final UserI u, final FileWriterWrapperI fw, final Map<String, Object> params) {
-        super((listenerControl == null) ? u : listenerControl);
+@Slf4j
+public abstract class ImporterHandlerA {
+    protected ImporterHandlerA(final DicomObjectIdentifier identifier, final DicomFileNamer namer, final List<ArchiveProcessor> processors, final DicomFilterService filterService, final MizerService mizer) {
+        _identifier = identifier;
+        _namer = namer;
+        _processors = processors;
+        _filterService = filterService;
+        _mizer = mizer;
     }
 
-    public abstract List<String> call() throws ClientException, ServerException;
+    public abstract DicomImportOperation getOperation(final Object listenerControl, final UserI user, final FileWriterWrapperI writer, final Map<String, Object> params, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer);
+
+    public DicomImportOperation getOperation(final Object listenerControl, final UserI user, final FileWriterWrapperI writer, final Map<String, Object> params) {
+        return getOperation(listenerControl, user, writer, params, getIdentifier(), getNamer());
+    }
+
+    @Async
+    public Future<List<String>> doImport(final Object listenerControl, final UserI user, final FileWriterWrapperI writer, final Map<String, Object> params) throws Exception {
+        return doImport(listenerControl, user, writer, params, null, null);
+    }
+
+    @Async
+    public Future<List<String>> doImport(final Object listenerControl, final UserI user, final FileWriterWrapperI writer, final Map<String, Object> params, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer) throws Exception {
+        return doImport(getOperation(listenerControl, user, writer, params, identifier, namer));
+    }
+
+    @Async
+    public Future<List<String>> doImport(final DicomImportOperation operation) throws Exception {
+        return new AsyncResult<>(operation.call());
+    }
 
     public DicomObjectIdentifier<XnatProjectdata> getIdentifier() {
         return _identifier;
-    }
-
-    public ImporterHandlerA setIdentifier(final DicomObjectIdentifier<XnatProjectdata> identifier) {
-        _identifier = identifier;
-        return this;
     }
 
     public DicomFileNamer getNamer() {
@@ -56,12 +74,17 @@ public abstract class ImporterHandlerA extends StatusProducer implements Callabl
         return _namer;
     }
 
-    public ImporterHandlerA setNamer(final DicomFileNamer namer) {
-        _namer = namer;
-        return this;
+    public List<ArchiveProcessor> getProcessors() {
+        return _processors;
     }
 
-    private static final Logger logger = Logger.getLogger(ImporterHandlerA.class);
+    public DicomFilterService getFilterService() {
+        return _filterService;
+    }
+
+    public MizerService getMizer() {
+        return _mizer;
+    }
 
     public static final String IMPORT_HANDLER_ATTR = "import-handler";
 
@@ -88,7 +111,7 @@ public abstract class ImporterHandlerA extends StatusProducer implements Callabl
             IMPORTERS.putAll((new PropertiesHelper<ImporterHandlerA>()).buildClassesFromProps(IMPORTER_PROPERTIES, PROP_OBJECT_IDENTIFIER, PROP_OBJECT_FIELDS, CLASS_NAME));
 
         } catch (Exception e) {
-            logger.error("", e);
+            log.error("", e);
         }
         //Second, find importers by annotation
         final ImporterHandlerPackages packages = XDAT.getContextService().getBean("importerHandlerPackages", ImporterHandlerPackages.class);
@@ -102,8 +125,8 @@ public abstract class ImporterHandlerA extends StatusProducer implements Callabl
                         }
                         ImporterHandler anno = clazz.getAnnotation(ImporterHandler.class);
                         if (anno != null && !IMPORTERS.containsKey(anno.handler())) {
-                            if (logger.isDebugEnabled()) {
-                                logger.debug("Found ImporterHandler: " + clazz.getName());
+                            if (log.isDebugEnabled()) {
+                                log.debug("Found ImporterHandler: " + clazz.getName());
                             }
                             IMPORTERS.put(anno.handler(), (Class<? extends ImporterHandlerA>) clazz);
                         }
@@ -113,37 +136,6 @@ public abstract class ImporterHandlerA extends StatusProducer implements Callabl
                 throw new RuntimeException(e);
             }
         }
-    }
-
-    public static ImporterHandlerA buildImporter(String format, final Object uID, final UserI u, final FileWriterWrapperI fi, Map<String, Object> params) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException, SecurityException, NoSuchMethodException, ImporterNotFoundException {
-        if (StringUtils.isEmpty(format)) {
-            format = DEFAULT_HANDLER;
-        }
-
-        Class<? extends ImporterHandlerA> importerImpl = IMPORTERS.get(format);
-        if (importerImpl == null) {
-
-            throw new ImporterNotFoundException("Unknown importer implementation specified: " + format, new IllegalArgumentException());
-        }
-
-        final Constructor con = importerImpl.getConstructor(Object.class, UserI.class, FileWriterWrapperI.class, Map.class);
-        final ImporterHandlerA handler = (ImporterHandlerA) con.newInstance(uID, u, fi, params);
-        final ContextService context = XDAT.getContextService();
-
-        final DicomFileNamer namer = context.getBeanSafely("dicomFileNamer", DicomFileNamer.class);
-        if (namer == null) {
-            logger.debug("No DicomFileNamer instance could be found in the application context.");
-        }
-
-        /* Abuse Spring to inject some additional parameters. Please fix this. */
-        final DicomObjectIdentifier identifier = context.getBean("dicomObjectIdentifier", DicomObjectIdentifier.class);
-        handler.setIdentifier(identifier);
-        if (namer != null) {
-            handler.setNamer(namer);
-        }
-
-        return handler;
-
     }
 
     /**
@@ -160,6 +152,9 @@ public abstract class ImporterHandlerA extends StatusProducer implements Callabl
 
     private static final DicomFileNamer DEFAULT_NAMER = new SOPHashDicomFileNamer();
 
-    private DicomObjectIdentifier _identifier;
-    private DicomFileNamer        _namer;
+    private final DicomObjectIdentifier  _identifier;
+    private final DicomFileNamer         _namer;
+    private final List<ArchiveProcessor> _processors;
+    private final DicomFilterService     _filterService;
+    private final MizerService           _mizer;
 }
