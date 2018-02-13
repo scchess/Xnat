@@ -41,27 +41,30 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                     <span title="Short code used in the creation of IDs">Code</span>
                 </th>
                 <th class="sort">
-                    <span title="Whether or not unspecified users can use this data-type in its $displayManager.getPluralDisplayNameForProject().toLowerCase().">Accessible</span>
+                    <span title="Accessible: Whether or not unspecified users can use this data-type in their $displayManager.getPluralDisplayNameForProject().toLowerCase().">ACC</span>
                 </th>
                 <th class="sort">
-                    <span title="Whether or not access to data of this type should be restricted.">Secured</span>
+                    <span title="Secured: Whether or not access to data of this type should be restricted.">SEC</span>
                 </th>
                 <th class="sort">
-                    <span title="Whether or not data of this type should be searchable.">Searchable</span>
+                    <span title="Searchable: Whether or not data of this type should be searchable.">SRCH</span>
                 </th>
                 <th class="sort">
-                    <span title="Whether or not data of this type should be browseable.">Browseable</span>
+                    <span title="Browseable: Whether or not data of this type should be browseable.">BRWS</span>
+                </th>
+                <th>
+                    Actions
                 </th>
             </tr>
             #set($dt_count=0)
             #set($row=0)
             #foreach($data_type in $data_types)
-            <tr>
-
                 #set ( $url = $link.setAction("DisplayItemAction").addPathInfo("search_element","xdat:element_security").addPathInfo("search_field","xdat:element_security.element_name").addPathInfo("search_value","$!data_type.getProperty('element_name')").addPathInfo("popup","true")  )
 
+            <tr data-xsitype="$!data_type.getProperty("element_name")" data-legacylink="$url">
+
                 <td>
-                    <a class="data-type-link" target="_blank" href="$url">$!data_type.getProperty("element_name")</a>
+                    <a class="data-type-link" target="_blank" href="#!">$!data_type.getProperty("element_name")</a>
                 </td>
                 <td class="name-singular">
                     <i class="hidden">$!data_type.getProperty("singular")</i>
@@ -85,32 +88,38 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                             size="5" maxlength="5">
                 </td>
                 <td class="center">
+                    #if($!data_type.getBooleanProperty("accessible"))<i class="fa fa-check"></i>#end
                     <i class="hidden">#if($!data_type.getBooleanProperty("accessible")) 1 #else 2 #end</i>
-                    <input type="checkbox" #if($!data_type.getBooleanProperty("accessible"))checked#end
+                    <input type="hidden" #if($!data_type.getBooleanProperty("accessible"))value="true"#end
                             id="xdat:security/element_security_set/element_security[$dt_count]/accessible"
-                            name="xdat:security/element_security_set/element_security[$dt_count]/accessible"
-                            value="true">
+                            name="xdat:security/element_security_set/element_security[$dt_count]/accessible">
                 </td>
                 <td class="center">
+                    #if($!data_type.getBooleanProperty("secure"))<i class="fa fa-check"></i>#end
                     <i class="hidden">#if($!data_type.getBooleanProperty("secure")) 1 #else 2 #end</i>
-                    <input type="checkbox" #if($!data_type.getBooleanProperty("secure"))checked#end
+                    <input type="hidden" #if($!data_type.getBooleanProperty("secure"))value="true"#end
                             id="xdat:security/element_security_set/element_security[$dt_count]/secure"
-                            name="xdat:security/element_security_set/element_security[$dt_count]/secure"
-                            value="true">
+                            name="xdat:security/element_security_set/element_security[$dt_count]/secure">
                 </td>
                 <td class="center">
+                    #if($!data_type.getBooleanProperty("searchable"))<i class="fa fa-check"></i>#end
                     <i class="hidden">#if($!data_type.getBooleanProperty("searchable")) 1 #else 2 #end</i>
-                    <input type="checkbox" #if($!data_type.getBooleanProperty("searchable"))checked#end
+                    <input type="hidden" #if($!data_type.getBooleanProperty("searchable"))value="true"#end
                             id="xdat:security/element_security_set/element_security[$dt_count]/searchable"
-                            name="xdat:security/element_security_set/element_security[$dt_count]/searchable"
-                            value="true">
+                            name="xdat:security/element_security_set/element_security[$dt_count]/searchable">
                 </td>
                 <td class="center">
+                   #if($!data_type.getBooleanProperty("browse"))<i class="fa fa-check"></i>#end
                     <i class="hidden">#if($!data_type.getBooleanProperty("browse")) 1 #else 2 #end</i>
-                    <input type="checkbox" #if($!data_type.getBooleanProperty("browse"))checked#end
+                    <input type="hidden" #if($!data_type.getBooleanProperty("browse"))value="true"#end
                             id="xdat:security/element_security_set/element_security[$dt_count]/browse"
-                            name="xdat:security/element_security_set/element_security[$dt_count]/browse"
-                            value="true">
+                            name="xdat:security/element_security_set/element_security[$dt_count]/browse">
+                </td>
+                <td class="center inline-actions-menu-container">
+                    <div class="inline-actions-menu-toggle" data-actionset="datatypeActions" data-id="$!data_type.getProperty("element_name")">
+                        <i class="fa fa-ellipsis-h"></i>
+                    </div>
+                    <ul class="inline-actions-menu" style="display:none;"></ul>
                 </td>
                 <input type="hidden" value="$!data_type.getProperty("element_name")"
                        id="xdat:security/element_security_set/element_security[$dt_count]/element_name"
@@ -131,6 +140,14 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
 </div>
 
 <style>
+    /*.inline-table-actions {*/
+        /*border-radius: 2px;*/
+        /*padding: 2px 4px;*/
+    /*}*/
+    /*.inline-table-actions:hover {*/
+        /*background: #f1f1f1;*/
+        /*cursor: pointer;*/
+    /*}*/
     .xnat-table.narrow > thead > tr > th,
     .xnat-table.narrow > tbody > tr > th,
     .xnat-table.narrow > tbody > tr > td,
@@ -151,7 +168,9 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
 
     jq('a.data-type-link').click(function(e){
         e.preventDefault();
-        XNAT.app.adminPopupDialog(this.href);
+        var xsiType = $(this).parents('tr').data('xsitype');
+        XNAT.admin.datatypes.edit(xsiType);
+//        XNAT.app.adminPopupDialog(this.href);
         //popupCentered(this.href,' ',960,720,3)
     });
 
@@ -159,6 +178,43 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
 
     //jq('#data-type-table').tableSort();
 
+</script>
+<script src="$content.getURI("scripts/xnat/app/inlineActions.js")"></script>
+<script>
+    jq(document).ready(function(){
+        jq('.inline-actions-menu-container').each(function(){
+            var menuContainer = $(this),
+                    xsiType = $(this).parents('tr').data('xsitype'),
+                    legacyUrl = $(this).parents('tr').data('legacyurl'),
+                    reservedXsitypes = [
+                            'xnat:projectData',
+                            'xnat:subjectData',
+                            'wrk:workflowData'
+                    ];
+            var actions = [
+                {
+                    label: 'Edit Data Type Attributes',
+                    onclick: function(){ XNAT.admin.datatypes.edit(xsiType) }
+                },
+                {
+                    label: 'Edit Data Type Actions',
+                    onclick: function(){ XNAT.admin.datatypes.editActions(xsiType) }
+                },
+                {
+                    label: 'Legacy Data Type Editor',
+                    onclick: false,
+                    href: legacyUrl
+                }
+            ];
+            if (reservedXsitypes.indexOf(xsiType) < 0) {
+                actions.push({
+                    label: 'Delete Data Type',
+                    onclick: function(){ XNAT.admin.datatypes.delete(xsiType) }
+                });
+            }
+            XNAT.app.inlineActions.init(menuContainer,actions);
+        });
+    })
 </script>
 <script src="$content.getURI("scripts/xnat/admin/datatypes.js")"></script>
 <script>
@@ -245,7 +301,8 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                             id: '$!securityField.getStringProperty("xdat_primary_security_field_id")',
                         },
                     #end
-                ]
+                ],
+                'legacyEditLink': '$link.setAction("DisplayItemAction").addPathInfo("search_element","xdat:element_security").addPathInfo("search_field","xdat:element_security.element_name").addPathInfo("search_value","$!data_type.getProperty('element_name')").addPathInfo("popup","true")'
             }
         #end
 
