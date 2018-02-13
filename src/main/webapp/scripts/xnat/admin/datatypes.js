@@ -168,10 +168,10 @@ var XNAT = getObject(XNAT || {});
                             values: '1|0'
                         }
                     }
-                },
+                }
             }
         }
-    }
+    };
 
     var formPresubmit = function(datatype){
         var formInit = [
@@ -212,7 +212,7 @@ var XNAT = getObject(XNAT || {});
         }
 
         return formInit;
-    }
+    };
 
     XNAT.admin.datatypes.edit = function(xsiType){
         var datatype = XNAT.admin.datatypes[xsiType];
@@ -221,8 +221,12 @@ var XNAT = getObject(XNAT || {});
             return false;
         }
 
+        var title = (datatype['xdat:element_security.plural'].length) ?
+        'Edit Actions for '+datatype['xdat:element_security.plural'] :
+        'Edit Actions for '+datatype['xdat:element_security.element_name'];
+
         XNAT.ui.dialog.open({
-            title: 'Edit Attributes For '+datatype['xdat:element_security.plural'],
+            title: title,
             width: 600,
             content: '<div id="edit-xsitype-form-container"></div>',
             beforeShow: function(obj){
@@ -233,6 +237,11 @@ var XNAT = getObject(XNAT || {});
                 form.setValues(datatype);
 
                 form.append(spawn('!', formPresubmit(datatype)));
+
+                // add legacy link
+                form.prepend(spawn('p',[
+                    spawn('a',{ href: datatype.legacyEditLink, target: '_blank', html: 'Open in Legacy Editor' })
+                ]));
             },
             buttons: [
                 {
@@ -257,7 +266,7 @@ var XNAT = getObject(XNAT || {});
                 }
             ]
         })
-    }
+    };
 
     XNAT.admin.datatypes.addActionRow = function(table){
         var i = jq(table).data('action-count')-1;
@@ -275,14 +284,14 @@ var XNAT = getObject(XNAT || {});
         jq(table)
             .data('action-count',i+2)
             .find('tbody').append(newTr[0]);
-    }
+    };
     XNAT.admin.datatypes.deleteActionRow = function(event){
         event.preventDefault;
         var row = jq(event.target).parents('tr');
 
         jq(row).slideUp()
             .find('input.delete').prop('disabled',false);
-    }
+    };
 
     XNAT.admin.datatypes.editActions = function(xsiType){
         var datatype = XNAT.admin.datatypes[xsiType];
@@ -308,7 +317,7 @@ var XNAT = getObject(XNAT || {});
             popup: 'xdat:element_security.listing_actions.listing_action__0.popup',
             secureAccess: 'xdat:element_security.listing_actions.listing_action__0.secureAccess',
             parameterString: 'xdat:element_security.listing_actions.listing_action__0.parameterString'
-        }
+        };
 
         var actionTable = function(actions,inputobj){
             var atTable = XNAT.table({
@@ -425,14 +434,18 @@ var XNAT = getObject(XNAT || {});
                 .td({colSpan: '7'}, [ addRowButton()]);
 
             return atTable.table;
-        }
+        };
 
         // open & populate editor dialog
         var url = XNAT.url.csrfUrl('/app/action/ModifyItem/popup/true?popup=true');
 
+        var title = (datatype['xdat:element_security.plural'].length) ?
+            'Edit Actions for '+datatype['xdat:element_security.plural'] :
+            'Edit Actions for '+datatype['xdat:element_security.element_name'];
+
         XNAT.ui.dialog.open({
             width: 960,
-            title: 'Edit Actions for '+datatype['xdat:element_security.plural'],
+            title: title,
             content: '<form id="action-table-form"></form>',
             beforeShow: function(obj){
                 var form = obj.$modal.find('#action-table-form');
@@ -468,6 +481,10 @@ var XNAT = getObject(XNAT || {});
             ]
         })
     }
+
+    XNAT.admin.datatypes.delete = function(xsiType){
+        console.log('Nothing here yet')
+    };
 
     function submitEditForm(form){
         var url = XNAT.url.csrfUrl('/app/action/ModifyItem/popup/true?popup=true');
