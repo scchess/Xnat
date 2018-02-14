@@ -307,7 +307,8 @@ var XNAT = getObject(XNAT || {});
             grouping: 'xdat:element_security.element_actions.element_action__0.grouping',
             popup: 'xdat:element_security.element_actions.element_action__0.popup',
             secureAccess: 'xdat:element_security.element_actions.element_action__0.secureAccess',
-            parameterString: 'xdat:element_security.element_actions.element_action__0.parameterString'
+            parameterString: 'xdat:element_security.element_actions.element_action__0.parameterString',
+            remove: 'REMOVE__0=xdat:element_action_type.xdat_element_action_type_id'
         };
         var listingActionObj = {
             id: 'xdat:element_security.listing_actions.listing_action__0.xdat_element_security_listing_action_id',
@@ -316,7 +317,8 @@ var XNAT = getObject(XNAT || {});
             grouping: 'xdat:element_security.listing_actions.listing_action__0.grouping',
             popup: 'xdat:element_security.listing_actions.listing_action__0.popup',
             secureAccess: 'xdat:element_security.listing_actions.listing_action__0.secureAccess',
-            parameterString: 'xdat:element_security.listing_actions.listing_action__0.parameterString'
+            parameterString: 'xdat:element_security.listing_actions.listing_action__0.parameterString',
+            remove: 'REMOVE__0=xdat:element_security_listing_action.xdat_element_security_listing_action_id'
         };
 
         var actionTable = function(actions,inputobj){
@@ -372,7 +374,7 @@ var XNAT = getObject(XNAT || {});
                             spawn('input.delete', {
                                 type: 'hidden',
                                 disabled: 'disabled',
-                                name: 'REMOVE__' + i + '=xdat:element_security_listing_action.xdat_element_security_listing_action_id',
+                                name: resolveName(inputobj['remove'],i),
                                 value: action[key]
                             })
                         ]);
