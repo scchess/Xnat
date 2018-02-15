@@ -239,9 +239,9 @@ var XNAT = getObject(XNAT || {});
                 form.append(spawn('!', formPresubmit(datatype)));
 
                 // add legacy link
-                form.prepend(spawn('p',[
-                    spawn('a',{ href: datatype.legacyEditLink, target: '_blank', html: 'Open in Legacy Editor' })
-                ]));
+                // form.prepend(spawn('p',[
+                //     spawn('a',{ href: datatype.legacyEditLink, target: '_blank', html: 'Open in Legacy Editor' })
+                // ]));
             },
             buttons: [
                 {
@@ -482,7 +482,7 @@ var XNAT = getObject(XNAT || {});
                 }
             ]
         })
-    }
+    };
 
     XNAT.admin.datatypes.delete = function(xsiType){
         console.log('Nothing here yet')
@@ -490,6 +490,17 @@ var XNAT = getObject(XNAT || {});
 
     function submitEditForm(form){
         var url = XNAT.url.csrfUrl('/app/action/ModifyItem/popup/true?popup=true');
+
+        // insert a hack for checkbox-based switchboxes
+        form.find('input.controller.switchbox').each(function(){
+            if ($(this).prop('type') === 'checkbox') $(this).prop('checked','checked');
+        });
+
+        // insert a hack to NULLify empty text inputs
+        form.find('input[type=text]').each(function(){
+            if ($(this).val().length === 0) $(this).val('NULL')
+        });
+
         var formData = form.serialize();
 
         XNAT.xhr.ajax({
