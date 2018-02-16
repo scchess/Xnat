@@ -13,10 +13,24 @@
 </tr>
 #end
 
+#set ($scannerString = "")
+
+#if($!item.getProperty("scanner"))
+    #set($scanner_ = $!item.getProperty("scanner"))
+#end
+
+#if($!item.getProperty("scanner.manufacturer"))
+    #set($scannerManufacturer = $!{item.getProperty("scanner.manufacturer")})
+#end
+
+#if($!item.getProperty("scanner.model"))
+    #set($scannerModel = $!{item.getProperty("scanner.model")})
+#end
+
 #if($!item.getProperty("scanner") || $!item.getProperty("scanner.model") || $!item.getProperty("scanner.manufacturer"))
 <tr>
     <th align="left">Scanner:</th>
-    <td>#escapeHTML($!item.getProperty("scanner")) #escapeHTML($!item.getProperty("scanner.manufacturer")) #escapeHTML($!item.getProperty("scanner.model"))</td>
+    <td>#escapeHTML("$!{scanner_}") #escapeHTML("$!{scannerManufacturer}") #escapeHTML("$!{scannerModel}")</td>
 </tr>
 #end
 
