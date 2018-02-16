@@ -29,6 +29,16 @@ $navigation.setTemplate("/BaseJS.vm")
 #set($versionString = "v=1.7.5a")
 #set($SITE_ROOT = $content.getURI(""))
 
+#set($projectName = $turbineUtils.getProjectName($om, $project))
+
+#if (!$projectName)
+    #set($projectName = $project.getName())
+#end
+#define($projectNameEsc)#escapeAll($!projectName)#end
+
+#set($projectId = $turbineUtils.getProjectDisplayID($om, $project))
+#define($projectIdEsc)#escapeAll($!projectId)#end
+
 <script>
 
     /*
@@ -59,25 +69,19 @@ $navigation.setTemplate("/BaseJS.vm")
         },
         data: {
             context: {
-                #set($projectName = $turbineUtils.getProjectName($om, $project))
-                #if (!$projectName)
-                    #set ($projectName = $project.getName())
-                #end
-                #set($projectName = $turbineUtils.escapeHTML($turbineUtils.escapeJS($!projectName)))
-                #set($projectID = $turbineUtils.getProjectDisplayID($om, $project))
                 siteName: "$!systemName",
-                projectName: "$!projectName",
-                #if ($!projectID)
-                    projectID: "$!projectID",
-                    project: "$!projectID",
+                projectName: "$!projectNameEsc.toString().trim()",
+                #if ($!projectId)
+                    projectID: "$!projectIdEsc.toString().trim()",
+                    project: "$!projectIdEsc.toString().trim()",
                     ## if the user is viewing a shared data object, display the ID of the project that owns that object
-                    #if ($!projectID == $!om.getProject())
+                    #if ($!projectId == $!om.getProject())
                     #else
-                        parentProjectID: "$!om.getProject()",
+                        parentProjectID: '$!turbineUtils.escapeHTML($!turbineUtils.escapeJS("$!om.getProject()"))',
                     #end
                 #else
-                    projectID: "$!om.getProject()",
-                    project: "$!om.getProject()",
+                    projectID: '$!turbineUtils.escapeHTML($!turbineUtils.escapeJS("$!om.getProject()"))',
+                    project: '$!turbineUtils.escapeHTML($!turbineUtils.escapeJS("$!om.getProject()"))',
                 #end
                 xsiType: "$!om.getXSIType()",
                 #if($om)
@@ -93,9 +97,9 @@ $navigation.setTemplate("/BaseJS.vm")
             ##                        #end
             ##                        subjectLabel: "#if($!om.getIdentifier($project,true))$!om.getIdentifier($project,true)#elseif($om.getLabel())$!om.getLabel()#else$!om.getId()#end",
                 subjectLabel: "#if($!subject.getIdentifier($project,true))$!subject.getIdentifier($project,true)#elseif($subject.getLabel())$!subject.getLabel()#else$!subject.getId()#end",
-                subjectID: "$!subject.getId()",
+                subjectID: "$!turbineUtils.escapeHTML($!turbineUtils.escapeJS("$!subject.getId()"))",
                 label: "#if($!om.getIdentifier($project,true))$!om.getIdentifier($project,true)#elseif($om.getLabel())$!om.getLabel()#else$!om.getId()#end",
-                ID: "$!om.getId()"
+                ID: "$!turbineUtils.escapeHTML($!turbineUtils.escapeJS("$!om.getId()"))"
             ##                    subjectLabel: "$!item.getStringProperty("xnat:subjectData/name")",
             },
             timestamp: jq.now() // timestamp for the page when it loads
