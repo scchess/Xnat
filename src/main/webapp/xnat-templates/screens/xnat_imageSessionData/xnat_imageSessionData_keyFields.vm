@@ -9,21 +9,21 @@
 #if($!item.getProperty("operator"))
 <tr>
     <th align="left">Operator:</th>
-    <td>$!turbineUtils.escapeHTML("$!item.getProperty('operator')")</td>
+    <td>#escapeHTML($!item.getProperty("operator"))</td>
 </tr>
 #end
 
 #if($!item.getProperty("scanner") || $!item.getProperty("scanner.model") || $!item.getProperty("scanner.manufacturer"))
 <tr>
     <th align="left">Scanner:</th>
-    <td>$!turbineUtils.escapeHTML("$item.getProperty('scanner')") $!turbineUtils.escapeHTML("$item.getProperty('scanner.manufacturer')") $!turbineUtils.escapeHTML("$item.getProperty('scanner.model')")</td>
+    <td>#escapeHTML($!item.getProperty("scanner")) #escapeHTML($!item.getProperty("scanner.manufacturer")) #escapeHTML($!item.getProperty("scanner.model"))</td>
 </tr>
 #end
 
 #if($!item.getProperty("acquisition_site"))
 <tr>
     <th align="left">Acquisition Site:</th>
-    <td>$!turbineUtils.escapeHTML("$!item.getProperty('acquisition_site')")</td>
+    <td>#escapeHTML($!item.getProperty("acquisition_site"))</td>
 </tr>
 #end
 
