@@ -24,9 +24,11 @@
     #addCustomScreens($om.getXSIType() "report/alerts")
     #addCustomScreens($om.getXSIType() "report/errors")
 
-    #set($projectName = $turbineUtils.escapeHTML($turbineUtils.escapeJS($!item.getStringProperty("xnat:projectData/name"))))
+    #define ($projectName)
+        #escapeAll($!item.getStringProperty("xnat:projectData/name"))
+    #end
 
-    <h2 class="edit_header1" style="">$!projectName</h2>
+    <h2 class="edit_header1" style="">$!projectName.toString().trim()</h2>
 
     #if($data.getSession().getAttribute("userHelper").canRead("xnat:subjectData/project","$project.getId()"))
         <script type="text/javascript" src="$content.getURI("scripts/yui/build/resize/resize-beta-min.js")"></script>
