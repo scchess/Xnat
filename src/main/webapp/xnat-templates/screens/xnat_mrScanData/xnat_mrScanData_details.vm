@@ -12,7 +12,7 @@
 #end
 
 #macro (escapeHtml $html)
-    $!turbineUtils.escapeHTML($html)
+    $!turbineUtils.escapeHTML("$html")
 #end
 
 <!-- START /xnat-templates/screens/xnat_mrScanData/xnat_mrScanData_details.vm -->
@@ -32,19 +32,19 @@
     #if($scan.getProperty('condition'))
         <tr>
             <th>Condition</th>
-            <td align="left">"#escapeProperty('condition')</td>
+            <td align="left">#escapeProperty('condition')</td>
         </tr>
     #end
     #if($scan.getProperty('series_description'))
         <tr>
             <th>Series Desc</th>
-            <td align="left">"#escapeProperty('series_description')</td>
+            <td align="left">#escapeProperty('series_description')</td>
         </tr>
     #end
     #if($scan.getProperty('modality'))
         <tr>
             <th>Modality</th>
-            <td align="left">"#escapeProperty('modality')</td>
+            <td align="left">#escapeProperty('modality')</td>
         </tr>
     #end
     #if($scan.getProperty('frames'))
