@@ -485,7 +485,44 @@ var XNAT = getObject(XNAT || {});
     };
 
     XNAT.admin.datatypes.delete = function(xsiType){
-        console.log('Nothing here yet')
+        var deleteUrl = XNAT.url.csrfUrl('/app/action/DeleteXdatElementSecurity');
+        var data = 'search_element=xdat:element_security';
+        data += '&search_field=xdat:element_security.element_name';
+        data += '&search_value='+xsiType;
+
+        XNAT.dialog.open({
+            title: 'Confirm Data Type Deletion',
+            width: 450,
+            content: 'Are you sure you want to delete the <strong>'+xsiType+'</strong> data type? This operation cannot be undone.',
+            buttons: [
+                {
+                    label: 'Confirm and Delete Data Type',
+                    isDefault: true,
+                    close: true,
+                    action: function(){
+                        XNAT.xhr.ajax({
+                            url: deleteUrl,
+                            method: 'POST',
+                            data: data,
+                            cache: false,
+                            success: function(data){
+                                console.log(data);
+                                XNAT.ui.banner.top(2000,'Data type '+ xsiType +' deleted','success');
+                                window.location.reload();
+                            },
+                            fail: function(e){
+                                console.log(e);
+                                XNAT.ui.banner.top(2000,'ERROR. Could not delete '+ xsiType +' data type.','error');
+                            }
+                        })
+                    }
+                },
+                {
+                    label: 'Cancel',
+                    close: true
+                }
+            ]
+        })
     };
 
     function submitEditForm(form){
