@@ -24,6 +24,8 @@ var XNAT = getObject(XNAT || {});
             console.log('Cannot initialize actions menu on '+target);
             return false;
         }
+
+        opts = getObject(opts || {});
         
         if (!target || !actions) cannotInit();
 
@@ -42,6 +44,12 @@ var XNAT = getObject(XNAT || {});
             $menu = $target;
         }
         else cannotInit();
+
+        // add a title to the actions box, if specified
+        if (opts.label) {
+            $menu.append(spawn('li.inline-action-title',opts.label));
+        }
+
         
         if (actions.length === 0) {
             $menu.parents('.inline-actions-menu-container').addClass('disabled')
@@ -52,12 +60,11 @@ var XNAT = getObject(XNAT || {});
 
                 if (action.onclick !== undefined) {
                     actionSet.push(
-                        spawn('li', [
+                        spawn('li', { onclick: action.onclick }, [
                             spawn('a', {
                                 html: action.label,
                                 href: '#!',
-                                className: 'actionLauncher',
-                                onclick: action.onclick
+                                className: 'actionLauncher'
                             })
                         ]));
                 }
@@ -121,13 +128,13 @@ var XNAT = getObject(XNAT || {});
     $(document).on('mouseleave','.inline-actions-menu',function(){ $(this).removeClass('active').hide(); });
 
 // if user mouses away from the toggle button, hide the menu unless the user has moused over the menu
-    $(document).on('mouseleave','.inline-actions-menu-toggle',function(event){
-        var menu = $(this).parents('td').find('.inline-actions-menu');
-        if (!event.relatedTarget.className.match(/menu/) ) {
-            setTimeout(function(){
-                if (!menu.hasClass('active')) menu.hide();
-            },100);
-        }
-    });
+//     $(document).on('mouseleave','.inline-actions-menu-toggle',function(event){
+//         var menu = $(this).parents('td').find('.inline-actions-menu');
+//         if (!event.relatedTarget.className.match(/menu/) ) {
+//             setTimeout(function(){
+//                 if (!menu.hasClass('active')) menu.hide();
+//             },100);
+//         }
+//     });
 
 }));

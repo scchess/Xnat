@@ -185,12 +185,15 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
         jq('.inline-actions-menu-container').each(function(){
             var menuContainer = $(this),
                     xsiType = $(this).parents('tr').data('xsitype'),
-                    legacyUrl = $(this).parents('tr').data('legacyurl'),
+                    legacyUrl = $(this).parents('tr').data('legacylink'),
                     reservedXsitypes = [
                             'xnat:projectData',
                             'xnat:subjectData',
                             'wrk:workflowData'
                     ];
+            var opts = {
+                label: 'Actions for '+xsiType
+            };
             var actions = [
                 {
                     label: 'Edit Data Type Attributes',
@@ -202,8 +205,7 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                 },
                 {
                     label: 'Legacy Data Type Editor',
-                    onclick: false,
-                    href: legacyUrl
+                    onclick: function(){ window.open( legacyUrl )}
                 }
             ];
             if (reservedXsitypes.indexOf(xsiType) < 0) {
@@ -212,7 +214,7 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
                     onclick: function(){ XNAT.admin.datatypes.delete(xsiType) }
                 });
             }
-            XNAT.app.inlineActions.init(menuContainer,actions);
+            XNAT.app.inlineActions.init(menuContainer,actions,opts);
         });
     })
 </script>

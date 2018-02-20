@@ -3451,7 +3451,7 @@ th.sort:hover {
     margin-right: 0;
 }
 .inline-actions a:hover {
-    background-color: #c5e2ff;
+    background-color: #e4efff;
     opacity: 1;
 }
 .inline-actions-menu-toggle {
@@ -3470,18 +3470,33 @@ th.sort:hover {
     list-style-type: none;
     margin: 0;
     padding: 0;
-    position: absolute; left: 28px; top: 2px;
+    position: absolute; right: 1px; top: 1px;
+    text-align: left;
+    z-index: 999;
 }
 .inline-actions-menu-toggle:hover {
-    background-color: #c5e2ff;
+    background-color: #e4efff;
 }
 .inline-actions-menu li {
-    font-weight: bold;
-    padding: 3px 6px;
+    border-bottom: 1px solid #f0f0f0;
+    padding: 4px 8px;
     white-space: nowrap;
 }
+.inline-actions-menu li:last-child {
+    border-bottom: none;
+}
 .inline-actions-menu li:hover {
-    background-color: #c5e2ff;
+    background-color: #e4efff;
+}
+
+.inline-actions-menu li.inline-action-title {
+    background-color: #e0e0e0;
+    color: #848484;
+    border-bottom-color: #848484;
+    cursor: default;
+}
+.inline-actions-menu li.inline-action-title:hover {
+    background-color: #e0e0e0;
 }
 
 .xnat-table.selectable td {
