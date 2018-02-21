@@ -175,7 +175,7 @@ public abstract class AbstractDicomImportOperation extends StatusProducer implem
         }
     }
 
-    protected static void write(final DicomObject fmi, final DicomObject dataset, final InputStream remainder, final File file, final String source, final SessionData sessionData, final List<ArchiveProcessor> processors)
+    protected static void write(final DicomObject fmi, final DicomObject dataset, final InputStream remainder, final File file, final String source, final SessionData sessionData)
             throws ClientException, IOException {
         IOException                ioexception = null;
         final FileOutputStream     fos         = new FileOutputStream(file);
@@ -201,10 +201,6 @@ public abstract class AbstractDicomImportOperation extends StatusProducer implem
                             final String               dtsdui = Decompress.getTsuid(dicomImageData);
                             try {
                                 fmi.putString(Tag.TransferSyntaxUID, VR.UI, dtsdui);
-                                for (final ArchiveProcessor processor : processors) {
-                                    // Do stuff with fmi, dicomImageData, etc.
-                                    processor.process(fmi, dicomImageData, sessionData);
-                                }
                                 dos.writeFileMetaInformation(fmi);
                                 dos.writeDataset(dicomImageData.dataset(), dtsdui);
                             } catch (Throwable t) {

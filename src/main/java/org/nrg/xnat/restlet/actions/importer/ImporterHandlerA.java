@@ -34,7 +34,7 @@ import java.util.concurrent.Future;
 @SuppressWarnings({"rawtypes", "unchecked", "deprecation"})
 @Slf4j
 public abstract class ImporterHandlerA {
-    protected ImporterHandlerA(final DicomObjectIdentifier identifier, final DicomFileNamer namer, final List<ArchiveProcessor> processors, final DicomFilterService filterService, final MizerService mizer) {
+    protected ImporterHandlerA(final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer, final List<ArchiveProcessor> processors, final DicomFilterService filterService, final MizerService mizer) {
         _identifier = identifier;
         _namer = namer;
         _processors = processors;
@@ -104,7 +104,7 @@ public abstract class ImporterHandlerA {
 
     static {
         //First, find importers by property file (if it exists)
-        //EXAMPLE PROPERTIES FILE 
+        //EXAMPLE PROPERTIES FILE
         //org.nrg.import.handler=NIFTI
         //org.nrg.import.handler.impl.NIFTI.className=org.nrg.import.handler.CustomNiftiImporter:w
         try {
@@ -152,7 +152,7 @@ public abstract class ImporterHandlerA {
 
     private static final DicomFileNamer DEFAULT_NAMER = new SOPHashDicomFileNamer();
 
-    private final DicomObjectIdentifier  _identifier;
+    private final DicomObjectIdentifier<XnatProjectdata>  _identifier;
     private final DicomFileNamer         _namer;
     private final List<ArchiveProcessor> _processors;
     private final DicomFilterService     _filterService;

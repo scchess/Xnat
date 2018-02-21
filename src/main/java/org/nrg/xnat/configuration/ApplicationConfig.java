@@ -139,9 +139,4 @@ public class ApplicationConfig {
     public XnatRestletExtensions extraXnatRestletExtensions() {
         return new XnatRestletExtensions(new HashSet<>(Collections.singletonList("org.nrg.xnat.restlet.actions")));
     }
-
-    @Bean
-    public ImporterHandlerPackages importerHandlerPackages() {
-        return new ImporterHandlerPackages(new HashSet<>(Arrays.asList("org.nrg.xnat.restlet.actions", "org.nrg.xnat.archive")));
-    }
 }

@@ -25,6 +25,7 @@ import org.nrg.xnat.restlet.util.FileWriterWrapperI;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -36,9 +37,14 @@ public class GradualDicomImporter extends ImporterHandlerA {
     public static final String SENDER_ID_PARAM       = "Sender-ID";
     public static final String TSUID_PARAM           = "Transfer-Syntax-UID";
 
+//    @Autowired
+//    public GradualDicomImporter(final List<ArchiveProcessor> processors, final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer, final MizerService mizer) {
+//        super(identifier, namer, processors, filterService, mizer);
+//    }
+
     @Autowired
-    public GradualDicomImporter(final List<ArchiveProcessor> processors, final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer, final MizerService mizer) {
-        super(identifier, namer, processors, filterService, mizer);
+    public GradualDicomImporter(final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer, final MizerService mizer) {
+        super(identifier, namer, new ArrayList<ArchiveProcessor>(), filterService, mizer);
     }
 
     @Override

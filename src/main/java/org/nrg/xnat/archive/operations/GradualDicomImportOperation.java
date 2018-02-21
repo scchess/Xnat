@@ -23,7 +23,7 @@ import org.nrg.xnat.Files;
 import org.nrg.xnat.Labels;
 import org.nrg.xnat.archive.GradualDicomImporter;
 import org.nrg.xnat.archive.processors.ArchiveProcessor;
-import org.nrg.xnat.helpers.merge.anonymize.DefaultAnonUtils;
+import org.nrg.xnat.archive.processors.MizerArchiveProcessor;
 import org.nrg.xnat.helpers.prearchive.DatabaseSession;
 import org.nrg.xnat.helpers.prearchive.PrearcDatabase;
 import org.nrg.xnat.helpers.prearchive.PrearcUtils;
@@ -32,6 +32,8 @@ import org.nrg.xnat.helpers.uri.URIManager;
 import org.nrg.xnat.restlet.util.FileWriterWrapperI;
 import org.nrg.xnat.turbine.utils.ArcSpecManager;
 import org.restlet.data.Status;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -49,6 +51,7 @@ import static org.nrg.xnat.archive.GradualDicomImporter.SENDER_ID_PARAM;
 
 @Slf4j
 public class GradualDicomImportOperation extends AbstractDicomImportOperation {
+
     public GradualDicomImportOperation(final Object control,
                                        final UserI user,
                                        final FileWriterWrapperI fileWriter,
@@ -258,11 +261,56 @@ public class GradualDicomImportOperation extends AbstractDicomImportOperation {
             }
         }
 
+        MizerArchiveProcessor processor = new MizerArchiveProcessor();
+        processor.process(fmi, fmi, session, getMizer());
+
+
+
+//        try {
+//            // check to see of this session came in through an application that may have performed anonymization
+//            // prior to transfer, e.g. the XNAT Upload Assistant.
+//            if (!session.getPreventAnon() && DefaultAnonUtils.getService().isSiteWideScriptEnabled()) {
+//                Configuration c = DefaultAnonUtils.getCachedSitewideAnon();
+//                if (c != null && c.getStatus().equals(Configuration.ENABLED_STRING)) {
+//                    //noinspection deprecation
+//                    Long scriptId = c.getId();
+//
+//                    if (scriptId == null) {
+//                        throw new IllegalArgumentException("\"record\" is true, but \"scriptId\" is null.");
+//                    } else {
+//                        return Anonymize.addRecord(dicomObject, scriptId);
+//                    }
+//
+//
+//                    getMizer().anonymize(fmi, session.getProject(), session.getSubject(), session.getFolderName(), c.getContents());
+//                } else {
+//                    log.debug("Anonymization is not enabled, allowing session {} {} {} to proceed without anonymization.", session.getProject(), session.getSubject(), session.getName());
+//                }
+//            } else if (session.getPreventAnon()) {
+//                log.debug("The session {} {} {} has already been anonymized by the uploader, proceeding without further anonymization.", session.getProject(), session.getSubject(), session.getName());
+//            }
+//        } catch (Throwable e) {
+//            log.debug("Dicom anonymization failed: " + outputFile, e);
+//            try {
+//                // if we created a row in the database table for this session
+//                // delete it.
+//                if (getOrCreate.isRight()) {
+//                    PrearcDatabase.deleteSession(session.getFolderName(), session.getTimestamp(), session.getProject());
+//                } else {
+//                    outputFile.delete();
+//                }
+//            } catch (Throwable t) {
+//                log.debug("Unable to delete relevant file :" + outputFile, e);
+//                throw new ServerException(Status.SERVER_ERROR_INTERNAL, t);
+//            }
+//            throw new ServerException(Status.SERVER_ERROR_INTERNAL, e);
+//        }
+
         final File sessionFolder = new File(new File(root, session.getTimestamp()), session.getFolderName());
         final File outputFile    = getSafeFile(sessionFolder, scan, name, dicom, Boolean.valueOf((String) getParameters().get(RENAME_PARAM)));
         outputFile.getParentFile().mkdirs();
 
-        final PrearcUtils.PrearcFileLock lock;
+        PrearcUtils.PrearcFileLock lock = null;
         try {
             lock = PrearcUtils.lockFile(session.getSessionDataTriple(), outputFile.getName());
             write(fmi, dicom, inputStream, outputFile, source, session);
@@ -270,40 +318,14 @@ public class GradualDicomImportOperation extends AbstractDicomImportOperation {
             throw new ServerException(Status.SERVER_ERROR_INSUFFICIENT_STORAGE, e);
         } catch (PrearcUtils.SessionFileLockException e) {
             throw new ClientException("Concurrent file sends of the same data is not supported.");
-        }
-        try {
-            // check to see of this session came in through an application that may have performed anonymization
-            // prior to transfer, e.g. the XNAT Upload Assistant.
-            if (!session.getPreventAnon() && DefaultAnonUtils.getService().isSiteWideScriptEnabled()) {
-                Configuration c = DefaultAnonUtils.getCachedSitewideAnon();
-                if (c != null && c.getStatus().equals(Configuration.ENABLED_STRING)) {
-                    //noinspection deprecation
-                    getMizer().anonymize(outputFile, session.getProject(), session.getSubject(), session.getFolderName(), true, c.getId(), c.getContents());
-                } else {
-                    log.debug("Anonymization is not enabled, allowing session {} {} {} to proceed without anonymization.", session.getProject(), session.getSubject(), session.getName());
-                }
-            } else if (session.getPreventAnon()) {
-                log.debug("The session {} {} {} has already been anonymized by the uploader, proceeding without further anonymization.", session.getProject(), session.getSubject(), session.getName());
-            }
-        } catch (Throwable e) {
-            log.debug("Dicom anonymization failed: " + outputFile, e);
-            try {
-                // if we created a row in the database table for this session
-                // delete it.
-                if (getOrCreate.isRight()) {
-                    PrearcDatabase.deleteSession(session.getFolderName(), session.getTimestamp(), session.getProject());
-                } else {
-                    outputFile.delete();
-                }
-            } catch (Throwable t) {
-                log.debug("Unable to delete relevant file :" + outputFile, e);
-                throw new ServerException(Status.SERVER_ERROR_INTERNAL, t);
-            }
-            throw new ServerException(Status.SERVER_ERROR_INTERNAL, e);
         } finally {
             //release the file lock
-            lock.release();
+            if(lock!=null){
+                lock.release();
+            }
         }
+
+
 
         log.trace("Stored object {}/{}/{} as {} for {}", project, studyInstanceUID, dicom.getString(Tag.SOPInstanceUID), session.getUrl(), source);
         return Collections.singletonList(session.getExternalUrl());

@@ -63,7 +63,6 @@ public class RefreshGuestHandlerMethod extends AbstractSiteConfigPreferenceHandl
         }catch(Exception e){
             //Ignore
         }
-
     }
 
     private static final List<String> PREFERENCES = ImmutableList.copyOf(Arrays.asList("refreshGuestFrequency"));
