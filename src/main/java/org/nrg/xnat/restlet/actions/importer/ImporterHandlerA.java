@@ -48,20 +48,32 @@ public abstract class ImporterHandlerA {
         return getOperation(listenerControl, user, writer, params, getIdentifier(), getNamer());
     }
 
-    @Async
-    public Future<List<String>> doImport(final Object listenerControl, final UserI user, final FileWriterWrapperI writer, final Map<String, Object> params) throws Exception {
+    public List<String> doImport(final Object listenerControl, final UserI user, final FileWriterWrapperI writer, final Map<String, Object> params) throws Exception {
         return doImport(listenerControl, user, writer, params, null, null);
     }
 
-    @Async
-    public Future<List<String>> doImport(final Object listenerControl, final UserI user, final FileWriterWrapperI writer, final Map<String, Object> params, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer) throws Exception {
+    public List<String> doImport(final Object listenerControl, final UserI user, final FileWriterWrapperI writer, final Map<String, Object> params, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer) throws Exception {
         return doImport(getOperation(listenerControl, user, writer, params, identifier, namer));
     }
 
-    @Async
-    public Future<List<String>> doImport(final DicomImportOperation operation) throws Exception {
-        return new AsyncResult<>(operation.call());
+    public List<String> doImport(final DicomImportOperation operation) throws Exception {
+        return operation.call();
     }
+
+//    @Async
+//    public Future<List<String>> doImport(final Object listenerControl, final UserI user, final FileWriterWrapperI writer, final Map<String, Object> params) throws Exception {
+//        return doImport(listenerControl, user, writer, params, null, null);
+//    }
+//
+//    @Async
+//    public Future<List<String>> doImport(final Object listenerControl, final UserI user, final FileWriterWrapperI writer, final Map<String, Object> params, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer) throws Exception {
+//        return doImport(getOperation(listenerControl, user, writer, params, identifier, namer));
+//    }
+//
+//    @Async
+//    public Future<List<String>> doImport(final DicomImportOperation operation) throws Exception {
+//        return new AsyncResult<>(operation.call());
+//    }
 
     public DicomObjectIdentifier<XnatProjectdata> getIdentifier() {
         return _identifier;

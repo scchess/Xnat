@@ -203,8 +203,8 @@ public class Importer extends SecureResource {
 						if (storeStatusList(operation)) {
 							return;
 						}
-
-						response = importer.doImport(operation).get();
+						//response = importer.doImport(operation).get();
+						response = importer.doImport(operation);
 					}
 				} catch (Exception e) {
 					logger.error("",e);
