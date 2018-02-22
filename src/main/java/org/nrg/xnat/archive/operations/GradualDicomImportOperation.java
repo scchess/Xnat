@@ -264,8 +264,6 @@ public class GradualDicomImportOperation extends AbstractDicomImportOperation {
         MizerArchiveProcessor processor = new MizerArchiveProcessor();
         processor.process(fmi, fmi, session, getMizer());
 
-
-
 //        try {
 //            // check to see of this session came in through an application that may have performed anonymization
 //            // prior to transfer, e.g. the XNAT Upload Assistant.

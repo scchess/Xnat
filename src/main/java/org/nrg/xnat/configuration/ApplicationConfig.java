@@ -9,6 +9,7 @@
 
 package org.nrg.xnat.configuration;
 
+import org.apache.commons.configuration.ConfigurationException;
 import org.nrg.config.exceptions.SiteConfigurationException;
 import org.nrg.config.services.ConfigService;
 import org.nrg.framework.configuration.ConfigPaths;
@@ -27,6 +28,7 @@ import org.nrg.xnat.preferences.AutomationPreferences;
 import org.nrg.xnat.preferences.PluginOpenUrlsPreference;
 import org.nrg.xnat.restlet.XnatRestletExtensions;
 import org.nrg.xnat.restlet.XnatRestletExtensionsBean;
+import org.nrg.xnat.restlet.actions.importer.ImporterHandlerA;
 import org.nrg.xnat.restlet.actions.importer.ImporterHandlerPackages;
 import org.nrg.xnat.services.PETTracerUtils;
 import org.nrg.xnat.utils.XnatUserProvider;
@@ -37,6 +39,7 @@ import org.springframework.context.annotation.*;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.TaskScheduler;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -138,5 +141,10 @@ public class ApplicationConfig {
     @Bean
     public XnatRestletExtensions extraXnatRestletExtensions() {
         return new XnatRestletExtensions(new HashSet<>(Collections.singletonList("org.nrg.xnat.restlet.actions")));
+    }
+
+    @Bean
+    public ImporterHandlerPackages importerHandlerPackages(final List<ImporterHandlerA> handlers) throws ConfigurationException, IOException, ClassNotFoundException {
+        return new ImporterHandlerPackages(new HashSet<>(Arrays.asList("org.nrg.xnat.restlet.actions", "org.nrg.xnat.archive")), handlers);
     }
 }

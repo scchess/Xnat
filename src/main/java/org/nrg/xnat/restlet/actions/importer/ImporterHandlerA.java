@@ -102,41 +102,41 @@ public abstract class ImporterHandlerA {
     private static final String   CLASS_NAME             = "className";
     private static final String[] PROP_OBJECT_FIELDS     = new String[]{CLASS_NAME};
 
-    static {
-        //First, find importers by property file (if it exists)
-        //EXAMPLE PROPERTIES FILE
-        //org.nrg.import.handler=NIFTI
-        //org.nrg.import.handler.impl.NIFTI.className=org.nrg.import.handler.CustomNiftiImporter:w
-        try {
-            IMPORTERS.putAll((new PropertiesHelper<ImporterHandlerA>()).buildClassesFromProps(IMPORTER_PROPERTIES, PROP_OBJECT_IDENTIFIER, PROP_OBJECT_FIELDS, CLASS_NAME));
-
-        } catch (Exception e) {
-            log.error("", e);
-        }
-        //Second, find importers by annotation
-        final ImporterHandlerPackages packages = XDAT.getContextService().getBean("importerHandlerPackages", ImporterHandlerPackages.class);
-        for (final String pkg : packages) {
-            try {
-                final List<Class<?>> classesForPackage = Reflection.getClassesForPackage(pkg);
-                for (final Class<?> clazz : classesForPackage) {
-                    if (ImporterHandlerA.class.isAssignableFrom(clazz)) {
-                        if (!clazz.isAnnotationPresent(ImporterHandler.class)) {
-                            continue;
-                        }
-                        ImporterHandler anno = clazz.getAnnotation(ImporterHandler.class);
-                        if (anno != null && !IMPORTERS.containsKey(anno.handler())) {
-                            if (log.isDebugEnabled()) {
-                                log.debug("Found ImporterHandler: " + clazz.getName());
-                            }
-                            IMPORTERS.put(anno.handler(), (Class<? extends ImporterHandlerA>) clazz);
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
+//    static {
+//        //First, find importers by property file (if it exists)
+//        //EXAMPLE PROPERTIES FILE
+//        //org.nrg.import.handler=NIFTI
+//        //org.nrg.import.handler.impl.NIFTI.className=org.nrg.import.handler.CustomNiftiImporter:w
+//        try {
+//            IMPORTERS.putAll((new PropertiesHelper<ImporterHandlerA>()).buildClassesFromProps(IMPORTER_PROPERTIES, PROP_OBJECT_IDENTIFIER, PROP_OBJECT_FIELDS, CLASS_NAME));
+//
+//        } catch (Exception e) {
+//            log.error("", e);
+//        }
+//        //Second, find importers by annotation
+//        final ImporterHandlerPackages packages = XDAT.getContextService().getBean("importerHandlerPackages", ImporterHandlerPackages.class);
+//        for (final String pkg : packages) {
+//            try {
+//                final List<Class<?>> classesForPackage = Reflection.getClassesForPackage(pkg);
+//                for (final Class<?> clazz : classesForPackage) {
+//                    if (ImporterHandlerA.class.isAssignableFrom(clazz)) {
+//                        if (!clazz.isAnnotationPresent(ImporterHandler.class)) {
+//                            continue;
+//                        }
+//                        ImporterHandler anno = clazz.getAnnotation(ImporterHandler.class);
+//                        if (anno != null && !IMPORTERS.containsKey(anno.handler())) {
+//                            if (log.isDebugEnabled()) {
+//                                log.debug("Found ImporterHandler: " + clazz.getName());
+//                            }
+//                            IMPORTERS.put(anno.handler(), (Class<? extends ImporterHandlerA>) clazz);
+//                        }
+//                    }
+//                }
+//            } catch (Exception e) {
+//                throw new RuntimeException(e);
+//            }
+//        }
+//    }
 
     /**
      * This method was added to allow other developers to manually add importers to the list, without adding a

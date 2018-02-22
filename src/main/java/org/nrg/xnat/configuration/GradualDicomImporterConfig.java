@@ -9,6 +9,7 @@
 
 package org.nrg.xnat.configuration;
 
+import org.apache.commons.configuration.ConfigurationException;
 import org.nrg.dcm.DicomFileNamer;
 import org.nrg.dcm.id.ClassicDicomObjectIdentifier;
 import org.nrg.dcm.id.TemplatizedDicomFileNamer;
@@ -16,6 +17,7 @@ import org.nrg.xdat.om.XnatProjectdata;
 import org.nrg.xnat.DicomObjectIdentifier;
 import org.nrg.dicomtools.filters.DicomFilterService;
 import org.nrg.xnat.archive.GradualDicomImporter;
+import org.nrg.xnat.restlet.actions.importer.ImporterHandlerA;
 import org.nrg.xnat.restlet.actions.importer.ImporterHandlerPackages;
 import org.nrg.xnat.services.cache.UserProjectCache;
 import org.nrg.xnat.utils.XnatUserProvider;
@@ -23,6 +25,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.*;
 
 
+import java.io.IOException;
 import java.util.*;
 
 import org.nrg.dicom.mizer.service.MizerService;
@@ -54,14 +57,7 @@ public class GradualDicomImporterConfig {
 
     @Bean
     @Primary
-    @DependsOn("importerHandlerPackages")
     public GradualDicomImporter gradualDicomImporter(final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer, final MizerService mizer) {
          return new GradualDicomImporter(filterService, identifier, namer, mizer);
     }
-
-    @Bean
-    public ImporterHandlerPackages importerHandlerPackages() {
-        return new ImporterHandlerPackages(new HashSet<>(Arrays.asList("org.nrg.xnat.restlet.actions", "org.nrg.xnat.archive")));
-    }
-
 }

@@ -70,30 +70,30 @@ public class Importer extends SecureResource {
 	
 	private static final List<String> HANDLERS_ALLOWING_CALLS_WITHOUT_FILES = Lists.newArrayList(); 
 	private static final List<String> HANDLERS_PREFERRING_PARTIAL_URI_WRAP = Lists.newArrayList(); 
-	static {
-        final ImporterHandlerPackages packages = XDAT.getContextService().getBean("importerHandlerPackages",ImporterHandlerPackages.class);
-        for (final String pkg : packages) {
-			try {
-				final List<Class<?>> classesForPackage = Reflection.getClassesForPackage(pkg);
-				for (final Class<?> clazz : classesForPackage) {
-                    if (ImporterHandlerA.class.isAssignableFrom(clazz)) {
-                        if (!clazz.isAnnotationPresent(ImporterHandler.class)) {
-                       		continue;
-                       	}
-                       	ImporterHandler anno = clazz.getAnnotation(ImporterHandler.class);
-                        if (anno!=null && anno.allowCallsWithoutFiles()) {
-                        	HANDLERS_ALLOWING_CALLS_WITHOUT_FILES.add(anno.handler());
-                        }
-                        if (anno!=null && anno.callPartialUriWrap()) {
-                        	HANDLERS_PREFERRING_PARTIAL_URI_WRAP.add(anno.handler());
-                        }
-                    }
-				}
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
-        }
-	}
+//	static {
+//        final ImporterHandlerPackages packages = XDAT.getContextService().getBean("importerHandlerPackages",ImporterHandlerPackages.class);
+//        for (final String pkg : packages) {
+//			try {
+//				final List<Class<?>> classesForPackage = Reflection.getClassesForPackage(pkg);
+//				for (final Class<?> clazz : classesForPackage) {
+//                    if (ImporterHandlerA.class.isAssignableFrom(clazz)) {
+//                        if (!clazz.isAnnotationPresent(ImporterHandler.class)) {
+//                       		continue;
+//                       	}
+//                       	ImporterHandler anno = clazz.getAnnotation(ImporterHandler.class);
+//                        if (anno!=null && anno.allowCallsWithoutFiles()) {
+//                        	HANDLERS_ALLOWING_CALLS_WITHOUT_FILES.add(anno.handler());
+//                        }
+//                        if (anno!=null && anno.callPartialUriWrap()) {
+//                        	HANDLERS_PREFERRING_PARTIAL_URI_WRAP.add(anno.handler());
+//                        }
+//                    }
+//				}
+//			} catch (Exception e) {
+//				throw new RuntimeException(e);
+//			}
+//        }
+//	}
 
 	@Override
 	public boolean allowGet(){
