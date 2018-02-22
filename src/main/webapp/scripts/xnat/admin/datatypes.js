@@ -16,9 +16,11 @@ var XNAT = getObject(XNAT || {});
 
     XNAT.admin =
         getObject(XNAT.admin || {});
+    XNAT.admin.datatype =
+        getObject(XNAT.admin.datatype || {});
     XNAT.admin.datatypes =
         getObject(XNAT.admin.datatypes || {});
-
+    
     // build form objects
     var editDatatypeFormObj = function(datatype) {
         return {
@@ -214,7 +216,7 @@ var XNAT = getObject(XNAT || {});
         return formInit;
     };
 
-    XNAT.admin.datatypes.edit = function(xsiType){
+    XNAT.admin.datatype.edit = function(xsiType){
         var datatype = XNAT.admin.datatypes[xsiType];
         if (!datatype || typeof datatype !== 'object') {
             XNAT.ui.banner.top(2000,'Data type '+xsiType+ ' not recognized','error');
@@ -237,11 +239,6 @@ var XNAT = getObject(XNAT || {});
                 form.setValues(datatype);
 
                 form.append(spawn('!', formPresubmit(datatype)));
-
-                // add legacy link
-                // form.prepend(spawn('p',[
-                //     spawn('a',{ href: datatype.legacyEditLink, target: '_blank', html: 'Open in Legacy Editor' })
-                // ]));
             },
             buttons: [
                 {
@@ -257,7 +254,7 @@ var XNAT = getObject(XNAT || {});
                     label: 'Edit Data Type Actions',
                     close: true,
                     action: function(){
-                        XNAT.admin.datatypes.editActions(xsiType);
+                        XNAT.admin.datatype.editActions(xsiType);
                     }
                 },
                 {
@@ -268,7 +265,7 @@ var XNAT = getObject(XNAT || {});
         })
     };
 
-    XNAT.admin.datatypes.addActionRow = function(table){
+    XNAT.admin.datatype.addActionRow = function(table){
         var i = jq(table).data('action-count')-1;
 
         var tr = jq(table).find('tbody').find('tr')[i];
@@ -285,7 +282,7 @@ var XNAT = getObject(XNAT || {});
             .data('action-count',i+2)
             .find('tbody').append(newTr[0]);
     };
-    XNAT.admin.datatypes.deleteActionRow = function(event){
+    XNAT.admin.datatype.deleteActionRow = function(event){
         event.preventDefault;
         var row = jq(event.target).parents('tr');
 
@@ -293,7 +290,7 @@ var XNAT = getObject(XNAT || {});
             .find('input.delete').prop('disabled',false);
     };
 
-    XNAT.admin.datatypes.editActions = function(xsiType){
+    XNAT.admin.datatype.editActions = function(xsiType){
         var datatype = XNAT.admin.datatypes[xsiType];
         if (!datatype || typeof datatype !== 'object') {
             XNAT.ui.banner.top(2000,'Data type '+xsiType+ ' not recognized','error');
@@ -427,7 +424,7 @@ var XNAT = getObject(XNAT || {});
                     onclick: function(e){
                         e.preventDefault();
                         var table = jq(this).parents('table');
-                        XNAT.admin.datatypes.addActionRow(table)
+                        XNAT.admin.datatype.addActionRow(table)
                     },
                     html: '<i class="fa fa-plus"></i> Add Action'
                 })
@@ -473,7 +470,7 @@ var XNAT = getObject(XNAT || {});
                     label: 'Edit Data Type Attributes',
                     close: true,
                     action: function(){
-                        XNAT.admin.datatypes.edit(xsiType);
+                        XNAT.admin.datatype.edit(xsiType);
                     }
                 },
                 {
@@ -484,7 +481,7 @@ var XNAT = getObject(XNAT || {});
         })
     };
 
-    XNAT.admin.datatypes.delete = function(xsiType){
+    XNAT.admin.datatype.delete = function(xsiType){
         var deleteUrl = XNAT.url.csrfUrl('/app/action/DeleteXdatElementSecurity');
         var data = 'search_element=xdat:element_security';
         data += '&search_field=xdat:element_security.element_name';
@@ -559,7 +556,7 @@ var XNAT = getObject(XNAT || {});
 
     jq(document).on('click','.delete-action-row',function(e){
         e.preventDefault();
-        XNAT.admin.datatypes.deleteActionRow(e);
+        XNAT.admin.datatype.deleteActionRow(e);
     });
 
 }));

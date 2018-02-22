@@ -27,109 +27,111 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
 
     <form name="form1" method="post" action="$link.setAction("ManageDataTypes")">
 
-        <div class="data-table" style="margin-bottom:15px;">
-            <table id="data-type-table" class="xnat-table clean sortable" style="width: 100%">
-            <tr>
-                <th class="sort"><b>Element</b></th>
-                <th class="sort name-singular">
-                    <span title="Term used to describe one instance of this data.">Singular</span>
-                </th>
-                <th class="sort name-plural">
-                    <span title="Term used to describe more than one occurrence of this data.">Plural</span>
-                </th>
-                <th class="sort">
-                    <span title="Short code used in the creation of IDs">Code</span>
-                </th>
-                <th class="sort">
-                    <span title="Accessible: Whether or not unspecified users can use this data-type in their $displayManager.getPluralDisplayNameForProject().toLowerCase().">ACC</span>
-                </th>
-                <th class="sort">
-                    <span title="Secured: Whether or not access to data of this type should be restricted.">SEC</span>
-                </th>
-                <th class="sort">
-                    <span title="Searchable: Whether or not data of this type should be searchable.">SRCH</span>
-                </th>
-                <th class="sort">
-                    <span title="Browseable: Whether or not data of this type should be browseable.">BRWS</span>
-                </th>
-                <th>
-                    Actions
-                </th>
-            </tr>
-            #set($dt_count=0)
-            #set($row=0)
-            #foreach($data_type in $data_types)
-                #set ( $url = $link.setAction("DisplayItemAction").addPathInfo("search_element","xdat:element_security").addPathInfo("search_field","xdat:element_security.element_name").addPathInfo("search_value","$!data_type.getProperty('element_name')").addPathInfo("popup","true")  )
+        <div id="datatype-table-container"></div>
 
-            <tr data-xsitype="$!data_type.getProperty("element_name")" data-legacylink="$url">
-
-                <td>
-                    <a class="data-type-link" target="_blank" href="#!">$!data_type.getProperty("element_name")</a>
-                </td>
-                <td class="name-singular">
-                    <i class="hidden">$!data_type.getProperty("singular")</i>
-                    <input type="text" value="$!data_type.getProperty("singular")"
-                            id="xdat:security/element_security_set/element_security[$dt_count]/singular"
-                            name="xdat:security/element_security_set/element_security[$dt_count]/singular"
-                            size="25">
-                </td>
-                <td class="name-plural">
-                    <i class="hidden">$!data_type.getProperty("plural")</i>
-                    <input type="text" value="$!data_type.getProperty("plural")"
-                            id="xdat:security/element_security_set/element_security[$dt_count]/plural"
-                            name="xdat:security/element_security_set/element_security[$dt_count]/plural"
-                            size="25">
-                </td>
-                <td class="center">
-                    <i class="hidden">$!data_type.getProperty("code")</i>
-                    <input type="text" value="$!data_type.getProperty("code")"
-                            id="xdat:security/element_security_set/element_security[$dt_count]/code"
-                            name="xdat:security/element_security_set/element_security[$dt_count]/code"
-                            size="5" maxlength="5">
-                </td>
-                <td class="center">
-                    #if($!data_type.getBooleanProperty("accessible"))<i class="fa fa-check"></i>#end
-                    <i class="hidden">#if($!data_type.getBooleanProperty("accessible")) 1 #else 2 #end</i>
-                    <input type="hidden" #if($!data_type.getBooleanProperty("accessible"))value="true"#end
-                            id="xdat:security/element_security_set/element_security[$dt_count]/accessible"
-                            name="xdat:security/element_security_set/element_security[$dt_count]/accessible">
-                </td>
-                <td class="center">
-                    #if($!data_type.getBooleanProperty("secure"))<i class="fa fa-check"></i>#end
-                    <i class="hidden">#if($!data_type.getBooleanProperty("secure")) 1 #else 2 #end</i>
-                    <input type="hidden" #if($!data_type.getBooleanProperty("secure"))value="true"#end
-                            id="xdat:security/element_security_set/element_security[$dt_count]/secure"
-                            name="xdat:security/element_security_set/element_security[$dt_count]/secure">
-                </td>
-                <td class="center">
-                    #if($!data_type.getBooleanProperty("searchable"))<i class="fa fa-check"></i>#end
-                    <i class="hidden">#if($!data_type.getBooleanProperty("searchable")) 1 #else 2 #end</i>
-                    <input type="hidden" #if($!data_type.getBooleanProperty("searchable"))value="true"#end
-                            id="xdat:security/element_security_set/element_security[$dt_count]/searchable"
-                            name="xdat:security/element_security_set/element_security[$dt_count]/searchable">
-                </td>
-                <td class="center">
-                   #if($!data_type.getBooleanProperty("browse"))<i class="fa fa-check"></i>#end
-                    <i class="hidden">#if($!data_type.getBooleanProperty("browse")) 1 #else 2 #end</i>
-                    <input type="hidden" #if($!data_type.getBooleanProperty("browse"))value="true"#end
-                            id="xdat:security/element_security_set/element_security[$dt_count]/browse"
-                            name="xdat:security/element_security_set/element_security[$dt_count]/browse">
-                </td>
-                <td class="center inline-actions-menu-container">
-                    <div class="inline-actions-menu-toggle" data-actionset="datatypeActions" data-id="$!data_type.getProperty("element_name")">
-                        <i class="fa fa-ellipsis-h"></i>
-                    </div>
-                    <ul class="inline-actions-menu" style="display:none;"></ul>
-                </td>
-                <input type="hidden" value="$!data_type.getProperty("element_name")"
-                       id="xdat:security/element_security_set/element_security[$dt_count]/element_name"
-                       name="xdat:security/element_security_set/element_security[$dt_count]/element_name">
-                #set($dt_count=$dt_count + 1)
-            </tr>
-            #end
-        </table>
-
-        </div>
+##        <div class="data-table" style="margin-bottom:15px;">
+##            <table id="data-type-table" class="xnat-table clean sortable" style="width: 100%">
+##            <tr>
+##                <th class="sort"><b>Element</b></th>
+##                <th class="sort name-singular">
+##                    <span title="Term used to describe one instance of this data.">Singular</span>
+##                </th>
+##                <th class="sort name-plural">
+##                    <span title="Term used to describe more than one occurrence of this data.">Plural</span>
+##                </th>
+##                <th class="sort">
+##                    <span title="Short code used in the creation of IDs">Code</span>
+##                </th>
+##                <th class="sort">
+##                    <span title="Accessible: Whether or not unspecified users can use this data-type in their $displayManager.getPluralDisplayNameForProject().toLowerCase().">ACC</span>
+##                </th>
+##                <th class="sort">
+##                    <span title="Secured: Whether or not access to data of this type should be restricted.">SEC</span>
+##                </th>
+##                <th class="sort">
+##                    <span title="Searchable: Whether or not data of this type should be searchable.">SRCH</span>
+##                </th>
+##                <th class="sort">
+##                    <span title="Browseable: Whether or not data of this type should be browseable.">BRWS</span>
+##                </th>
+##                <th>
+##                    Actions
+##                </th>
+##            </tr>
+##            #set($dt_count=0)
+##            #set($row=0)
+##            #foreach($data_type in $data_types)
+##                #set ( $url = $link.setAction("DisplayItemAction").addPathInfo("search_element","xdat:element_security").addPathInfo("search_field","xdat:element_security.element_name").addPathInfo("search_value","$!data_type.getProperty('element_name')").addPathInfo("popup","true")  )
+##
+##            <tr data-xsitype="$!data_type.getProperty("element_name")" data-legacylink="$url">
+##
+##                <td>
+##                    <a class="data-type-link" target="_blank" href="#!">$!data_type.getProperty("element_name")</a>
+##                </td>
+##                <td class="name-singular">
+##                    <i class="hidden">$!data_type.getProperty("singular")</i>
+##                    <input type="text" value="$!data_type.getProperty("singular")"
+##                            id="xdat:security/element_security_set/element_security[$dt_count]/singular"
+##                            name="xdat:security/element_security_set/element_security[$dt_count]/singular"
+##                            size="25">
+##                </td>
+##                <td class="name-plural">
+##                    <i class="hidden">$!data_type.getProperty("plural")</i>
+##                    <input type="text" value="$!data_type.getProperty("plural")"
+##                            id="xdat:security/element_security_set/element_security[$dt_count]/plural"
+##                            name="xdat:security/element_security_set/element_security[$dt_count]/plural"
+##                            size="25">
+##                </td>
+##                <td class="center">
+##                    <i class="hidden">$!data_type.getProperty("code")</i>
+##                    <input type="text" value="$!data_type.getProperty("code")"
+##                            id="xdat:security/element_security_set/element_security[$dt_count]/code"
+##                            name="xdat:security/element_security_set/element_security[$dt_count]/code"
+##                            size="5" maxlength="5">
+##                </td>
+##                <td class="center">
+##                    #if($!data_type.getBooleanProperty("accessible"))<i class="fa fa-check"></i>#end
+##                    <i class="hidden">#if($!data_type.getBooleanProperty("accessible")) 1 #else 2 #end</i>
+##                    <input type="hidden" #if($!data_type.getBooleanProperty("accessible"))value="true"#end
+##                            id="xdat:security/element_security_set/element_security[$dt_count]/accessible"
+##                            name="xdat:security/element_security_set/element_security[$dt_count]/accessible">
+##                </td>
+##                <td class="center">
+##                    #if($!data_type.getBooleanProperty("secure"))<i class="fa fa-check"></i>#end
+##                    <i class="hidden">#if($!data_type.getBooleanProperty("secure")) 1 #else 2 #end</i>
+##                    <input type="hidden" #if($!data_type.getBooleanProperty("secure"))value="true"#end
+##                            id="xdat:security/element_security_set/element_security[$dt_count]/secure"
+##                            name="xdat:security/element_security_set/element_security[$dt_count]/secure">
+##                </td>
+##                <td class="center">
+##                    #if($!data_type.getBooleanProperty("searchable"))<i class="fa fa-check"></i>#end
+##                    <i class="hidden">#if($!data_type.getBooleanProperty("searchable")) 1 #else 2 #end</i>
+##                    <input type="hidden" #if($!data_type.getBooleanProperty("searchable"))value="true"#end
+##                            id="xdat:security/element_security_set/element_security[$dt_count]/searchable"
+##                            name="xdat:security/element_security_set/element_security[$dt_count]/searchable">
+##                </td>
+##                <td class="center">
+##                   #if($!data_type.getBooleanProperty("browse"))<i class="fa fa-check"></i>#end
+##                    <i class="hidden">#if($!data_type.getBooleanProperty("browse")) 1 #else 2 #end</i>
+##                    <input type="hidden" #if($!data_type.getBooleanProperty("browse"))value="true"#end
+##                            id="xdat:security/element_security_set/element_security[$dt_count]/browse"
+##                            name="xdat:security/element_security_set/element_security[$dt_count]/browse">
+##                </td>
+##                <td class="center inline-actions-menu-container">
+##                    <div class="inline-actions-menu-toggle" data-actionset="datatypeActions" data-id="$!data_type.getProperty("element_name")">
+##                        <i class="fa fa-ellipsis-h"></i>
+##                    </div>
+##                    <ul class="inline-actions-menu" style="display:none;"></ul>
+##                </td>
+##                <input type="hidden" value="$!data_type.getProperty("element_name")"
+##                       id="xdat:security/element_security_set/element_security[$dt_count]/element_name"
+##                       name="xdat:security/element_security_set/element_security[$dt_count]/element_name">
+##                #set($dt_count=$dt_count + 1)
+##            </tr>
+##            #end
+##        </table>
+##
+##        </div>
 
         <input type="submit" class="btn1" style="float:right;" value="Save">
 
@@ -169,9 +171,7 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
     jq('a.data-type-link').click(function(e){
         e.preventDefault();
         var xsiType = $(this).parents('tr').data('xsitype');
-        XNAT.admin.datatypes.edit(xsiType);
-//        XNAT.app.adminPopupDialog(this.href);
-        //popupCentered(this.href,' ',960,720,3)
+        XNAT.admin.datatype.edit(xsiType);
     });
 
     //ts_makeSortable(document.getElementById('data-type-table'));
@@ -197,11 +197,11 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
             var actions = [
                 {
                     label: 'Edit Data Type Attributes',
-                    onclick: function(){ XNAT.admin.datatypes.edit(xsiType) }
+                    onclick: function(){ XNAT.admin.datatype.edit(xsiType) }
                 },
                 {
                     label: 'Edit Data Type Actions',
-                    onclick: function(){ XNAT.admin.datatypes.editActions(xsiType) }
+                    onclick: function(){ XNAT.admin.datatype.editActions(xsiType) }
                 },
                 {
                     label: 'Legacy Data Type Editor',
@@ -211,7 +211,7 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
             if (reservedXsitypes.indexOf(xsiType) < 0) {
                 actions.push({
                     label: 'Delete Data Type',
-                    onclick: function(){ XNAT.admin.datatypes.delete(xsiType) }
+                    onclick: function(){ XNAT.admin.datatype.delete(xsiType) }
                 });
             }
             XNAT.app.inlineActions.init(menuContainer,actions,opts);
@@ -236,7 +236,7 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
         }
     }(function() {
 
-        var datatypes, undefined;
+        var datatypes, undefined, projectTerm = '$displayManager.getPluralDisplayNameForProject().toLowerCase()';
 
         XNAT.admin =
                 getObject(XNAT.admin || {});
@@ -308,5 +308,247 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
             }
         #end
 
+        XNAT.admin.displayDataTypes = function(){
+            function checkMarkFormCell(data,key,i){
+                var els = [];
+                var val = (data[key]==='1') ? 'true' : '';
+                var shortkey = key.split('.')[1];
+                if (data[key]==='1') {
+                    els.push(spawn('i.fa.fa-check'));
+                    els.push(spawn('i.hidden','1'));
+                }
+                else {
+                    els.push(spawn('i.hidden','2'))
+                }
+                els.push(spawn('input',{
+                    type: 'hidden',
+                    name: 'xdat:security/element_security_set/element_security['+i+']/'+shortkey,
+                    value: val
+                }))
+                return spawn('!',els);
+            }
+
+            function getI(xsiType){
+                return Object.keys(XNAT.admin.datatypes).indexOf(xsiType.toString());
+            }
+
+            console.log('dtTable.js');
+
+            function dtTable(){
+                var data = [], datarows = [];
+
+                Object.keys(XNAT.admin.datatypes).forEach(function(datatype){
+                    data.push(datatype);
+                });
+
+                var styles = {
+                    element: (240-24)+'px',
+                    singular: (200-24)+'px',
+                    plural: (200-24) + 'px',
+                    code: (70-24) + 'px',
+                    accessible: (70-24) + 'px',
+                    secure: (70-24) +'px',
+                    searchable: (70-24) + 'px',
+                    browseable: (70-24) + 'px',
+                    actions: (60-24) + 'px'
+                };
+                
+                return {
+                    kind: 'table.dataTable',
+                    name: 'datatypeListing',
+                    id: 'datatype-listing',
+                    data: data,
+                    before: {
+                        filterCss: {
+                            tag: 'style|type=text/css',
+                            content: '\n' +
+                            '#datatype-listing td.element { width: ' + styles.element + '; } \n' +
+                            '#datatype-listing td.singular { width: ' + styles.singular + '; } \n' +
+                            '#datatype-listing td.plural { width: ' + styles.plural + '; } \n' +
+                            '#datatype-listing td.code { width: ' + styles.code + '; } \n' +
+                            '#datatype-listing td.accessible { width: ' + styles.accessible + '; } \n' +
+                            '#datatype-listing td.secure { width: ' + styles.secure + '; } \n' +
+                            '#datatype-listing td.searchable { width: ' + styles.searchable + '; } \n' +
+                            '#datatype-listing td.browseable { width: ' + styles.browseable + '; } \n' +
+                            '#datatype-listing td.actions { width: ' + styles.actions + '; } \n'
+                        }
+                    },
+                    table: {
+                        classes: 'highlight hidden'
+                    },
+                    trs: function(tr,data){
+                        var link = data.legacyEditLink;
+                        addDataAttrs(tr, { 'xsitype': link });
+                    },
+                    filter: 'element, singular, plural, code',
+                    items: {
+                        element: {
+                            label: 'Element',
+                            sort: true,
+                            td: {className: 'element'},
+                            apply: function () {
+                                return spawn('a.data-type-link', {
+                                    href: '#!',
+                                    title: 'Edit Attributes For ' + this,
+                                    style: { 'font-weight': 'bold' },
+                                    html: this
+                                })
+                            }
+                        },
+                        singular: {
+                            label: 'Singular',
+                            sort: true,
+                            td: {
+                                className: 'singular name-singular',
+                                title: 'Term used to describe one instance of this data'
+                            },
+                            apply: function () {
+                                var that = XNAT.admin.datatypes[this],
+                                        i = getI(this);
+                                return spawn('!', [
+                                    spawn('i.hidden', that['xdat:element_security.singular']),
+                                    spawn('input', {
+                                        type: 'text',
+                                        name: 'xdat:security/element_security_set/element_security[' + i + ']/singular',
+                                        value: that['xdat:element_security.singular'],
+                                        size: 20
+                                    })
+                                ])
+                            }
+                        },
+                        plural: {
+                            label: 'Plural',
+                            sort: true,
+                            td: {
+                                className: 'plural name-plural',
+                                title: 'Term used to describe more than one instance of this data'
+                            },
+                            apply: function () {
+                                var that = XNAT.admin.datatypes[this],
+                                        i = getI(this);
+                                return spawn('!', [
+                                    spawn('i.hidden', that['xdat:element_security.plural']),
+                                    spawn('input', {
+                                        type: 'text',
+                                        name: 'xdat:security/element_security_set/element_security[' + i + ']/plural',
+                                        value: that['xdat:element_security.plural'],
+                                        size: 20
+                                    })
+                                ])
+                            }
+                        },
+                        code: {
+                            label: 'Code',
+                            sort: true,
+                            td: {
+                                className: 'center',
+                                title: 'Short code used in the creation of IDs'
+                            },
+                            apply: function () {
+                                var that = XNAT.admin.datatypes[this],
+                                        i = getI(this);
+                                return spawn('!', [
+                                    spawn('i.hidden', that['xdat:element_security.code']),
+                                    spawn('input', {
+                                        type: 'text',
+                                        name: 'xdat:security/element_security_set/element_security[' + i + ']/code',
+                                        value: that['xdat:element_security.code'],
+                                        size: '5',
+                                        maxlength: '5'
+                                    })
+                                ])
+                            }
+                        },
+                        accessible: {
+                            label: 'ACC',
+                            sort: true,
+                            td: {
+                                className: 'center',
+                                title: 'Accessible: Whether or not unspecified users can use this data-type in their '+projectTerm
+                            },
+                            apply: function(){
+                                var that = XNAT.admin.datatypes[this],
+                                        i = getI(this);
+                                return checkMarkFormCell(that,'xdat:element_security.accessible',i)
+                            }
+                        },
+                        secure: {
+                            label: 'SEC',
+                            sort: true,
+                            td: {
+                                className: 'center',
+                                title: 'Secured: Whether or not access to data of this type should be restricted'
+                            },
+                            apply: function(){
+                                var that = XNAT.admin.datatypes[this],
+                                        i = getI(this);
+                                return checkMarkFormCell(that,'xdat:element_security.secure',i)
+                            }
+                        },
+                        searchable: {
+                            label: 'SCH',
+                            sort: true,
+                            td: {
+                                className: 'center',
+                                title: 'Searchable: Whether or not data of this type should be searchable'
+                            },
+                            apply: function(){
+                                var that = XNAT.admin.datatypes[this],
+                                        i = getI(this);
+                                return checkMarkFormCell(that,'xdat:element_security.searchable',i)
+                            }
+                        },
+                        browseable: {
+                            label: 'BRW',
+                            sort: true,
+                            td: {
+                                className: 'center',
+                                title: 'Browseable: Whether or not data of this type should be browseable'
+                            },
+                            apply: function(){
+                                var that = XNAT.admin.datatypes[this],
+                                        i = getI(this);
+                                return checkMarkFormCell(that,'xdat:element_security.browse',i)
+                            }
+                        },
+                        actions: {
+                            label: 'Actions',
+                            sort: false,
+                            td: {
+                                className: 'center inline-actions-menu-container'
+                            },
+                            apply: function(){
+                                var that = XNAT.admin.datatypes[this],
+                                        i = getI(this);
+                                return spawn('!',[
+                                        spawn('div.inline-actions-menu-toggle', {
+                                            data: {
+                                                actionset: 'datatypeActions',
+                                                id: this
+                                            },
+                                            html: '<i class="fa fa-ellipsis-h"></i>'
+                                        }),
+                                        spawn('ul.inline-actions-menu', {
+                                            style: { display: 'none' }
+                                        }),
+                                        spawn('input',{
+                                            type: 'hidden',
+                                            name: 'xdat:security/element_security_set/element_security['+i+']/element_name',
+                                            value: this
+                                        })
+                                ])
+                            }
+                        }
+                    }
+                }
+            }
+
+            var container = jq('#datatype-table-container');
+            container.empty().append(
+                    XNAT.spawner.spawn({ table: dtTable() }).render(container)
+            )
+        };
+
+        XNAT.admin.displayDataTypes();
     }));
 </script>

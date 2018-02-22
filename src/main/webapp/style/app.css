@@ -3470,7 +3470,7 @@ th.sort:hover {
     list-style-type: none;
     margin: 0;
     padding: 0;
-    position: absolute; right: 1px; top: 1px;
+    position: absolute; right: -1px; top: 1px;
     text-align: left;
     z-index: 999;
 }
@@ -3487,6 +3487,7 @@ th.sort:hover {
 }
 .inline-actions-menu li:hover {
     background-color: #e4efff;
+    cursor: pointer;
 }
 
 .inline-actions-menu li.inline-action-title {
@@ -3497,6 +3498,7 @@ th.sort:hover {
 }
 .inline-actions-menu li.inline-action-title:hover {
     background-color: #e0e0e0;
+    cursor: default;
 }
 
 .xnat-table.selectable td {
