@@ -21,7 +21,325 @@ var XNAT = getObject(XNAT || {});
     XNAT.admin.datatypes =
         getObject(XNAT.admin.datatypes || {});
     
-    // build form objects
+    // table renderer
+    console.log('datatypes.js - render table');
+
+    XNAT.admin.displayDataTypes = function(projectTerm){
+        function checkMarkFormCell(data,key,i){
+            var els = [];
+            var val = (data[key]==='1') ? 'true' : '';
+            var shortkey = key.split('.')[1];
+            if (data[key]==='1') {
+                els.push(spawn('i.fa.fa-check'));
+                els.push(spawn('i.hidden.filtering.'+shortkey,'1'));
+            }
+            else {
+                els.push(spawn('i.hidden.filtering.'+shortkey,'2'))
+            }
+            els.push(spawn('input',{
+                type: 'hidden',
+                name: 'xdat:security/element_security_set/element_security['+i+']/'+shortkey,
+                value: val
+            }))
+            return spawn('!',els);
+        }
+
+        function getI(xsiType){
+            return Object.keys(XNAT.admin.datatypes).indexOf(xsiType.toString());
+        }
+
+        // set up custom filter menus
+        function filterMenuElement(prop){
+            if (!prop) return false;
+            // call this function in context of the table
+            var datatypeTable = $(this);
+            var FILTERCLASS = 'filter-' + prop;
+            // var FILTERCLASS = 'hidden';
+            return {
+                id: 'datatype-filter-select-' + prop,
+                on: {
+                    change: function(){
+                        var selectedValue = $(this).val();
+                        // console.log(selectedValue);
+                        datatypeTable.find('i.filtering.'+prop).each(function(){
+                            var row = $(this).closest('tr');
+                            if (selectedValue === 'all') {
+                                row.removeClass(FILTERCLASS);
+                                return;
+                            }
+                            row.addClass(FILTERCLASS);
+                            if (selectedValue == this.textContent) {
+                                row.removeClass(FILTERCLASS);
+                            }
+                        })
+                    }
+                }
+            };
+        }
+
+        console.log('dtTable.js');
+
+        function dtTable(){
+            var data = [], datarows = [];
+
+            Object.keys(XNAT.admin.datatypes).forEach(function(datatype){
+                data.push(datatype);
+            });
+
+            var styles = {
+                element: (260-24)+'px',
+                singular: (220-24)+'px',
+                plural: (220-24) + 'px',
+                code: (90-24) + 'px',
+                accessible: (70-24) + 'px',
+                secure: (70-24) +'px',
+                searchable: (70-24) + 'px',
+                browse: (70-24) + 'px',
+                actions: (60-24) + 'px'
+            };
+
+            return {
+                kind: 'table.dataTable',
+                name: 'datatypeListing',
+                id: 'datatype-listing',
+                data: data,
+                before: {
+                    filterCss: {
+                        tag: 'style|type=text/css',
+                        content: '\n' +
+                        '#datatype-listing td.element { width: ' + styles.element + '; } \n' +
+                        '#datatype-listing td.singular { width: ' + styles.singular + '; } \n' +
+                        '#datatype-listing td.plural { width: ' + styles.plural + '; } \n' +
+                        '#datatype-listing td.code { width: ' + styles.code + '; } \n' +
+                        '#datatype-listing td.accessible { width: ' + styles.accessible + '; } \n' +
+                        '#datatype-listing td.secure { width: ' + styles.secure + '; } \n' +
+                        '#datatype-listing td.searchable { width: ' + styles.searchable + '; } \n' +
+                        '#datatype-listing td.browse { width: ' + styles.browse + '; } \n' +
+                        '#datatype-listing td.actions { width: ' + styles.actions + '; } \n'
+                    }
+                },
+                table: {
+                    classes: 'highlight hidden'
+                },
+                trs: function(tr,xsitype){
+                    var link = XNAT.admin.datatypes[xsitype].legacyEditLink;
+                    addDataAttrs(tr, { 'legacylink': link, 'xsitype': xsitype });
+                },
+                filter: 'element, singular, plural, code',
+                items: {
+                    element: {
+                        label: 'Element',
+                        sort: true,
+                        td: {className: 'element'},
+                        apply: function () {
+                            return spawn('a.data-type-link', {
+                                href: '#!',
+                                title: 'Edit Attributes For ' + this,
+                                style: { 'font-weight': 'bold' },
+                                html: this
+                            })
+                        }
+                    },
+                    singular: {
+                        label: 'Singular',
+                        sort: true,
+                        td: {
+                            className: 'singular name-singular',
+                            title: 'Term used to describe one instance of this data'
+                        },
+                        apply: function () {
+                            var that = XNAT.admin.datatypes[this],
+                                i = getI(this);
+                            return spawn('!', [
+                                spawn('i.hidden', that['xdat:element_security.singular']),
+                                spawn('input', {
+                                    type: 'text',
+                                    name: 'xdat:security/element_security_set/element_security[' + i + ']/singular',
+                                    value: that['xdat:element_security.singular'],
+                                    size: 20
+                                })
+                            ])
+                        }
+                    },
+                    plural: {
+                        label: 'Plural',
+                        sort: true,
+                        td: {
+                            className: 'plural name-plural',
+                            title: 'Term used to describe more than one instance of this data'
+                        },
+                        apply: function () {
+                            var that = XNAT.admin.datatypes[this],
+                                i = getI(this);
+                            return spawn('!', [
+                                spawn('i.hidden', that['xdat:element_security.plural']),
+                                spawn('input', {
+                                    type: 'text',
+                                    name: 'xdat:security/element_security_set/element_security[' + i + ']/plural',
+                                    value: that['xdat:element_security.plural'],
+                                    size: 20
+                                })
+                            ])
+                        }
+                    },
+                    code: {
+                        label: 'Code',
+                        sort: true,
+                        td: {
+                            className: 'code center',
+                            title: 'Short code used in the creation of IDs'
+                        },
+                        apply: function () {
+                            var that = XNAT.admin.datatypes[this],
+                                i = getI(this);
+                            return spawn('!', [
+                                spawn('i.hidden', that['xdat:element_security.code']),
+                                spawn('input', {
+                                    type: 'text',
+                                    name: 'xdat:security/element_security_set/element_security[' + i + ']/code',
+                                    value: that['xdat:element_security.code'],
+                                    size: '8',
+                                    maxlength: '5'
+                                })
+                            ])
+                        }
+                    },
+                    accessible: {
+                        label: 'ACC',
+                        sort: true,
+                        td: {
+                            className: 'center',
+                            title: 'Accessible: Whether or not unspecified users can use this data-type in their '+projectTerm
+                        },
+                        filter: function(table){
+                            return spawn('div.center', [XNAT.ui.select.menu({
+                                value: 'all',
+                                options: [
+                                    { label: 'All', value: 'all' },
+                                    { label: 'Yes', value: '1' },
+                                    { label: 'No', value: '2' }
+                                ],
+                                element: filterMenuElement.call(table, 'accessible')
+                            }).element])
+                        },
+                        apply: function(){
+                            var that = XNAT.admin.datatypes[this],
+                                i = getI(this);
+                            return checkMarkFormCell(that,'xdat:element_security.accessible',i)
+                        }
+                    },
+                    secure: {
+                        label: 'SEC',
+                        sort: true,
+                        td: {
+                            className: 'center',
+                            title: 'Secured: Whether or not access to data of this type should be restricted'
+                        },
+                        filter: function(table){
+                            return spawn('div.center', [XNAT.ui.select.menu({
+                                value: 'all',
+                                options: [
+                                    { label: 'All', value: 'all' },
+                                    { label: 'Yes', value: '1' },
+                                    { label: 'No', value: '2' }
+                                ],
+                                element: filterMenuElement.call(table, 'secure')
+                            }).element])
+                        },
+                        apply: function(){
+                            var that = XNAT.admin.datatypes[this],
+                                i = getI(this);
+                            return checkMarkFormCell(that,'xdat:element_security.secure',i)
+                        }
+                    },
+                    searchable: {
+                        label: 'SCH',
+                        sort: true,
+                        td: {
+                            className: 'center',
+                            title: 'Searchable: Whether or not data of this type should be searchable'
+                        },
+                        filter: function(table){
+                            return spawn('div.center', [XNAT.ui.select.menu({
+                                value: 'all',
+                                options: [
+                                    { label: 'All', value: 'all' },
+                                    { label: 'Yes', value: '1' },
+                                    { label: 'No', value: '2' }
+                                ],
+                                element: filterMenuElement.call(table, 'searchable')
+                            }).element])
+                        },
+                        apply: function(){
+                            var that = XNAT.admin.datatypes[this],
+                                i = getI(this);
+                            return checkMarkFormCell(that,'xdat:element_security.searchable',i)
+                        }
+                    },
+                    browse: {
+                        label: 'BRW',
+                        sort: true,
+                        td: {
+                            className: 'center',
+                            title: 'Browseable: Whether or not data of this type should be browseable'
+                        },
+                        filter: function(table){
+                            return spawn('div.center', [XNAT.ui.select.menu({
+                                value: 'all',
+                                options: [
+                                    { label: 'All', value: 'all' },
+                                    { label: 'Yes', value: '1' },
+                                    { label: 'No', value: '2' }
+                                ],
+                                element: filterMenuElement.call(table, 'browse')
+                            }).element])
+                        },
+                        apply: function(){
+                            var that = XNAT.admin.datatypes[this],
+                                i = getI(this);
+                            return checkMarkFormCell(that,'xdat:element_security.browse',i)
+                        }
+                    },
+                    actions: {
+                        label: 'Actions',
+                        sort: false,
+                        td: {
+                            className: 'center actions inline-actions-menu-container'
+                        },
+                        apply: function(){
+                            var that = XNAT.admin.datatypes[this],
+                                i = getI(this);
+                            return spawn('!',[
+                                spawn('div.inline-actions-menu-toggle', {
+                                    data: {
+                                        actionset: 'datatypeActions',
+                                        id: this
+                                    },
+                                    html: '<i class="fa fa-ellipsis-h"></i>'
+                                }),
+                                spawn('ul.inline-actions-menu', {
+                                    style: { display: 'none' }
+                                }),
+                                spawn('input',{
+                                    type: 'hidden',
+                                    name: 'xdat:security/element_security_set/element_security['+i+']/element_name',
+                                    value: this
+                                })
+                            ])
+                        }
+                    }
+                }
+            }
+        }
+
+        var container = jq('#datatype-table-container');
+        container.empty().append(
+            XNAT.spawner.spawn({ table: dtTable() }).render(container)
+        )
+    };
+
+    // attribute editors
+    console.log('datatype.js - attribute editor')
     var editDatatypeFormObj = function(datatype) {
         return {
             kind: 'panel.form',
