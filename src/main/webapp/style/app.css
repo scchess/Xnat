@@ -3431,6 +3431,9 @@ th.sort:hover {
 }
 
 /* container for action icons inside table cells */
+.inline-actions-menu-container {
+    position: relative;
+}
 .inline-actions {
     /*background-color: #e4efff;*/
     display: none;
@@ -3448,15 +3451,16 @@ th.sort:hover {
     margin-right: 0;
 }
 .inline-actions a:hover {
-    background-color: #c5e2ff;
+    background-color: #e4efff;
     opacity: 1;
 }
 .inline-actions-menu-toggle {
     border-radius: 2px;
     cursor: pointer;
-    height: 18px;
+    margin: 0 auto;
+    padding: 2px 4px;
     text-align: center;
-    width: 18px;
+    width: 24px;
 }
 .inline-actions-menu {
     background-color: #fff;
@@ -3466,18 +3470,35 @@ th.sort:hover {
     list-style-type: none;
     margin: 0;
     padding: 0;
-    position: absolute; left: 28px; top: 2px;
+    position: absolute; right: -1px; top: 1px;
+    text-align: left;
+    z-index: 999;
 }
 .inline-actions-menu-toggle:hover {
-    background-color: #c5e2ff;
+    background-color: #e4efff;
 }
 .inline-actions-menu li {
-    font-weight: bold;
-    padding: 3px 6px;
+    border-bottom: 1px solid #f0f0f0;
+    padding: 4px 8px;
     white-space: nowrap;
 }
+.inline-actions-menu li:last-child {
+    border-bottom: none;
+}
 .inline-actions-menu li:hover {
-    background-color: #c5e2ff;
+    background-color: #e4efff;
+    cursor: pointer;
+}
+
+.inline-actions-menu li.inline-action-title {
+    background-color: #e0e0e0;
+    color: #848484;
+    border-bottom-color: #848484;
+    cursor: default;
+}
+.inline-actions-menu li.inline-action-title:hover {
+    background-color: #e0e0e0;
+    cursor: default;
 }
 
 .xnat-table.selectable td {
@@ -4379,8 +4400,7 @@ td.truncate {
     }
 
 
-    #data-type-table .name-singular,
-    #data-type-table .name-plural {
+    #data-type-table .name-singular {
         display: none;
     }
 
