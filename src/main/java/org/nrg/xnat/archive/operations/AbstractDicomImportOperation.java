@@ -33,6 +33,7 @@ import org.restlet.data.Status;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -50,6 +51,7 @@ public abstract class AbstractDicomImportOperation extends StatusProducer implem
         _mizer = mizer;
         _filterService = filterService;
         _processors = processors;
+        _processorsMap = null;
     }
 
     public abstract List<String> call() throws Exception;
@@ -80,6 +82,18 @@ public abstract class AbstractDicomImportOperation extends StatusProducer implem
 
     protected List<ArchiveProcessor> getProcessors() {
         return _processors;
+    }
+
+    protected Map<Class<? extends ArchiveProcessor>, ArchiveProcessor> getProcessorsMap() {
+        if(_processorsMap==null){
+            _processorsMap = new HashMap<>();
+            for(ArchiveProcessor processor:_processors){
+                if(processor!=null){
+                    _processorsMap.put(processor.getClass(),processor);
+                }
+            }
+        }
+        return _processorsMap;
     }
 
     protected DicomObjectIdentifier<XnatProjectdata> getIdentifier() {
@@ -308,4 +322,6 @@ public abstract class AbstractDicomImportOperation extends StatusProducer implem
     private final MizerService                           _mizer;
     private final List<ArchiveProcessor>                 _processors;
     private final DicomFilterService                     _filterService;
+
+    private Map<Class<? extends ArchiveProcessor>, ArchiveProcessor> _processorsMap;
 }

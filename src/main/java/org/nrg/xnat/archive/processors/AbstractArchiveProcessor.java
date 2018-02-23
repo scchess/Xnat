@@ -7,11 +7,34 @@ import org.nrg.dicom.mizer.service.MizerService;
 
 public abstract class AbstractArchiveProcessor implements ArchiveProcessor {
     @Override
-    public abstract void process(final DicomObject metadata, final SessionData sessionData) throws ServerException;
+    public boolean process(final DicomObject metadata, final SessionData sessionData) throws ServerException{
+        return process(metadata, metadata, sessionData);
+    }
 
     @Override
-    public abstract void process(final DicomObject metadata, final DicomObject imageData, final SessionData sessionData) throws ServerException;
+    public boolean process(final DicomObject metadata, final DicomObject imageData, final SessionData sessionData) throws ServerException{
+        return process(metadata, metadata, sessionData, null);
+    }
+
+    //Should return a boolean representing whether processing should continue. If it returns true, other processors will
+    // be executed and then the data will be written (unless other issues are encountered). If it returns false, the
+    // data being processed will not be written. If a ServerException is thrown, the data being processed will not be
+    // written and the exception also may be passed to the calling class.
+    @Override
+    public abstract boolean process(final DicomObject metadata, final DicomObject imageData, final SessionData sessionData, final MizerService mizer) throws ServerException;
 
     @Override
-    public abstract void process(final DicomObject metadata, final DicomObject imageData, final SessionData sessionData, final MizerService mizer) throws ServerException;
+    public boolean accept(final DicomObject metadata, final SessionData sessionData) throws ServerException{
+        return accept(metadata, metadata, sessionData);
+    }
+
+    @Override
+    public boolean accept(final DicomObject metadata, final DicomObject imageData, final SessionData sessionData) throws ServerException{
+        return accept(metadata, metadata, sessionData, null);
+    }
+
+    @Override
+    public boolean accept(final DicomObject metadata, final DicomObject imageData, final SessionData sessionData, final MizerService mizer) throws ServerException{
+        return true;
+    }
 }

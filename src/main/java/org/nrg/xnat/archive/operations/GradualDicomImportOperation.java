@@ -40,10 +40,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 import static org.nrg.xnat.archive.GradualDicomImporter.SENDER_AE_TITLE_PARAM;
@@ -233,62 +230,108 @@ public class GradualDicomImportOperation extends AbstractDicomImportOperation {
             log.error("An error occurred trying to update the session update timestamp.", e);
         }
 
-
-        MizerArchiveProcessor processor = new MizerArchiveProcessor();
-        processor.process(dicom, dicom, session, getMizer());
-
-
-        // Build the scan label
-        final String seriesNum = dicom.getString(Tag.SeriesNumber);
-        final String seriesUID = dicom.getString(Tag.SeriesInstanceUID);
-        final String scan;
-        if (Files.isValidFilename(seriesNum)) {
-            scan = seriesNum;
-        } else if (!Strings.isNullOrEmpty(seriesUID)) {
-            scan = Labels.toLabelChars(seriesUID);
-        } else {
-            scan = null;
-        }
-
-        final String source = getString(getParameters(), SENDER_ID_PARAM, getUser().getLogin());
-
-        final DicomObject fmi;
-        if (dicom.contains(Tag.TransferSyntaxUID)) {
-            fmi = dicom.fileMetaInfo();
-        } else {
-            final String sopClassUID       = dicom.getString(Tag.SOPClassUID);
-            final String sopInstanceUID    = dicom.getString(Tag.SOPInstanceUID);
-            final String transferSyntaxUID = getTransferSyntax() == null ? dicom.getString(Tag.TransferSyntaxUID, DEFAULT_TRANSFER_SYNTAX) : getTransferSyntax().uid();
-            fmi = new BasicDicomObject();
-            fmi.initFileMetaInformation(sopClassUID, sopInstanceUID, transferSyntaxUID);
-            if (getParameters().containsKey(SENDER_AE_TITLE_PARAM)) {
-                fmi.putString(Tag.SourceApplicationEntityTitle, VR.AE, (String) getParameters().get(SENDER_AE_TITLE_PARAM));
-            }
-        }
-
-        final File sessionFolder = new File(new File(root, session.getTimestamp()), session.getFolderName());
-        final File outputFile    = getSafeFile(sessionFolder, scan, name, dicom, Boolean.valueOf((String) getParameters().get(RENAME_PARAM)));
-        outputFile.getParentFile().mkdirs();
-
-        PrearcUtils.PrearcFileLock lock = null;
+        boolean continueProcessingData = true;
         try {
-            lock = PrearcUtils.lockFile(session.getSessionDataTriple(), outputFile.getName());
-            write(fmi, dicom, inputStream, outputFile, source, session);
-        } catch (IOException e) {
-            throw new ServerException(Status.SERVER_ERROR_INSUFFICIENT_STORAGE, e);
-        } catch (PrearcUtils.SessionFileLockException e) {
-            throw new ClientException("Concurrent file sends of the same data is not supported.");
-        } finally {
-            //release the file lock
-            if(lock!=null){
-                lock.release();
+
+            //List<ArchiveProcessor> processors = getProcessors();
+            //processors.add(new MizerArchiveProcessor());
+
+            Collection<ArchiveProcessor> processors = getProcessorsMap().values();
+            //Later this map will be used when iterating over the processorInstances to get the processor for the given instance
+
+
+            for(ArchiveProcessor processor: processors) {
+                if (processor.accept(dicom, dicom, session, getMizer())) {
+                    if(!processor.process(dicom, dicom, session, getMizer())){
+                        continueProcessingData = false;
+                        break;
+                    }
+                }
             }
+
+
+        } catch (Throwable e) {
+            //If a processor throws an exception, processing should not proceed and that exception will be passed to the calling class.
+            //We may be okay just passing an empty list in this case, but since I wasn't sure, I didn't want to change how it works now where if there's a problem importing part of a zip, the whole import fails.
+            try {
+                // if we created a row in the database table for this session, delete it.
+                if (getOrCreate.isRight()) {
+                    PrearcDatabase.deleteSession(session.getFolderName(), session.getTimestamp(), session.getProject());
+                }
+            } catch (Throwable t) {
+                log.debug("Unable to delete relevant session from prearchive database:" + session.getFolderName(), e);
+                throw new ServerException(Status.SERVER_ERROR_INTERNAL, t);
+            }
+            throw new ServerException(Status.SERVER_ERROR_INTERNAL, e);
         }
 
+        if(!continueProcessingData){
+            //If a processor return false, processing should not proceed and an empty list will be passed to the calling class.
+            try {
+                // if we created a row in the database table for this session
+                // delete it.
+                if (getOrCreate.isRight()) {
+                    PrearcDatabase.deleteSession(session.getFolderName(), session.getTimestamp(), session.getProject());
+                }
+            } catch (Throwable t) {
+                log.debug("Unable to delete relevant session from prearchive database:" + session.getFolderName(), t);
+                throw new ServerException(Status.SERVER_ERROR_INTERNAL, t);
+            }
+            return new ArrayList<>();
+        }
+        else {
+            //Continue processing data and write it to the prearchive
 
+            // Build the scan label
+            final String seriesNum = dicom.getString(Tag.SeriesNumber);
+            final String seriesUID = dicom.getString(Tag.SeriesInstanceUID);
+            final String scan;
+            if (Files.isValidFilename(seriesNum)) {
+                scan = seriesNum;
+            } else if (!Strings.isNullOrEmpty(seriesUID)) {
+                scan = Labels.toLabelChars(seriesUID);
+            } else {
+                scan = null;
+            }
 
-        log.trace("Stored object {}/{}/{} as {} for {}", project, studyInstanceUID, dicom.getString(Tag.SOPInstanceUID), session.getUrl(), source);
-        return Collections.singletonList(session.getExternalUrl());
+            final String source = getString(getParameters(), SENDER_ID_PARAM, getUser().getLogin());
+
+            final DicomObject fmi;
+            if (dicom.contains(Tag.TransferSyntaxUID)) {
+                fmi = dicom.fileMetaInfo();
+            } else {
+                final String sopClassUID = dicom.getString(Tag.SOPClassUID);
+                final String sopInstanceUID = dicom.getString(Tag.SOPInstanceUID);
+                final String transferSyntaxUID = getTransferSyntax() == null ? dicom.getString(Tag.TransferSyntaxUID, DEFAULT_TRANSFER_SYNTAX) : getTransferSyntax().uid();
+                fmi = new BasicDicomObject();
+                fmi.initFileMetaInformation(sopClassUID, sopInstanceUID, transferSyntaxUID);
+                if (getParameters().containsKey(SENDER_AE_TITLE_PARAM)) {
+                    fmi.putString(Tag.SourceApplicationEntityTitle, VR.AE, (String) getParameters().get(SENDER_AE_TITLE_PARAM));
+                }
+            }
+
+            final File sessionFolder = new File(new File(root, session.getTimestamp()), session.getFolderName());
+            final File outputFile = getSafeFile(sessionFolder, scan, name, dicom, Boolean.valueOf((String) getParameters().get(RENAME_PARAM)));
+            outputFile.getParentFile().mkdirs();
+
+            PrearcUtils.PrearcFileLock lock = null;
+            try {
+                lock = PrearcUtils.lockFile(session.getSessionDataTriple(), outputFile.getName());
+                write(fmi, dicom, inputStream, outputFile, source, session);
+            } catch (IOException e) {
+                throw new ServerException(Status.SERVER_ERROR_INSUFFICIENT_STORAGE, e);
+            } catch (PrearcUtils.SessionFileLockException e) {
+                throw new ClientException("Concurrent file sends of the same data is not supported.");
+            } finally {
+                //release the file lock
+                if (lock != null) {
+                    lock.release();
+                }
+            }
+
+            log.trace("Stored object {}/{}/{} as {} for {}", project, studyInstanceUID, dicom.getString(Tag.SOPInstanceUID), session.getUrl(), source);
+            return Collections.singletonList(session.getExternalUrl());
+        }
     }
 
     protected TransferSyntax getTransferSyntax() {

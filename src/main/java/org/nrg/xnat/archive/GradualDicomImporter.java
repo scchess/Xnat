@@ -43,8 +43,8 @@ public class GradualDicomImporter extends ImporterHandlerA {
 //    }
 
     @Autowired
-    public GradualDicomImporter(final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer, final MizerService mizer) {
-        super(identifier, namer, new ArrayList<ArchiveProcessor>(), filterService, mizer);
+    public GradualDicomImporter(final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer, final MizerService mizer, final List<ArchiveProcessor> processors) {
+        super(identifier, namer, processors, filterService, mizer);
     }
 
     @Override
