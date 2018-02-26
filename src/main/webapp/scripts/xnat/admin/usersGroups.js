@@ -529,14 +529,14 @@ var XNAT = getObject(XNAT);
         var username = escapeHtml(this.username || '');
         var status = realValue(this[type]);
         var SORTER = status ? 1 : 0;
-        var IMG = status ? '/images/cg.gif' : '/images/cr.gif';
+        var iconClass = status ? 'fa-check' : '';
         return spawn('!', [
             ['i.hidden.sorting.filtering.' + type, SORTER+''],
             ['a.user-' + type + '-status.edit-user', {
                 title: username + ': ' + (status ? type : off),
                 href: '#!',
                 style: { display: 'block', padding: '2px' }
-            }, [['img', { src: XNAT.url.rootUrl(IMG) }]]]
+            }, [['i', { className: 'fa '+iconClass }]]]
         ]);
     }
 
@@ -556,12 +556,12 @@ var XNAT = getObject(XNAT);
                     title: username + ': kill ' + sessionCount + ' active session(s)',
                     href: '#!',
                     style: { display: 'block', padding: '2px' }
-                }, [['img', { src: XNAT.url.rootUrl('/images/cg.gif') }]]]
+                }, [['i', { className: 'fa fa-user-circle' }]]]
             ])
         }
-        else {
-            return '<i class="hidden">-1</i>&mdash;'
-        }
+        // else {
+        //     return '<i class="hidden">-1</i>&mdash;'
+        // }
     }
 
 
@@ -571,7 +571,7 @@ var XNAT = getObject(XNAT);
         return spawn('!', [
             ['i.last-login.hidden.sorting', (9999999999999-value || '9999999999999')+''],
             ['input.hidden.last-login.timestamp.filtering|type=hidden', { value: value }],
-            ['span.date-time', (value ? (new Date(value)).toLocaleString() : '&mdash;')]
+            ['span.date-time', (value ? (new Date(value)).toLocaleString() : '')]
         ])
     }
 
