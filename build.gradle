@@ -70,10 +70,15 @@ apply plugin: "war"
 repositories {
     mavenLocal()
     maven {
+        url "http://maven.imagej.net/content/groups/public"
+        name "ImageJ Maven Repository"
+    }
+    jcenter()
+    mavenCentral()
+    maven {
         url "https://nrgxnat.jfrog.io/nrgxnat/libs-release"
         name "XNAT Release Repository"
     }
-    mavenCentral()
     maven {
         url "https://nrgxnat.jfrog.io/nrgxnat/libs-snapshot"
         name "XNAT Snapshot Repository"
