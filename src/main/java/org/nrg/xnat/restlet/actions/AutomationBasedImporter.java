@@ -56,6 +56,7 @@ import org.nrg.xnat.archive.operations.AutomationBasedImportOperation;
 import org.nrg.xnat.archive.operations.SessionImportOperation;
 import org.nrg.xnat.archive.processors.ArchiveProcessor;
 import org.nrg.xnat.event.listeners.AutomationCompletionEventListener;
+import org.nrg.xnat.processor.services.ArchiveProcessorInstanceService;
 import org.nrg.xnat.restlet.actions.importer.ImporterHandler;
 import org.nrg.xnat.restlet.actions.importer.ImporterHandlerA;
 import org.nrg.xnat.restlet.files.utils.RestFileUtils;
@@ -81,13 +82,13 @@ import java.util.zip.ZipOutputStream;
 @ImporterHandler(handler = "automation", allowCallsWithoutFiles = true, callPartialUriWrap = false)
 public class AutomationBasedImporter extends ImporterHandlerA {
 
-	public AutomationBasedImporter(final List<ArchiveProcessor> processors, final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer, final MizerService mizer) {
-		super(identifier, namer, processors, filterService, mizer);
+	public AutomationBasedImporter(final List<ArchiveProcessor> processors, final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer, final MizerService mizer, final ArchiveProcessorInstanceService processorInstanceService) {
+		super(identifier, namer, processors, filterService, mizer, processorInstanceService);
 	}
 
 	@Override
 	public AutomationBasedImportOperation getOperation(Object listenerControl, UserI user, FileWriterWrapperI writer, Map<String, Object> params, DicomObjectIdentifier<XnatProjectdata> identifier, DicomFileNamer namer) {
-		return new AutomationBasedImportOperation(listenerControl, user, writer, params, getProcessors(), getFilterService(), ObjectUtils.defaultIfNull(identifier, getIdentifier()), getMizer(), ObjectUtils.defaultIfNull(namer, getNamer()));
+		return new AutomationBasedImportOperation(listenerControl, user, writer, params, getProcessors(), getFilterService(), ObjectUtils.defaultIfNull(identifier, getIdentifier()), getMizer(), ObjectUtils.defaultIfNull(namer, getNamer()), getProcessorService());
 	}
 
 }

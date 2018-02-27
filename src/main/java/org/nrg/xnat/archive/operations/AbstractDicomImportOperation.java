@@ -27,6 +27,7 @@ import org.nrg.xnat.DicomObjectIdentifier;
 import org.nrg.xnat.Files;
 import org.nrg.xnat.archive.processors.ArchiveProcessor;
 import org.nrg.xnat.helpers.prearchive.SessionData;
+import org.nrg.xnat.processor.services.ArchiveProcessorInstanceService;
 import org.nrg.xnat.restlet.util.FileWriterWrapperI;
 import org.nrg.xnat.services.cache.UserProjectCache;
 import org.restlet.data.Status;
@@ -40,7 +41,7 @@ import java.util.concurrent.Callable;
 
 @Slf4j
 public abstract class AbstractDicomImportOperation extends StatusProducer implements DicomImportOperation {
-    public AbstractDicomImportOperation(final Object control, final UserI user, final Map<String, Object> parameters, final FileWriterWrapperI fileWriter, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer, final MizerService mizer, final DicomFilterService filterService, final List<ArchiveProcessor> processors) {
+    public AbstractDicomImportOperation(final Object control, final UserI user, final Map<String, Object> parameters, final FileWriterWrapperI fileWriter, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer, final MizerService mizer, final DicomFilterService filterService, final List<ArchiveProcessor> processors, final ArchiveProcessorInstanceService processorInstanceService) {
         super(control);
         _user = user;
         _parameters = parameters;
@@ -52,9 +53,14 @@ public abstract class AbstractDicomImportOperation extends StatusProducer implem
         _filterService = filterService;
         _processors = processors;
         _processorsMap = null;
+        _processorInstanceService = processorInstanceService;
     }
 
     public abstract List<String> call() throws Exception;
+
+    protected ArchiveProcessorInstanceService getProcessorInstanceService() {
+        return _processorInstanceService;
+    }
 
     protected DicomFilterService getFilterService() {
         return _filterService;
@@ -322,6 +328,7 @@ public abstract class AbstractDicomImportOperation extends StatusProducer implem
     private final MizerService                           _mizer;
     private final List<ArchiveProcessor>                 _processors;
     private final DicomFilterService                     _filterService;
+    private final ArchiveProcessorInstanceService        _processorInstanceService;
 
     private Map<Class<? extends ArchiveProcessor>, ArchiveProcessor> _processorsMap;
 }

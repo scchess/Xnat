@@ -22,6 +22,7 @@ import org.nrg.xft.security.UserI;
 import org.nrg.xnat.DicomObjectIdentifier;
 import org.nrg.xnat.archive.operations.DicomImportOperation;
 import org.nrg.xnat.archive.processors.ArchiveProcessor;
+import org.nrg.xnat.processor.services.ArchiveProcessorInstanceService;
 import org.nrg.xnat.restlet.util.FileWriterWrapperI;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
@@ -34,12 +35,13 @@ import java.util.concurrent.Future;
 @SuppressWarnings({"rawtypes", "unchecked", "deprecation"})
 @Slf4j
 public abstract class ImporterHandlerA {
-    protected ImporterHandlerA(final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer, final List<ArchiveProcessor> processors, final DicomFilterService filterService, final MizerService mizer) {
+    protected ImporterHandlerA(final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer, final List<ArchiveProcessor> processors, final DicomFilterService filterService, final MizerService mizer, final ArchiveProcessorInstanceService processorInstanceService) {
         _identifier = identifier;
         _namer = namer;
         _processors = processors;
         _filterService = filterService;
         _mizer = mizer;
+        _processorInstanceService = processorInstanceService;
     }
 
     public abstract DicomImportOperation getOperation(final Object listenerControl, final UserI user, final FileWriterWrapperI writer, final Map<String, Object> params, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer);
@@ -96,6 +98,10 @@ public abstract class ImporterHandlerA {
 
     public MizerService getMizer() {
         return _mizer;
+    }
+
+    public ArchiveProcessorInstanceService getProcessorService() {
+        return _processorInstanceService;
     }
 
     public static final String IMPORT_HANDLER_ATTR = "import-handler";
@@ -169,4 +175,5 @@ public abstract class ImporterHandlerA {
     private final List<ArchiveProcessor> _processors;
     private final DicomFilterService     _filterService;
     private final MizerService           _mizer;
+    private final ArchiveProcessorInstanceService _processorInstanceService;
 }

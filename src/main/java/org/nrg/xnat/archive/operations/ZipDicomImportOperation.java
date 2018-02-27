@@ -11,6 +11,7 @@ import org.nrg.xft.security.UserI;
 import org.nrg.xnat.DicomObjectIdentifier;
 import org.nrg.xnat.archive.processors.ArchiveProcessor;
 import org.nrg.xnat.helpers.ZipEntryFileWriterWrapper;
+import org.nrg.xnat.processor.services.ArchiveProcessorInstanceService;
 import org.nrg.xnat.restlet.util.FileWriterWrapperI;
 
 import java.io.IOException;
@@ -23,8 +24,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class ZipDicomImportOperation extends GradualDicomImportOperation {
-    public ZipDicomImportOperation(final Object control, final UserI user, final FileWriterWrapperI fileWriter, final Map<String, Object> parameters, final List<ArchiveProcessor> processors, final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final MizerService mizer, final DicomFileNamer namer) {
-        super(control, user, fileWriter, parameters, processors, filterService, identifier, mizer, namer);
+    public ZipDicomImportOperation(final Object control, final UserI user, final FileWriterWrapperI fileWriter, final Map<String, Object> parameters, final List<ArchiveProcessor> processors, final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final MizerService mizer, final DicomFileNamer namer, final ArchiveProcessorInstanceService processorInstanceService) {
+        super(control, user, fileWriter, parameters, processors, filterService, identifier, mizer, namer, processorInstanceService);
     }
 
     @Override

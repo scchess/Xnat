@@ -13,12 +13,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.nrg.dicom.mizer.service.MizerService;
 
+import java.util.Map;
+
 @Component
 @Slf4j
 public class MizerArchiveProcessor extends AbstractArchiveProcessor {
 
     @Override
-    public boolean process(final DicomObject metadata, final DicomObject imageData, final SessionData sessionData, final MizerService mizer) throws ServerException{
+    public boolean process(final DicomObject metadata, final DicomObject imageData, final SessionData sessionData, final MizerService mizer, Map<String, String> parameters) throws ServerException{
         try {
             Configuration c = DefaultAnonUtils.getCachedSitewideAnon();
             if (c != null && c.getStatus().equals(Configuration.ENABLED_STRING)) {
@@ -37,7 +39,7 @@ public class MizerArchiveProcessor extends AbstractArchiveProcessor {
     }
 
     @Override
-    public boolean accept(final DicomObject metadata, final DicomObject imageData, final SessionData sessionData, final MizerService mizer) throws ServerException{
+    public boolean accept(final DicomObject metadata, final DicomObject imageData, final SessionData sessionData, final MizerService mizer, Map<String, String> parameters) throws ServerException{
         try {
             // check to see of this session came in through an application that may have performed anonymization
             // prior to transfer, e.g. the XNAT Upload Assistant.

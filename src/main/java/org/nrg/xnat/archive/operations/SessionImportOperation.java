@@ -28,6 +28,7 @@ import org.nrg.xnat.helpers.prearchive.SessionData;
 import org.nrg.xnat.helpers.prearchive.SessionException;
 import org.nrg.xnat.helpers.uri.URIManager;
 import org.nrg.xnat.helpers.uri.UriParserUtils;
+import org.nrg.xnat.processor.services.ArchiveProcessorInstanceService;
 import org.nrg.xnat.restlet.actions.PrearcImporterA;
 import org.nrg.xnat.restlet.actions.SessionImporter;
 import org.nrg.xnat.restlet.util.FileWriterWrapperI;
@@ -55,8 +56,8 @@ public class SessionImportOperation extends AbstractDicomImportOperation {
     private boolean allowSessionMerge;
     private Object control;
 
-    public SessionImportOperation(final Object control, final UserI user, final FileWriterWrapperI fileWriter, final Map<String, Object> parameters, final List<ArchiveProcessor> processors, final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final MizerService mizer, final DicomFileNamer namer) {
-        super(control, user, parameters, fileWriter, identifier, namer, mizer, filterService, processors);
+    public SessionImportOperation(final Object control, final UserI user, final FileWriterWrapperI fileWriter, final Map<String, Object> parameters, final List<ArchiveProcessor> processors, final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final MizerService mizer, final DicomFileNamer namer, final ArchiveProcessorInstanceService processorInstanceService) {
+        super(control, user, parameters, fileWriter, identifier, namer, mizer, filterService, processors, processorInstanceService);
         this.control = control;
         String overwriteV=(String)parameters.remove("overwrite");
 

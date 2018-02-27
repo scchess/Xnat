@@ -18,6 +18,7 @@ import org.nrg.xnat.DicomObjectIdentifier;
 import org.nrg.dicomtools.filters.DicomFilterService;
 import org.nrg.xnat.archive.GradualDicomImporter;
 import org.nrg.xnat.archive.processors.ArchiveProcessor;
+import org.nrg.xnat.processor.services.ArchiveProcessorInstanceService;
 import org.nrg.xnat.restlet.actions.importer.ImporterHandlerA;
 import org.nrg.xnat.restlet.actions.importer.ImporterHandlerPackages;
 import org.nrg.xnat.services.cache.UserProjectCache;
@@ -36,7 +37,7 @@ import org.nrg.dicom.mizer.service.MizerService;
 public class GradualDicomImporterConfig {
     @Bean
     @Primary
-    public GradualDicomImporter gradualDicomImporter(final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer, final MizerService mizer, final List<ArchiveProcessor> processors) {
-         return new GradualDicomImporter(filterService, identifier, namer, mizer, processors);
+    public GradualDicomImporter gradualDicomImporter(final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer, final MizerService mizer, final List<ArchiveProcessor> processors, final ArchiveProcessorInstanceService processorInstanceService) {
+         return new GradualDicomImporter(filterService, identifier, namer, mizer, processors, processorInstanceService);
     }
 }

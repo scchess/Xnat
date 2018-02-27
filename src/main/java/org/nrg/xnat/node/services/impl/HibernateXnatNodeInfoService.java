@@ -53,7 +53,7 @@ public class HibernateXnatNodeInfoService extends AbstractHibernateEntityService
 	}
 
 	/* (non-Javadoc)
-	 * @see org.nrg.xnat.node.services.XnatNodeInfoService#recordNodeInfo(org.nrg.xnat.node.XnatNode)
+	 * @see org.nrg.xnat.node.services.HibernateXnatNodeInfoService#recordNodeInfo(org.nrg.xnat.node.XnatNode)
 	 */
 	@Override
 	@Transactional
@@ -85,7 +85,7 @@ public class HibernateXnatNodeInfoService extends AbstractHibernateEntityService
 	}
 
 	/* (non-Javadoc)
-	 * @see org.nrg.xnat.node.services.XnatNodeInfoService#checkIn(org.nrg.framework.node.XnatNode)
+	 * @see org.nrg.xnat.node.services.HibernateXnatNodeInfoService#checkIn(org.nrg.framework.node.XnatNode)
 	 */
 	@Override
 	@Transactional
@@ -120,7 +120,7 @@ public class HibernateXnatNodeInfoService extends AbstractHibernateEntityService
 	}
 
 	/* (non-Javadoc)
-	 * @see org.nrg.xnat.node.services.XnatNodeInfoService#recordNodeShutdown()
+	 * @see org.nrg.xnat.node.services.HibernateXnatNodeInfoService#recordNodeShutdown()
 	 */
 	@Override
 	@Transactional
@@ -148,7 +148,7 @@ public class HibernateXnatNodeInfoService extends AbstractHibernateEntityService
 	}
 
 	/* (non-Javadoc)
-	 * @see org.nrg.xnat.node.services.XnatNodeInfoService#getXnatNodeInfoByNodeIdAndHostname(java.lang.String, java.lang.String)
+	 * @see org.nrg.xnat.node.services.HibernateXnatNodeInfoService#getXnatNodeInfoByNodeIdAndHostname(java.lang.String, java.lang.String)
 	 */
 	@Override
 	@Transactional

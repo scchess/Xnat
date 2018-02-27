@@ -31,6 +31,7 @@ import org.nrg.xft.db.PoolDBUtils;
 import org.nrg.xnat.archive.operations.SessionImportOperation;
 import org.nrg.xnat.archive.processors.ArchiveProcessor;
 import org.nrg.xnat.helpers.prearchive.*;
+import org.nrg.xnat.processor.services.ArchiveProcessorInstanceService;
 import org.nrg.xnat.services.messaging.prearchive.PrearchiveOperationRequest;
 import org.nrg.xnat.status.ListenerUtils;
 import org.nrg.xdat.om.XnatExperimentdata;
@@ -60,12 +61,12 @@ public class SessionImporter extends ImporterHandlerA {
 	private static final Logger logger = LoggerFactory.getLogger(SessionImporter.class);
 
 	@Autowired
-	public SessionImporter(final List<ArchiveProcessor> processors, final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer, final MizerService mizer) {
-		super(identifier, namer, processors, filterService, mizer);
+	public SessionImporter(final List<ArchiveProcessor> processors, final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer, final MizerService mizer, final ArchiveProcessorInstanceService processorInstanceService) {
+		super(identifier, namer, processors, filterService, mizer, processorInstanceService);
 	}
 
 	@Override
 	public SessionImportOperation getOperation(Object listenerControl, UserI user, FileWriterWrapperI writer, Map<String, Object> params, DicomObjectIdentifier<XnatProjectdata> identifier, DicomFileNamer namer) {
-		return new SessionImportOperation(listenerControl, user, writer, params, getProcessors(), getFilterService(), ObjectUtils.defaultIfNull(identifier, getIdentifier()), getMizer(), ObjectUtils.defaultIfNull(namer, getNamer()));
+		return new SessionImportOperation(listenerControl, user, writer, params, getProcessors(), getFilterService(), ObjectUtils.defaultIfNull(identifier, getIdentifier()), getMizer(), ObjectUtils.defaultIfNull(namer, getNamer()), getProcessorService());
 	}
 }

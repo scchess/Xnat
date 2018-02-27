@@ -5,12 +5,14 @@ import org.nrg.action.ServerException;
 import org.nrg.xnat.helpers.prearchive.SessionData;
 import org.nrg.dicom.mizer.service.MizerService;
 
+import java.util.Map;
+
 public interface ArchiveProcessor {
-    boolean process(final DicomObject metadata, final SessionData sessionData) throws ServerException;
-    boolean process(final DicomObject metadata, final DicomObject imageData, final SessionData sessionData) throws ServerException;
-    boolean process(final DicomObject metadata, final DicomObject imageData, final SessionData sessionData, final MizerService mizer) throws ServerException;
-    boolean accept(final DicomObject metadata, final SessionData sessionData) throws ServerException;
-    boolean accept(final DicomObject metadata, final DicomObject imageData, final SessionData sessionData) throws ServerException;
-    boolean accept(final DicomObject metadata, final DicomObject imageData, final SessionData sessionData, final MizerService mizer) throws ServerException;
+    boolean process(final DicomObject metadata, final SessionData sessionData, Map<String, String> parameters) throws ServerException;
+    boolean process(final DicomObject metadata, final DicomObject imageData, final SessionData sessionData, Map<String, String> parameters) throws ServerException;
+    boolean process(final DicomObject metadata, final DicomObject imageData, final SessionData sessionData, final MizerService mizer, Map<String, String> parameters) throws ServerException;
+    boolean accept(final DicomObject metadata, final SessionData sessionData, Map<String, String> parameters) throws ServerException;
+    boolean accept(final DicomObject metadata, final DicomObject imageData, final SessionData sessionData, Map<String, String> parameters) throws ServerException;
+    boolean accept(final DicomObject metadata, final DicomObject imageData, final SessionData sessionData, final MizerService mizer, Map<String, String> parameters) throws ServerException;
 
 }

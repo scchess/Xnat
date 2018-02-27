@@ -36,6 +36,7 @@ import org.nrg.xft.utils.zip.ZipUtils;
 import org.nrg.xnat.archive.operations.DicomImportOperation;
 import org.nrg.xnat.archive.operations.XarImportOperation;
 import org.nrg.xnat.archive.processors.ArchiveProcessor;
+import org.nrg.xnat.processor.services.ArchiveProcessorInstanceService;
 import org.nrg.xnat.restlet.actions.importer.ImporterHandler;
 import org.nrg.xnat.restlet.actions.importer.ImporterHandlerA;
 import org.nrg.xnat.restlet.util.FileWriterWrapperI;
@@ -56,12 +57,12 @@ public class XarImporter extends ImporterHandlerA {
 	private static final Logger logger = Logger.getLogger(XarImporter.class);
 
     @Autowired
-    public XarImporter(final List<ArchiveProcessor> processors, final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer, final MizerService mizer) {
-        super(identifier, namer, processors, filterService, mizer);
+    public XarImporter(final List<ArchiveProcessor> processors, final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer, final MizerService mizer, final ArchiveProcessorInstanceService processorInstanceService) {
+        super(identifier, namer, processors, filterService, mizer, processorInstanceService);
     }
 
     @Override
     public DicomImportOperation getOperation(Object listenerControl, UserI user, FileWriterWrapperI writer, Map<String, Object> params, DicomObjectIdentifier<XnatProjectdata> identifier, DicomFileNamer namer) {
-        return new XarImportOperation(listenerControl, user, writer, params, getProcessors(), getFilterService(), ObjectUtils.defaultIfNull(identifier, getIdentifier()), getMizer(), ObjectUtils.defaultIfNull(namer, getNamer()));
+        return new XarImportOperation(listenerControl, user, writer, params, getProcessors(), getFilterService(), ObjectUtils.defaultIfNull(identifier, getIdentifier()), getMizer(), ObjectUtils.defaultIfNull(namer, getNamer()), getProcessorService());
     }
 }

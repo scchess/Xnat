@@ -19,6 +19,7 @@ import org.nrg.xnat.DicomObjectIdentifier;
 import org.nrg.xnat.archive.operations.DicomImportOperation;
 import org.nrg.xnat.archive.operations.GradualDicomImportOperation;
 import org.nrg.xnat.archive.processors.ArchiveProcessor;
+import org.nrg.xnat.processor.services.ArchiveProcessorInstanceService;
 import org.nrg.xnat.restlet.actions.importer.ImporterHandler;
 import org.nrg.xnat.restlet.actions.importer.ImporterHandlerA;
 import org.nrg.xnat.restlet.util.FileWriterWrapperI;
@@ -43,12 +44,12 @@ public class GradualDicomImporter extends ImporterHandlerA {
 //    }
 
     @Autowired
-    public GradualDicomImporter(final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer, final MizerService mizer, final List<ArchiveProcessor> processors) {
-        super(identifier, namer, processors, filterService, mizer);
+    public GradualDicomImporter(final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer, final MizerService mizer, final List<ArchiveProcessor> processors, final ArchiveProcessorInstanceService processorInstanceService) {
+        super(identifier, namer, processors, filterService, mizer, processorInstanceService);
     }
 
     @Override
     public DicomImportOperation getOperation(final Object listenerControl, final UserI user, final FileWriterWrapperI writer, final Map<String, Object> params, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer) {
-        return new GradualDicomImportOperation(listenerControl, user, writer, params, getProcessors(), getFilterService(), ObjectUtils.defaultIfNull(identifier, getIdentifier()), getMizer(), ObjectUtils.defaultIfNull(namer, getNamer()));
+        return new GradualDicomImportOperation(listenerControl, user, writer, params, getProcessors(), getFilterService(), ObjectUtils.defaultIfNull(identifier, getIdentifier()), getMizer(), ObjectUtils.defaultIfNull(namer, getNamer()), getProcessorService());
     }
 }

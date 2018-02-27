@@ -26,6 +26,7 @@ import org.nrg.xft.utils.zip.ZipUtils;
 import org.nrg.xnat.DicomObjectIdentifier;
 import org.nrg.xnat.archive.processors.ArchiveProcessor;
 import org.nrg.xnat.helpers.ZipEntryFileWriterWrapper;
+import org.nrg.xnat.processor.services.ArchiveProcessorInstanceService;
 import org.nrg.xnat.restlet.actions.XarImporter;
 import org.nrg.xnat.restlet.util.FileWriterWrapperI;
 import org.nrg.xnat.turbine.utils.ArcSpecManager;
@@ -43,8 +44,8 @@ import java.util.zip.ZipOutputStream;
 public class XarImportOperation extends AbstractDicomImportOperation {
     private static final Logger logger = Logger.getLogger(XarImportOperation.class);
 
-    public XarImportOperation(final Object control, final UserI user, final FileWriterWrapperI fileWriter, final Map<String, Object> parameters, final List<ArchiveProcessor> processors, final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final MizerService mizer, final DicomFileNamer namer) {
-        super(control, user, parameters, fileWriter, identifier, namer, mizer, filterService, processors);
+    public XarImportOperation(final Object control, final UserI user, final FileWriterWrapperI fileWriter, final Map<String, Object> parameters, final List<ArchiveProcessor> processors, final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final MizerService mizer, final DicomFileNamer namer, final ArchiveProcessorInstanceService processorInstanceService) {
+        super(control, user, parameters, fileWriter, identifier, namer, mizer, filterService, processors, processorInstanceService);
     }
 
     @Override

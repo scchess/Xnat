@@ -19,6 +19,7 @@ import org.nrg.xnat.DicomObjectIdentifier;
 import org.nrg.xnat.archive.operations.DicomImportOperation;
 import org.nrg.xnat.archive.operations.ZipDicomImportOperation;
 import org.nrg.xnat.archive.processors.ArchiveProcessor;
+import org.nrg.xnat.processor.services.ArchiveProcessorInstanceService;
 import org.nrg.xnat.restlet.actions.importer.ImporterHandler;
 import org.nrg.xnat.restlet.actions.importer.ImporterHandlerA;
 import org.nrg.xnat.restlet.util.FileWriterWrapperI;
@@ -32,12 +33,12 @@ import java.util.Map;
 @ImporterHandler(handler = ImporterHandlerA.DICOM_ZIP_IMPORTER)
 public class DicomZipImporter extends ImporterHandlerA {
     @Autowired
-    public DicomZipImporter(final List<ArchiveProcessor> processors, final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer, final MizerService mizer) {
-        super(identifier, namer, processors, filterService, mizer);
+    public DicomZipImporter(final List<ArchiveProcessor> processors, final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer, final MizerService mizer, final ArchiveProcessorInstanceService processorInstanceService) {
+        super(identifier, namer, processors, filterService, mizer, processorInstanceService);
     }
 
     @Override
     public DicomImportOperation getOperation(final Object listenerControl, final UserI user, final FileWriterWrapperI writer, final Map<String, Object> params, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer) {
-        return new ZipDicomImportOperation(listenerControl, user, writer, params, getProcessors(), getFilterService(), ObjectUtils.defaultIfNull(identifier, getIdentifier()), getMizer(), ObjectUtils.defaultIfNull(namer, getNamer()));
+        return new ZipDicomImportOperation(listenerControl, user, writer, params, getProcessors(), getFilterService(), ObjectUtils.defaultIfNull(identifier, getIdentifier()), getMizer(), ObjectUtils.defaultIfNull(namer, getNamer()), getProcessorService());
     }
 }

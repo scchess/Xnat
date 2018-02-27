@@ -23,17 +23,16 @@ import org.nrg.xnat.Files;
 import org.nrg.xnat.Labels;
 import org.nrg.xnat.archive.GradualDicomImporter;
 import org.nrg.xnat.archive.processors.ArchiveProcessor;
-import org.nrg.xnat.archive.processors.MizerArchiveProcessor;
 import org.nrg.xnat.helpers.prearchive.DatabaseSession;
 import org.nrg.xnat.helpers.prearchive.PrearcDatabase;
 import org.nrg.xnat.helpers.prearchive.PrearcUtils;
 import org.nrg.xnat.helpers.prearchive.SessionData;
 import org.nrg.xnat.helpers.uri.URIManager;
+import org.nrg.xnat.entities.ArchiveProcessorInstance;
+import org.nrg.xnat.processor.services.ArchiveProcessorInstanceService;
 import org.nrg.xnat.restlet.util.FileWriterWrapperI;
 import org.nrg.xnat.turbine.utils.ArcSpecManager;
 import org.restlet.data.Status;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -57,8 +56,9 @@ public class GradualDicomImportOperation extends AbstractDicomImportOperation {
                                        final DicomFilterService filterService,
                                        final DicomObjectIdentifier<XnatProjectdata> identifier,
                                        final MizerService mizer,
-                                       final DicomFileNamer namer) {
-        super(control, user, parameters, fileWriter, identifier, namer, mizer, filterService, processors);
+                                       final DicomFileNamer namer,
+                                       final ArchiveProcessorInstanceService processorInstanceService) {
+        super(control, user, parameters, fileWriter, identifier, namer, mizer, filterService, processors, processorInstanceService);
 
         if (getParameters().containsKey(GradualDicomImporter.TSUID_PARAM)) {
             _transferSyntax = TransferSyntax.valueOf((String) getParameters().get(GradualDicomImporter.TSUID_PARAM));
@@ -232,22 +232,35 @@ public class GradualDicomImportOperation extends AbstractDicomImportOperation {
 
         boolean continueProcessingData = true;
         try {
-
-            //List<ArchiveProcessor> processors = getProcessors();
-            //processors.add(new MizerArchiveProcessor());
-
-            Collection<ArchiveProcessor> processors = getProcessorsMap().values();
+            Map<Class<? extends ArchiveProcessor>, ArchiveProcessor> processorsMap = getProcessorsMap();
+            Collection<ArchiveProcessor> processors = processorsMap.values();
             //Later this map will be used when iterating over the processorInstances to get the processor for the given instance
+            List<ArchiveProcessorInstance> processorInstances = getProcessorInstanceService().getAllEnabledSiteProcessorsInOrder();
+            if(processorInstances!=null){
+                for(ArchiveProcessorInstance processorInstance: processorInstances) {
+                    Class<? extends ArchiveProcessor> processorClass = (Class<? extends ArchiveProcessor>)Class.forName(processorInstance.getProcessorClass());
+                    ArchiveProcessor processor = processorsMap.get(processorClass);
 
-
-            for(ArchiveProcessor processor: processors) {
-                if (processor.accept(dicom, dicom, session, getMizer())) {
-                    if(!processor.process(dicom, dicom, session, getMizer())){
-                        continueProcessingData = false;
-                        break;
+                    if (processor.accept(dicom, dicom, session, getMizer(), processorInstance.getParameters())) {
+                        if(!processor.process(dicom, dicom, session, getMizer(), processorInstance.getParameters())){
+                            continueProcessingData = false;
+                            break;
+                        }
                     }
+
                 }
             }
+
+
+
+//            for(ArchiveProcessor processor: processors) {
+//                if (processor.accept(dicom, dicom, session, getMizer())) {
+//                    if(!processor.process(dicom, dicom, session, getMizer())){
+//                        continueProcessingData = false;
+//                        break;
+//                    }
+//                }
+//            }
 
 
         } catch (Throwable e) {

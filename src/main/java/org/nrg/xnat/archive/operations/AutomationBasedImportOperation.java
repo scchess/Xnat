@@ -46,6 +46,7 @@ import org.nrg.xnat.DicomObjectIdentifier;
 import org.nrg.xnat.archive.processors.ArchiveProcessor;
 import org.nrg.xnat.event.listeners.AutomationCompletionEventListener;
 import org.nrg.xnat.helpers.ZipEntryFileWriterWrapper;
+import org.nrg.xnat.processor.services.ArchiveProcessorInstanceService;
 import org.nrg.xnat.restlet.files.utils.RestFileUtils;
 import org.nrg.xnat.restlet.util.FileWriterWrapperI;
 import org.nrg.xnat.turbine.utils.ArcSpecManager;
@@ -85,8 +86,8 @@ public class AutomationBasedImportOperation extends AbstractDicomImportOperation
 
     private String configuredResource;
 
-    public AutomationBasedImportOperation(final Object control, final UserI user, final FileWriterWrapperI fileWriter, final Map<String, Object> parameters, final List<ArchiveProcessor> processors, final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final MizerService mizer, final DicomFileNamer namer) {
-        super(control, user, parameters, fileWriter, identifier, namer, mizer, filterService, processors);
+    public AutomationBasedImportOperation(final Object control, final UserI user, final FileWriterWrapperI fileWriter, final Map<String, Object> parameters, final List<ArchiveProcessor> processors, final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final MizerService mizer, final DicomFileNamer namer, final ArchiveProcessorInstanceService processorInstanceService) {
+        super(control, user, parameters, fileWriter, identifier, namer, mizer, filterService, processors, processorInstanceService);
     }
 
     @Override
