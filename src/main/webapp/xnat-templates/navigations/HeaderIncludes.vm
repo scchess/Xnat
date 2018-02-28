@@ -113,39 +113,6 @@ $navigation.setTemplate("/BaseJS.vm")
     XNAT.app.showLeftBarSearch =  realValue($!siteConfig.uiShowLeftBarSearch);
     XNAT.app.showLeftBarBrowse = realValue($!siteConfig.uiShowLeftBarBrowse);
 
-    window.available_elements = [];
-
-    #set ($userHelper = $data.getSession().getAttribute("userHelper"))
-    #if($userHelper)
-        #set ($typeObjects = $userHelper.getBrowseableElementDisplays())
-    #end
-
-    #foreach ($typeObject in $typeObjects)
-        window.available_elements.push({
-            singular: "$typeObject.getSchemaElement().getElementSecurity().getSingularDescription()",
-            plural: "$typeObject.getSchemaElement().getElementSecurity().getPluralDescription()",
-            element_name: "$typeObject.getElementName()",
-            actions: $typeObject.getElementSecurity().getListingActionsJSON(),
-            "lbg": "$!typeObject.getLightColor()",
-            "dbg": "$!typeObject.getDarkColor()",
-            "isExperiment": $typeObject.getSchemaElement().instanceOf("xnat:experimentData"),
-            "isSubjectAssessor": $typeObject.getSchemaElement().instanceOf("xnat:subjectAssessorData"),
-            "isImageAssessor": $typeObject.getSchemaElement().instanceOf("xnat:imageAssessorData"),
-            "isImageSession": $typeObject.getSchemaElement().instanceOf("xnat:imageSessionData"),
-            "isImageScan": $typeObject.getSchemaElement().instanceOf("xnat:imageScanData")
-        });
-    #end
-
-    window.available_elements.getByName = function (name) {
-        for (var aeC = 0; aeC < this.length; aeC++) {
-            if (this[aeC].element_name == name) {
-                return this[aeC];
-            }
-        }
-        // return empty object if not found
-        return {}
-    };
-
         #if($project)
             #if($project.getId())
             window.projectScope = "$!project.getId()";

@@ -8,6 +8,43 @@
 ## only load once
 #if ($!appJS != true)
 
+<script>
+
+    window.available_elements = [];
+
+        #set ($userHelper = $data.getSession().getAttribute("userHelper"))
+        #if($userHelper)
+            #set ($typeObjects = $userHelper.getBrowseableElementDisplays())
+        #end
+
+        #foreach ($typeObject in $typeObjects)
+        window.available_elements.push({
+            singular: "$typeObject.getSchemaElement().getElementSecurity().getSingularDescription()",
+            plural: "$typeObject.getSchemaElement().getElementSecurity().getPluralDescription()",
+            element_name: "$typeObject.getElementName()",
+            actions: $typeObject.getElementSecurity().getListingActionsJSON(),
+            "lbg": "$!typeObject.getLightColor()",
+            "dbg": "$!typeObject.getDarkColor()",
+            "isExperiment": $typeObject.getSchemaElement().instanceOf("xnat:experimentData"),
+            "isSubjectAssessor": $typeObject.getSchemaElement().instanceOf("xnat:subjectAssessorData"),
+            "isImageAssessor": $typeObject.getSchemaElement().instanceOf("xnat:imageAssessorData"),
+            "isImageSession": $typeObject.getSchemaElement().instanceOf("xnat:imageSessionData"),
+            "isImageScan": $typeObject.getSchemaElement().instanceOf("xnat:imageScanData")
+        });
+        #end
+
+    window.available_elements.getByName = function(name){
+        for (var aeC = 0; aeC < this.length; aeC++) {
+            if (this[aeC].element_name == name) {
+                return this[aeC];
+            }
+        }
+        // return empty object if not found
+        return {}
+    };
+
+</script>
+
 ##    ## (allowing the 'app.css' file to be completely overridden seems risky, so it is disabled for now)
 ##    ## If a theme has an 'app.css' stylesheet, it will be loaded *instead* of the main 'app.css' file.
 ##    ## This makes it easier to start with a blank slate for styling.
@@ -74,6 +111,7 @@
     <script src="${SITE_ROOT}/scripts/xnat/spawner.js"></script>
 
     <!-- XNAT app scripts -->
+    <script src="${SITE_ROOT}/scripts/xnat/app/dataTypeAccess.jsp"></script>
     <script src="${SITE_ROOT}/scripts/xnat/app/codeEditor.js"></script>
     <script src="${SITE_ROOT}/scripts/xnat/app/pluginSettings.js"></script>
 

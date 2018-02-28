@@ -18,7 +18,7 @@
     var $browseData = $('#browse-data');
     var $favoriteProjects = $('#favorite-projects');
     var $myProjects = $('#my-projects');
-    var undefined;
+    var undef;
 
     var displayProjectList = function($parent, projectData){
         if (!projectData.length) return;
@@ -182,37 +182,45 @@
         }
     });
 
+    XNAT.app.dataTypeAccess = getObject(XNAT.app.dataTypeAccess || {});
+
     function dataTypeUrl(name){
         return XNAT.url.rootUrl('/app/template/Search.vm/node/d.' + name);
     }
 
     function dataTypeItem(type){
+        var elementName = type.elementName || type.element_name;
         return {
-            name:  type.element_name,
+            name: elementName,
             item: spawn('a.truncate', {
-                href: dataTypeUrl(type.element_name),
-                title: type.element_name,
+                href: dataTypeUrl(elementName),
+                title: elementName,
                 style: { width: '100%' }
             }, type.plural)
         }
     }
 
-    // populate data list
-    if (window.available_elements !== undefined && window.available_elements.length) {
-        var DATATYPES = [dataTypeItem({
-            element_name: 'xnat:subjectData',
-            plural: 'Subjects'
-        })];
-        var sortedTypes = sortObjects(window.available_elements, 'plural');
-        forEach(sortedTypes, function(type){
-            if (type.plural === undefined) return;
-            if (/workflowData|subjectData/i.test(type.element_name)) return;
-            DATATYPES.push(dataTypeItem(type));
-        });
-        displaySimpleList($browseData, DATATYPES);
-    }
-    else {
-        $browseData.parent('li').addClass('disabled');
-    }
+    XNAT.app.dataTypeAccess.getElements('browseable').ready(function(browseable){
+        console.log('getElements.browseable');
+        // populate data list
+        if (browseable.elements.length) {
+            // display subjects first
+            var DATATYPES = [dataTypeItem({
+                elementName: 'xnat:subjectData',
+                plural: 'Subjects'
+            })];
+            var sortedTypes = sortObjects(browseable.elements, 'plural');
+            forEach(sortedTypes, function(type){
+                if (type.plural === undef) return;
+                // skip workflowData and subjectData (which was added first)
+                if (/workflowData|subjectData/i.test(type.elementName)) return;
+                DATATYPES.push(dataTypeItem(type));
+            });
+            displaySimpleList($browseData.html(''), DATATYPES);
+        }
+        else {
+            $browseData.parent('li').addClass('disabled');
+        }
+    });
 
 })();
