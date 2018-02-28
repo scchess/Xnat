@@ -16,9 +16,13 @@ import org.nrg.dcm.id.TemplatizedDicomFileNamer;
 import org.nrg.xdat.om.XnatProjectdata;
 import org.nrg.xnat.DicomObjectIdentifier;
 import org.nrg.dicomtools.filters.DicomFilterService;
+import org.nrg.xnat.archive.DicomZipImporter;
 import org.nrg.xnat.archive.GradualDicomImporter;
 import org.nrg.xnat.archive.processors.ArchiveProcessor;
 import org.nrg.xnat.processor.services.ArchiveProcessorInstanceService;
+import org.nrg.xnat.restlet.actions.AutomationBasedImporter;
+import org.nrg.xnat.restlet.actions.SessionImporter;
+import org.nrg.xnat.restlet.actions.XarImporter;
 import org.nrg.xnat.restlet.actions.importer.ImporterHandlerA;
 import org.nrg.xnat.restlet.actions.importer.ImporterHandlerPackages;
 import org.nrg.xnat.services.cache.UserProjectCache;
@@ -38,6 +42,26 @@ public class GradualDicomImporterConfig {
     @Bean
     @Primary
     public GradualDicomImporter gradualDicomImporter(final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer, final MizerService mizer, final List<ArchiveProcessor> processors, final ArchiveProcessorInstanceService processorInstanceService) {
-         return new GradualDicomImporter(filterService, identifier, namer, mizer, processors, processorInstanceService);
+        return new GradualDicomImporter(filterService, identifier, namer, mizer, processors, processorInstanceService);
+    }
+
+    @Bean
+    public DicomZipImporter dicomZipImporter(final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer, final MizerService mizer, final List<ArchiveProcessor> processors, final ArchiveProcessorInstanceService processorInstanceService) {
+        return new DicomZipImporter(processors, filterService, identifier, namer, mizer, processorInstanceService);
+    }
+
+    @Bean
+    public AutomationBasedImporter automationBasedImporter(final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer, final MizerService mizer, final List<ArchiveProcessor> processors, final ArchiveProcessorInstanceService processorInstanceService) {
+        return new AutomationBasedImporter(processors, filterService, identifier, namer, mizer, processorInstanceService);
+    }
+
+    @Bean
+    public SessionImporter sessionImporter(final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer, final MizerService mizer, final List<ArchiveProcessor> processors, final ArchiveProcessorInstanceService processorInstanceService) {
+        return new SessionImporter(processors, filterService, identifier, namer, mizer, processorInstanceService);
+    }
+
+    @Bean
+    public XarImporter xarImporter(final DicomFilterService filterService, final DicomObjectIdentifier<XnatProjectdata> identifier, final DicomFileNamer namer, final MizerService mizer, final List<ArchiveProcessor> processors, final ArchiveProcessorInstanceService processorInstanceService) {
+        return new XarImporter(processors, filterService, identifier, namer, mizer, processorInstanceService);
     }
 }
