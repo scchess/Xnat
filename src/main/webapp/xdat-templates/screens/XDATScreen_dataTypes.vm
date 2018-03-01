@@ -25,7 +25,7 @@ $!template.setLayoutTemplate("DefaultExptList.vm")
         <div class="clearfix clear"></div>
     </div>
 
-    <form name="form1" method="post" action="$link.setAction("ManageDataTypes")" class="noHide">
+    <form name="form1" method="post" action="$link.setAction("ManageDataTypes")" class="noHide" id="datatype-summary-form">
 
         <div id="datatype-table-container" style="margin-bottom: 1em;"></div>
         ## all table rows are inserted via datatypes.js

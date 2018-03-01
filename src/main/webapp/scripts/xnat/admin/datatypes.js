@@ -839,8 +839,8 @@ var XNAT = getObject(XNAT || {});
         })
     };
 
-    function submitEditForm(form){
-        var url = XNAT.url.csrfUrl('/app/action/ModifyItem/popup/true?popup=true');
+    function submitEditForm(form,url){
+        url = url || XNAT.url.csrfUrl('/app/action/ModifyItem/popup/true?popup=true');
 
         // insert a hack for checkbox-based switchboxes
         form.find('input.controller.switchbox').each(function(){
@@ -865,19 +865,25 @@ var XNAT = getObject(XNAT || {});
             cache: false,
             success: function(data){
                 console.log(data);
-                XNAT.ui.banner.top(2000,'Data type updated','success');
+                XNAT.ui.banner.top(2000,'Data type(s) updated','success');
                 window.location.assign(XNAT.url.rootUrl('/app/action/ManageDataTypes'));
             },
             fail: function(e){
-                XNAT.ui.banner.top(2000,'ERROR. Could not update data type.','error');
+                XNAT.ui.banner.top(2000,'ERROR. Could not update data type(s).','error');
                 console.log(e);
             }
         })
     }
 
-    jq(document).on('click','.delete-action-row',function(e){
+    $(document).on('click','.delete-action-row',function(e){
         e.preventDefault();
         XNAT.admin.datatype.deleteActionRow(e);
+    });
+
+    $(document).on('submit','#datatype-summary-form',function(e){
+        e.preventDefault();
+        var url = $(this).prop('action');
+        submitEditForm($(this),url);
     });
 
 }));
