@@ -768,7 +768,7 @@ ${bodyTop}
     <div id="layout_content2" style="display:none;">Loading...</div>
     <div id="layout_content">
         <!--BEGIN SCREEN CONTENT -->
-        <div id="page-content">
+        <div id="view-page">
 
 
 
