@@ -18,6 +18,7 @@ import org.nrg.framework.constants.PrearchiveCode;
 import org.nrg.framework.utilities.Reflection;
 import org.nrg.xnat.archive.GradualDicomImporter;
 import org.nrg.xnat.archive.operations.DicomImportOperation;
+import org.nrg.xnat.restlet.actions.SessionImporter;
 import org.nrg.xnat.status.StatusList;
 import org.nrg.xdat.XDAT;
 import org.nrg.xdat.om.XnatProjectdata;
@@ -193,12 +194,18 @@ public class Importer extends SecureResource {
 			if(fw.size()==0 && handler != null && !HANDLERS_ALLOWING_CALLS_WITHOUT_FILES.contains(handler)) {
 				this.getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unable to identify upload format.");
 				return;
-			} else if (handler != null && fw.size() == 0) {
-				final Map<String, ImporterHandler> handlers = XDAT.getContextService().getBeansOfType(ImporterHandler.class);
+			} else if (handler != null && fw.size() <=1) {
+				FileWriterWrapperI fww = null;
+				if(fw.size()==1){
+					fww = fw.get(0);
+				}
+				//final Map<String, ImporterHandler> handlers = XDAT.getContextService().getBeansOfType(ImporterHandlerA.class);
+				final HashMap<String, Class<? extends ImporterHandlerA>> handlers = XDAT.getContextService().getBean(ImporterHandlerPackages.class);
 				try {
 					if (handlers.containsKey(handler)) {
-						final ImporterHandlerA importer = (ImporterHandlerA) handlers.get(handler);
-						final DicomImportOperation operation  = importer.getOperation(listenerControl, user, null, params);
+						final Class<? extends ImporterHandlerA> importerClass = handlers.get(handler);
+						final ImporterHandlerA importer = XDAT.getContextService().getBean(importerClass);
+						final DicomImportOperation operation  = importer.getOperation(handler, user, fww, params);
 
 						if (storeStatusList(operation)) {
 							return;
@@ -224,6 +231,22 @@ public class Importer extends SecureResource {
 				this.getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Importer is limited to one uploaded resource at a time.");
 				return;
 				
+			}
+			else if(handler==null && fw.size()==1){
+				try {
+						final ImporterHandlerA importer = XDAT.getContextService().getBean(SessionImporter.class);
+						final DicomImportOperation operation  = importer.getOperation(listenerControl, user, fw.get(0), params);
+
+						if (storeStatusList(operation)) {
+							return;
+						}
+						//response = importer.doImport(operation).get();
+						response = importer.doImport(operation);
+				} catch (Exception e) {
+					logger.error("",e);
+					throw new ServerException(e.getMessage(),e);
+				}
+
 			}
 
 			if(entity!=null && APPLICATION_XMIRC.equals(mediaType)){
