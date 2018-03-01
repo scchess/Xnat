@@ -3,17 +3,8 @@
 #* @vtlvariable name="scan" type="org.nrg.xdat.om.XnatImagescandata" *#
 #* @vtlvariable name="turbineUtils" type="org.nrg.xdat.turbine.utils.TurbineUtils" *#
 
-#macro (escapeProperty $prop)
-    $!turbineUtils.escapeHTML("$!scan.getProperty($prop)")
-#end
-
-#macro (escapeStringProperty $propStr)
-    $!turbineUtils.escapeHTML("$!scan.getStringProperty($propStr)")
-#end
-
-#macro (escapeHtml $html)
-    $!turbineUtils.escapeHTML("$html")
-#end
+#macro(escapeProperty $prop)#escapeHTML("$!scan.getProperty($prop)")#end
+#macro(escapeStringProperty $propStr)#escapeHTML("$!scan.getStringProperty($propStr)")#end
 
 <!-- START /xnat-templates/screens/xnat_mrScanData/xnat_mrScanData_details.vm -->
 <table class="xnat-table clean compact scan-details" style="border: none;">
