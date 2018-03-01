@@ -102,6 +102,10 @@ var XNAT = getObject(XNAT || {});
                 kind: 'table.dataTable',
                 name: 'datatypeListing',
                 id: 'datatype-listing',
+                height: 'inherit',
+                minHeight: 'inherit',
+                overflowX: 'inherit',
+                overflowY: 'inherit',
                 data: data,
                 before: {
                     filterCss: {
