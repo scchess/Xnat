@@ -343,7 +343,7 @@ var XNAT = getObject(XNAT || {});
     };
 
     // attribute editors
-    console.log('datatype.js - attribute editor')
+    console.log('datatype.js - attribute editor');
     var editDatatypeFormObj = function(datatype) {
         return {
             kind: 'panel.form',
@@ -467,12 +467,8 @@ var XNAT = getObject(XNAT || {});
                             values: '1|0'
                         },
                         secondaryPassword: {
-                            kind: 'panel.input.switchbox',
-                            name: 'xdat:element_security.secondary_password',
-                            label: 'Requires Secondary Password',
-                            onText: 'Yes',
-                            offText: 'No',
-                            values: '1|0'
+                            kind: 'panel.input.hidden',
+                            name: 'xdat:element_security.secondary_password'
                         },
                         usage: {
                             kind: 'panel.input.textarea',
@@ -484,12 +480,8 @@ var XNAT = getObject(XNAT || {});
                             }
                         },
                         restrictIp: {
-                            kind: 'panel.input.switchbox',
-                            name: 'xdat:element_security.secure_ip',
-                            label: 'Restrict By IP Address',
-                            onText: 'Yes',
-                            offText: 'No',
-                            values: '1|0'
+                            kind: 'panel.input.hidden',
+                            name: 'xdat:element_security.secure_ip'
                         }
                     }
                 }
@@ -587,22 +579,109 @@ var XNAT = getObject(XNAT || {});
         })
     };
 
-    XNAT.admin.datatype.addActionRow = function(table){
-        var i = jq(table).data('action-count')-1;
+    /* action row rendering functions */
+    var reportActionObj = {
+        id: 'xdat:element_security.element_actions.element_action__0.xdat_element_action_type_id',
+        displayName: 'xdat:element_security.element_actions.element_action__0.display_name',
+        actionName: 'xdat:element_security.element_actions.element_action__0.element_action_name',
+        grouping: 'xdat:element_security.element_actions.element_action__0.grouping',
+        popup: 'xdat:element_security.element_actions.element_action__0.popup',
+        secureAccess: 'xdat:element_security.element_actions.element_action__0.secureAccess',
+        parameterString: 'xdat:element_security.element_actions.element_action__0.parameterString',
+        remove: 'REMOVE__0=xdat:element_action_type.xdat_element_action_type_id'
+    };
+    var listingActionObj = {
+        id: 'xdat:element_security.listing_actions.listing_action__0.xdat_element_security_listing_action_id',
+        displayName: 'xdat:element_security.listing_actions.listing_action__0.display_name',
+        actionName: 'xdat:element_security.listing_actions.listing_action__0.element_action_name',
+        grouping: 'xdat:element_security.listing_actions.listing_action__0.grouping',
+        popup: 'xdat:element_security.listing_actions.listing_action__0.popup',
+        secureAccess: 'xdat:element_security.listing_actions.listing_action__0.secureAccess',
+        parameterString: 'xdat:element_security.listing_actions.listing_action__0.parameterString',
+        remove: 'REMOVE__0=xdat:element_security_listing_action.xdat_element_security_listing_action_id'
+    };
 
-        var tr = jq(table).find('tbody').find('tr')[i];
-        var newTr = jq(tr).clone();
+    function resolveName(name, i) {
+        var arr = name.split('0');
+        return arr[0] + i + arr[1];
+    }
 
-        jq(newTr[0]).find('input').each(function(){
-            var name = jq(this).prop('name');
-            name = name.replace(i,i+1);
-            jq(this).prop('name',name);
-            jq(this).val('');
-        });
+    function textInput(key, i, inputobj, action) {
+        return spawn('input', {
+            type: 'text',
+            name: resolveName(inputobj[key], i),
+            value: action ? action[key] : ''
+        })
+    }
 
-        jq(table)
-            .data('action-count',i+2)
-            .find('tbody').append(newTr[0]);
+    function hiddenInput(key, i, inputobj, action) {
+        return spawn('input', {
+            type: 'hidden',
+            name: resolveName(inputobj[key], i),
+            value: action ? action[key] : ''
+        })
+    }
+
+    function deleteIcon(key, i, inputobj, action) {
+        return spawn('button.btn.sm.delete.delete-action-row', {
+            title: 'Delete Action'
+        }, [
+            spawn('i.fa.fa-trash'),
+            spawn('input.delete', {
+                type: 'hidden',
+                disabled: 'disabled',
+                name: resolveName(inputobj['remove'],i),
+                value: action ? action[key] : ''
+            })
+        ]);
+    }
+
+    function selectPopup(key, i, inputobj, action) {
+        function selectOpt(val) {
+            if (!action) return false;
+            return (val === action[key]) ? 'selected' : false
+        }
+
+        return spawn('select', {
+            name: resolveName(inputobj[key], i)
+        }, [
+            spawn('option', {value: '', selected: selectOpt('')}),
+            spawn('option', {value: 'always', selected: selectOpt('always')}, 'always'),
+            spawn('option', {value: 'sometimes', selected: selectOpt('sometimes')}, 'sometimes'),
+            spawn('option', {value: 'never', selected: selectOpt('never')}, 'never')
+        ])
+    }
+
+    function selectAccess(key, i, inputobj, action) {
+        function selectOpt(val) {
+            if (!action) return false;
+            return (val === action[key]) ? 'selected' : false
+        }
+
+        return spawn('select', {
+            name: resolveName(inputobj[key], i)
+        }, [
+            spawn('option', {value: '', selected: selectOpt('')}),
+            spawn('option', {value: 'edit', selected: selectOpt('edit')}, 'edit'),
+            spawn('option', {value: 'delete', selected: selectOpt('delete')}, 'delete')
+        ])
+    }
+
+    XNAT.admin.datatype.addActionRow = function(table,inputobj){
+        var i = $(table).data('action-count');
+        var tr = spawn('tr',[
+            spawn('td'),
+            spawn('td',[ textInput('displayName', i, inputobj), hiddenInput('id', i, inputobj) ]),
+            spawn('td',[ textInput('actionName', i, inputobj) ]),
+            spawn('td',[ textInput('grouping', i, inputobj) ]),
+            spawn('td',[ selectPopup('popup', i, inputobj) ]),
+            spawn('td',[ selectAccess('secureAccess', i, inputobj) ]),
+            spawn('td',[ textInput('parameterString', i, inputobj) ])
+        ]);
+
+        $(table)
+            .data('action-count',i+1)
+            .find('tbody').append(tr);
     };
     XNAT.admin.datatype.deleteActionRow = function(event){
         event.preventDefault;
@@ -618,27 +697,6 @@ var XNAT = getObject(XNAT || {});
             XNAT.ui.banner.top(2000,'Data type '+xsiType+ ' not recognized','error');
             return false;
         }
-
-        var reportActionObj = {
-            id: 'xdat:element_security.element_actions.element_action__0.xdat_element_action_type_id',
-            displayName: 'xdat:element_security.element_actions.element_action__0.display_name',
-            actionName: 'xdat:element_security.element_actions.element_action__0.element_action_name',
-            grouping: 'xdat:element_security.element_actions.element_action__0.grouping',
-            popup: 'xdat:element_security.element_actions.element_action__0.popup',
-            secureAccess: 'xdat:element_security.element_actions.element_action__0.secureAccess',
-            parameterString: 'xdat:element_security.element_actions.element_action__0.parameterString',
-            remove: 'REMOVE__0=xdat:element_action_type.xdat_element_action_type_id'
-        };
-        var listingActionObj = {
-            id: 'xdat:element_security.listing_actions.listing_action__0.xdat_element_security_listing_action_id',
-            displayName: 'xdat:element_security.listing_actions.listing_action__0.display_name',
-            actionName: 'xdat:element_security.listing_actions.listing_action__0.element_action_name',
-            grouping: 'xdat:element_security.listing_actions.listing_action__0.grouping',
-            popup: 'xdat:element_security.listing_actions.listing_action__0.popup',
-            secureAccess: 'xdat:element_security.listing_actions.listing_action__0.secureAccess',
-            parameterString: 'xdat:element_security.listing_actions.listing_action__0.parameterString',
-            remove: 'REMOVE__0=xdat:element_security_listing_action.xdat_element_security_listing_action_id'
-        };
 
         var actionTable = function(actions,inputobj){
             var atTable = XNAT.table({
@@ -664,80 +722,17 @@ var XNAT = getObject(XNAT || {});
 
             if (actions.length) {
                 actions.forEach(function (action, i) {
-                    function resolveName(name, i) {
-                        var arr = name.split('0');
-                        return arr[0] + i + arr[1];
-                    }
-
-                    function textInput(key, i, val) {
-                        return spawn('input', {
-                            type: 'text',
-                            name: resolveName(inputobj[key], i),
-                            value: action[key]
-                        })
-                    }
-
-                    function hiddenInput(key, i, val) {
-                        return spawn('input', {
-                            type: 'hidden',
-                            name: resolveName(inputobj[key], i),
-                            value: action[key]
-                        })
-                    }
-
-                    function deleteIcon(key, i) {
-                        return spawn('button.btn.sm.delete.delete-action-row', {
-                            title: 'Delete Action'
-                        }, [
-                            spawn('i.fa.fa-trash'),
-                            spawn('input.delete', {
-                                type: 'hidden',
-                                disabled: 'disabled',
-                                name: resolveName(inputobj['remove'],i),
-                                value: action[key]
-                            })
-                        ]);
-                    }
-
-                    function selectPopup(key, i) {
-                        function selectOpt(val) {
-                            return (val === action[key]) ? 'selected' : false
-                        }
-
-                        return spawn('select', {
-                            name: resolveName(inputobj[key], i)
-                        }, [
-                            spawn('option', {value: '', selected: selectOpt('')}),
-                            spawn('option', {value: 'always', selected: selectOpt('always')}, 'always'),
-                            spawn('option', {value: 'sometimes', selected: selectOpt('sometimes')}, 'sometimes'),
-                            spawn('option', {value: 'never', selected: selectOpt('never')}, 'never')
-                        ])
-                    }
-
-                    function selectAccess(key, i) {
-                        function selectOpt(val) {
-                            return (val === action[key]) ? 'selected' : false
-                        }
-
-                        return spawn('select', {
-                            name: resolveName(inputobj[key], i)
-                        }, [
-                            spawn('option', {value: '', selected: selectOpt('')}),
-                            spawn('option', {value: 'edit', selected: selectOpt('edit')}, 'edit'),
-                            spawn('option', {value: 'delete', selected: selectOpt('delete')}, 'delete')
-                        ])
-                    }
 
                     // use the toBody() selector rather than the tbody() selector
                     // to specify that we want to add this row to the existing table body, not create a new one
                     atTable.toBody().tr()
-                        .td([deleteIcon('id', i)])
-                        .td([textInput('displayName', i), hiddenInput('id', i)])
-                        .td([textInput('actionName', i)])
-                        .td([textInput('grouping', i)])
-                        .td([selectPopup('popup', i)])
-                        .td([selectAccess('secureAccess', i)])
-                        .td([textInput('parameterString', i)])
+                        .td([deleteIcon('id', i, inputobj, action)])
+                        .td([textInput('displayName', i, inputobj, action), hiddenInput('id', i, inputobj, action)])
+                        .td([textInput('actionName', i, inputobj, action)])
+                        .td([textInput('grouping', i, inputobj, action)])
+                        .td([selectPopup('popup', i, inputobj, action)])
+                        .td([selectAccess('secureAccess', i, inputobj, action)])
+                        .td([textInput('parameterString', i, inputobj, action)])
                 })
             }
 
@@ -746,7 +741,7 @@ var XNAT = getObject(XNAT || {});
                     onclick: function(e){
                         e.preventDefault();
                         var table = jq(this).parents('table');
-                        XNAT.admin.datatype.addActionRow(table)
+                        XNAT.admin.datatype.addActionRow(table,inputobj)
                     },
                     html: '<i class="fa fa-plus"></i> Add Action'
                 })
@@ -852,10 +847,14 @@ var XNAT = getObject(XNAT || {});
             if ($(this).prop('type') === 'checkbox') $(this).prop('checked','checked');
         });
 
-        // insert a hack to NULLify empty text inputs
+        // insert a hack to NULLify empty text inputs and textareas
         form.find('input[type=text]').each(function(){
             if ($(this).val().length === 0) $(this).val('NULL')
         });
+        form.find('textarea').each(function(){
+            if ($(this).val().length === 0) $(this).val('NULL')
+        });
+
 
         var formData = form.serialize();
 
@@ -867,7 +866,7 @@ var XNAT = getObject(XNAT || {});
             success: function(data){
                 console.log(data);
                 XNAT.ui.banner.top(2000,'Data type updated','success');
-                window.location.reload();
+                window.location.assign(XNAT.url.rootUrl('/app/action/ManageDataTypes'));
             },
             fail: function(e){
                 XNAT.ui.banner.top(2000,'ERROR. Could not update data type.','error');
