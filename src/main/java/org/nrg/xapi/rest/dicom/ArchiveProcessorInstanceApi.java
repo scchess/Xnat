@@ -111,6 +111,29 @@ public class ArchiveProcessorInstanceApi extends AbstractXapiRestController {
         return new ResponseEntity<>(HttpStatus.NOT_MODIFIED);
     }
 
+    @ApiOperation(value = "Deletes the requested site processor from the submitted attributes.", response = Boolean.class)
+    @ApiResponses({@ApiResponse(code = 200, message = "Site processor was successfully removed."),
+            @ApiResponse(code = 401, message = "Must be authenticated to access the XNAT REST API."),
+            @ApiResponse(code = 403, message = "Insufficient privileges to edit the requested site processor."),
+            @ApiResponse(code = 404, message = "The requested site processor wasn't found."),
+            @ApiResponse(code = 500, message = "An unexpected or unknown error occurred.")})
+    @XapiRequestMapping(value = "site/id/{processorId}", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE, restrictTo = Admin)
+    @ResponseBody
+    public ResponseEntity<Boolean> deleteSiteProcessor(@PathVariable("processorId") final int processorId) throws Exception {
+        ArchiveProcessorInstance existingProcessor = _service.findSiteProcessorById(processorId);
+        if (existingProcessor == null) {
+            return new ResponseEntity<>(false, HttpStatus.NOT_FOUND);
+        }
+        try{
+            _service.delete(processorId);
+            return new ResponseEntity<>(true, HttpStatus.OK);
+        }
+        catch(Throwable t){
+            _log.error("An error occurred initializing the user " + processorId, t);
+            return new ResponseEntity<>(false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     @ApiOperation(value = "Get list of site processors.", notes = "The site processors function returns a list of all site processors configured in the XNAT system.", response = ArchiveProcessorInstance.class, responseContainer = "List")
     @ApiResponses({@ApiResponse(code = 200, message = "Returns a list of all of the currently configured site processors."),
             @ApiResponse(code = 500, message = "An unexpected or unknown error occurred")})

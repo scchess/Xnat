@@ -21,63 +21,63 @@ public class ArchiveProcessorInstance extends AbstractHibernateEntity {
 
     }
 
-    public ArchiveProcessorInstance(String scope, List<String> projectIdsList, int order, Map<String, String> parameters, String processorClass) {
-        this.scope = scope;
-        this.projectIdsList = projectIdsList;
-        this.priority = priority;
-        this.parameters = parameters;
-        this.processorClass = processorClass;
+    public ArchiveProcessorInstance(String scope, List<String> projectIdsList, int priority, Map<String, String> parameters, String processorClass) {
+        this._scope = scope;
+        this._projectIdsList = projectIdsList;
+        this._priority = priority;
+        this._parameters = parameters;
+        this._processorClass = processorClass;
     }
 
     public String getScope() {
-        return scope;
+        return _scope;
     }
 
     public void setScope(String scope) {
-        this.scope = scope;
+        this._scope = scope;
     }
 
     @ElementCollection
     public List<String> getProjectIdsList() {
-        return projectIdsList;
+        return _projectIdsList;
     }
 
     public void setProjectIdsList(List<String> projectIdsList) {
-        this.projectIdsList = projectIdsList;
+        this._projectIdsList = projectIdsList;
     }
 
     public int getPriority() {
-        return priority;
+        return _priority;
     }
 
     public void setPriority(int priority) {
-        this.priority = priority;
+        this._priority = priority;
     }
 
     @ElementCollection
     @MapKeyColumn(name="parameterName")
     @Column(name="value")
     public Map<String, String> getParameters() {
-        return parameters;
+        return _parameters;
     }
 
     public void setParameters(Map<String, String> parameters) {
-        this.parameters = parameters;
+        this._parameters = parameters;
     }
 
     public String getProcessorClass() {
-        return processorClass;
+        return _processorClass;
     }
 
     public void setProcessorClass(String processorClass) {
-        this.processorClass = processorClass;
+        this._processorClass = processorClass;
     }
 
-    private String scope;
-    private List<String> projectIdsList;
-    private int priority;
-    private Map<String, String> parameters;
-    private String processorClass;
+    private String _scope;
+    private List<String> _projectIdsList;
+    private int _priority;
+    private Map<String, String> _parameters;
+    private String _processorClass;
 
     public static final String SITE_SCOPE="site";
 }

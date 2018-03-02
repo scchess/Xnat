@@ -56,7 +56,13 @@ public class ArchiveProcessorInstanceDAO extends AbstractHibernateDAO<ArchivePro
 	@Transactional
 	public ArchiveProcessorInstance getSiteArchiveProcessorInstanceByProcessorId(final int processorId) {
         final Criteria criteria = getSession().createCriteria(getParameterizedType());
-        criteria.add(Restrictions.eq("id", processorId));
+		Long longId;
+		try {
+			longId = Long.valueOf(processorId);
+		} catch (NumberFormatException e) {
+			return null;
+		}
+        criteria.add(Restrictions.eq("id", longId));
 		criteria.add(Restrictions.eq("scope", ArchiveProcessorInstance.SITE_SCOPE));
 		List<ArchiveProcessorInstance> processors = criteria.list();
 		if(processors!=null && processors.size()>0){
