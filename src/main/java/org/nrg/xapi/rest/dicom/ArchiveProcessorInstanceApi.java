@@ -48,7 +48,7 @@ public class ArchiveProcessorInstanceApi extends AbstractXapiRestController {
             @ApiResponse(code = 403, message = "Insufficient privileges to create the submitted site processor."),
             @ApiResponse(code = 404, message = "The requested site processor wasn't found."),
             @ApiResponse(code = 500, message = "An unexpected or unknown error occurred.")})
-    @XapiRequestMapping(value = "site", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.POST, restrictTo = Admin)
+    @XapiRequestMapping(value = "site/create", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.POST, restrictTo = Admin)
     @ResponseBody
     public ResponseEntity<ArchiveProcessorInstance> createSiteProcessor(@RequestBody final ArchiveProcessorInstance processor) throws Exception {
         if (StringUtils.isBlank(processor.getProcessorClass())) {
@@ -91,7 +91,7 @@ public class ArchiveProcessorInstanceApi extends AbstractXapiRestController {
             existingProcessor.setPriority(processor.getPriority());
             isDirty = true;
         }
-        if (!processor.getParameters().equals(existingProcessor.getParameters())) {
+        if ((processor.getParameters()==null && existingProcessor.getParameters()!=null) || (processor.getParameters()!=null && existingProcessor.getParameters()==null) || ((processor.getParameters()!=null) && !processor.getParameters().equals(existingProcessor.getParameters()))) {
             existingProcessor.setParameters(processor.getParameters());
             isDirty = true;
         }
@@ -137,7 +137,7 @@ public class ArchiveProcessorInstanceApi extends AbstractXapiRestController {
     @ApiOperation(value = "Get list of site processors.", notes = "The site processors function returns a list of all site processors configured in the XNAT system.", response = ArchiveProcessorInstance.class, responseContainer = "List")
     @ApiResponses({@ApiResponse(code = 200, message = "Returns a list of all of the currently configured site processors."),
             @ApiResponse(code = 500, message = "An unexpected or unknown error occurred")})
-    @XapiRequestMapping(value = "site", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET, restrictTo = Admin)
+    @XapiRequestMapping(value = "site/list", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET, restrictTo = Admin)
     @ResponseBody
     public ResponseEntity<List<ArchiveProcessorInstance>> getAllSiteProcessors() {
         return new ResponseEntity<>(_service.getAllSiteProcessors(), HttpStatus.OK);
@@ -156,9 +156,9 @@ public class ArchiveProcessorInstanceApi extends AbstractXapiRestController {
     @ApiResponses({@ApiResponse(code = 200, message = "Returns the requested site processor."),
             @ApiResponse(code = 404, message = "The requested site processor wasn't found."),
             @ApiResponse(code = 500, message = "An unexpected or unknown error occurred.")})
-    @XapiRequestMapping(value = "site/id/{processorId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET, restrictTo = Admin)
+    @XapiRequestMapping(value = "site/id/{processorId}", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET, restrictTo = Admin)
     @ResponseBody
-    public ResponseEntity<ArchiveProcessorInstance> getSiteProcessor(@PathVariable("processorId") final int processorId) throws Exception {
+    public ResponseEntity<ArchiveProcessorInstance> getSiteProcessor(@PathVariable("processorId") final int processorId) {
         ArchiveProcessorInstance processor = _service.findSiteProcessorById(processorId);
 
         if (processor!=null) {
