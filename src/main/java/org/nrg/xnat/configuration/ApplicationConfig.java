@@ -28,6 +28,8 @@ import org.nrg.xnat.preferences.PluginOpenUrlsPreference;
 import org.nrg.xnat.restlet.XnatRestletExtensions;
 import org.nrg.xnat.restlet.XnatRestletExtensionsBean;
 import org.nrg.xnat.restlet.actions.importer.ImporterHandlerPackages;
+import org.nrg.xnat.processor.importer.ProcessorImporterHandlerA;
+import org.nrg.xnat.processor.importer.ProcessorImporterMap;
 import org.nrg.xnat.services.PETTracerUtils;
 import org.nrg.xnat.utils.XnatUserProvider;
 import org.springframework.cache.CacheManager;
@@ -36,6 +38,9 @@ import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
 import org.springframework.context.annotation.*;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.TaskScheduler;
+import org.apache.commons.configuration.ConfigurationException;
+
+import java.io.IOException;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -50,7 +55,8 @@ import java.util.List;
                 "org.nrg.xft.daos", "org.nrg.xft.event.listeners", "org.nrg.xft.services",
                 "org.nrg.xnat.configuration", "org.nrg.xnat.daos", "org.nrg.xnat.event.listeners",
                 "org.nrg.xnat.helpers.merge", "org.nrg.xnat.initialization.tasks",
-                "org.nrg.xnat.node", "org.nrg.xnat.task"})
+                "org.nrg.xnat.node", "org.nrg.xnat.task", "org.nrg.xnat.processors",
+                "org.nrg.xnat.processor.services.impl", "org.nrg.xnat.processor.dao", "org.nrg.xnat.processor.importer"})
 @Import({FeaturesConfig.class, ReactorConfig.class})
 @ImportResource("WEB-INF/conf/mq-context.xml")
 public class ApplicationConfig {
@@ -143,5 +149,10 @@ public class ApplicationConfig {
     @Bean
     public ImporterHandlerPackages importerHandlerPackages() {
         return new ImporterHandlerPackages(new HashSet<>(Arrays.asList("org.nrg.xnat.restlet.actions", "org.nrg.xnat.archive")));
+    }
+
+    @Bean
+    public ProcessorImporterMap processorImporterMap(final List<ProcessorImporterHandlerA> handlers) throws ConfigurationException, IOException, ClassNotFoundException {
+        return new ProcessorImporterMap(new HashSet<>(Arrays.asList("org.nrg.xnat.processor.importer")), handlers);
     }
 }

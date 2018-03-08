@@ -83,7 +83,7 @@ public class SchedulerConfig implements SchedulingConfigurer {
         _service.triggerEvent(new PreferenceEvent("roleService", String.valueOf(_siteConfigPreferences.getRoleService())));
         _service.triggerEvent(new PreferenceEvent("checksums", String.valueOf(_siteConfigPreferences.getChecksums())));
         _service.triggerEvent(new PreferenceEvent("refreshGuestFrequency", String.valueOf(_siteConfigPreferences.getRefreshGuestFrequency())));
-
+        _service.triggerEvent(new PreferenceEvent("pacsAvailabilityCheckFrequency", "junk value"));//Replace this once Rick's code to update this class is merged in
         try {
             String tracers = _siteConfigPreferences.getSitewidePetTracers();
             if (StringUtils.isEmpty(tracers)) {
